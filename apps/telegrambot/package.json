@@ -1,0 +1,24 @@
+{
+  "name": "telegrambot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "scripts": {
+    "test": "",
+    "start": "node ./src/app.js",
+    "startdev": "cross-env NODE_ENV=test nodemon -L ./src/app.js"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "knex": "^3.1.0",
+    "node-telegram-bot-api": "^0.66.0",
+    "nodemon": "^3.1.7",
+    "pg": "^8.13.1",
+    "redis": "^4.7.0",
+    "winston": "^3.17.0"
+  }
+}
