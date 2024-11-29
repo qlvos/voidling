@@ -23,7 +23,7 @@ Module._set_max_horizontal_persistence(1000); // How long it maintains horizonta
 // === ROTATION AND ORIENTATION ===
 Module._set_min_rotation_speed(1.4);    // Slowest rotation speed - affects smoothness of movement
 Module._set_max_rotation_speed(3.2);    // Fastest rotation speed - high values can make it jerky
-Module._set_rotation_smoothness(0.06);  // Rotation transition smoothness - lower = smoother
+Module._set_rotation_smoothness(0.01);  // Rotation transition smoothness - lower = smoother
 Module._set_max_rotation_angle(3.14);   // Maximum rotation (6.28 = 2π) - full rotation range
 
 // === DEFORMATION AND ANIMATION ===
@@ -31,7 +31,7 @@ Module._set_base_deform_strength(4.5);  // Primary deformation amount - higher =
 Module._set_extra_deform_strength(1.7); // Secondary deformation - adds complexity to movement
 Module._set_deform_frequency(1.5);      // How often shape changes - higher = more rapid morphing
 Module._set_deform_complexity(15);       // Number of deformation waves - higher = more organic looking
-Module._set_deform_smoothness(1.11);    // Smoothness of shape changes - lower = smoother transitions
+Module._set_deform_smoothness(0.11);    // Smoothness of shape changes - lower = smoother transitions
 Module._set_drippiness(4.0);           // Flowing/dripping effect - higher = more liquid-like
 Module._set_time_speed(0.08);          // Overall animation speed - affects all time-based animations
 

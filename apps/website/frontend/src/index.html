@@ -1,505 +1,609 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-  <title>voidling v0.9 - Optimized</title>
-  <style>
-    body {
-      background-color: #252525;
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      font-family: monospace;
-    }
+    <title>voidling v0.9 - Optimized</title>
+    <style>
+        body {
+            background-color: #252525;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: monospace;
+        }
+        #output {
+            white-space: pre;
+            font-size: 12px;
+            line-height: 1;
+            margin: 40px;
+        }
 
-    #output {
-      white-space: pre;
-      font-size: 12px;
-      line-height: 1;
-      margin: 40px;
-    }
+        a {
+          text-decoration:none; 
+          color: inherit;
+        }
 
-    .c57 {
-      color: #5f00ff;
-    }
+        .c57 { background-color: #252525; color: #5f00ff; }
+        .c99 { background-color: #252525; color: #875fff; }
+        .c105 { background-color: #252525; color: #8787ff; }
+        .c166 { background-color: #252525; color: #d75f00; }
+        .c208 { background-color: #252525; color: #ff8700; }
+        .c141 { background-color: #252525; color: #af87ff; }
 
-    .c99 {
-      color: #875fff;
-    }
+        .text-underneath {
+          position: absolute; 
+          top: 50%; 
+          left: 50%;
+          transform: translate(-50%, -50%); 
+          color: white; 
+          z-index: +1000; 
+        }
 
-    .c105 {
-      color: #8787ff;
-    }
+        .catbox { 
+          position: absolute; 
+          bottom: 0; 
+          width: 100%; 
+        }
 
-    .c166 {
-      color: #d75f00;
-    }
+        .assetboxclass {
+          padding: 0;
+          margin: 0;
+        }
 
-    .c208 {
-      color: #ff8700;
-    }
-
-    .c141 {
-      color: #af87ff;
-    }
-  </style>
+    </style>
 </head>
-
 <body>
-  <pre id="output"></pre>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script>
-    // Configuration
-    const FRAME_INTERVAL = 48;
-    const FRAME_HISTORY_SIZE = 72;  // Reduced from 150
-    const CLEANUP_INTERVAL = 300;
-    const MEMORY_THRESHOLD_MB = 300;  // Reduced from 300
-    const MAX_POOL_SIZE = 10;  // Reduced from 20
-    const MEMORY_CHECK_INTERVAL = 2000;
 
-    // Color mapping
-    const colorMap = {
-      '.': 'c57', ',': 'c57', '-': 'c99',
-      '~': 'c99', ':': 'c99', ';': 'c105',
-      '=': 'c105', '!': 'c105', '*': 'c105',
-      '#': 'c166', '@': 'c208', '$': 'c141'
-    };
+    <pre id="output"></pre>
+    <div id="backgroundbox" class="text-underneath">
+      <div>
 
-    // Circular buffer for frame management
-    class CircularFrameBuffer {
-      constructor(maxSize) {
-        this.maxSize = maxSize;
-        this.buffer = new Array(maxSize);
-        this.head = 0;
-        this.tail = 0;
-        this.size = 0;
-      }
+<pre>
+  voidling assets
+  <span id="assetbox" class="assetboxclass">
+  </span>
 
-      push(frame) {
-        if (this.size === this.maxSize) {
-          if (this.buffer[this.tail]) {
-            bufferPool.return(this.buffer[this.tail]);
-          }
-          this.tail = (this.tail + 1) % this.maxSize;
-          this.size--;
-        }
+  latest investment
+  <span id="investmentbox" class="assetboxclass">
+  </span>
 
-        this.buffer[this.head] = frame;
-        this.head = (this.head + 1) % this.maxSize;
-        this.size++;
-      }
+  watchlist
+  <span id="watchlistbox" class="assetboxclass">
+  </span>
+</pre>
 
-      get(index) {
-        if (index >= this.size) return null;
-        return this.buffer[(this.tail + index) % this.maxSize];
-      }
+      </div>
+      <div class="catbox">
+<pre>
+    |\      _,,,---,,_
+    /,`.-'`'    -.  ;-;;,_
+   |,4-  ) )-,_. ,\ (  `'-'
+  '---''(_/--'  `-'\_)
+</pre>
+      </div>
+      
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="voidling-config.js"></script>
+    <script>
+        // Configuration
+        const FRAME_INTERVAL = 48;
+        const FRAME_HISTORY_SIZE = 72;  // Reduced from 150
+        const CLEANUP_INTERVAL = 300;
+        const MEMORY_THRESHOLD_MB = 300;  // Reduced from 300
+        const MAX_POOL_SIZE = 10;  // Reduced from 20
+        const MEMORY_CHECK_INTERVAL = 2000;
 
-      clear() {
-        while (this.size > 0) {
-          if (this.buffer[this.tail]) {
-            bufferPool.return(this.buffer[this.tail]);
-          }
-          this.tail = (this.tail + 1) % this.maxSize;
-          this.size--;
-        }
-        this.head = 0;
-        this.tail = 0;
-      }
-    }
-
-    // Optimized buffer pool
-    class OptimizedBufferPool {
-      constructor(maxPoolSize) {
-        this.pools = new Map();
-        this.maxPoolSize = maxPoolSize;
-        this.totalBuffers = 0;
-      }
-
-      get(size) {
-        if (!this.pools.has(size)) {
-          this.pools.set(size, []);
-        }
-
-        const pool = this.pools.get(size);
-        if (pool.length > 0) {
-          this.totalBuffers--;
-          return pool.pop();
-        }
-
-        return new Uint8Array(size);
-      }
-
-      return(buffer) {
-        const size = buffer.length;
-        if (!this.pools.has(size)) {
-          this.pools.set(size, []);
-        }
-
-        const pool = this.pools.get(size);
-        if (pool.length < this.maxPoolSize && this.totalBuffers < this.maxPoolSize * 2) {
-          pool.push(buffer);
-          this.totalBuffers++;
-        }
-      }
-
-      cleanup() {
-        for (const [size, pool] of this.pools) {
-          while (pool.length > Math.min(3, this.maxPoolSize / 4)) {
-            pool.pop();
-            this.totalBuffers--;
-          }
-        }
-      }
-    }
-
-    // Global variables
-    let lastMemoryCheck = 0;
-    let isTabVisible = true;
-    let frameCounter = 0;
-    let lastFrameTime = 0;
-    let outputElement;
-    let bufferArray = new Uint8Array(0);
-    let resizeTimeout;
-
-    const frameBuffer = new CircularFrameBuffer(FRAME_HISTORY_SIZE);
-    const bufferPool = new OptimizedBufferPool(MAX_POOL_SIZE);
-
-    // Utility functions
-    function bufferToHTML(buffer, width) {
-      let html = '';
-      for (let i = 0; i < buffer.length; i++) {
-        const char = String.fromCharCode(buffer[i]);
-        const colorClass = colorMap[char];
-        html += colorClass ?
-          `<span class="${colorClass}">${char}</span>` : char;
-        if ((i + 1) % width === 0) html += '\n';
-      }
-      return html;
-    }
-
-    function buffersEqual(a, b) {
-      if (!a || !b || a.length !== b.length) return false;
-      for (let i = 0; i < a.length; i++) {
-        if (a[i] !== b[i]) return false;
-      }
-      return true;
-    }
-
-    function calculateDimensions() {
-      try {
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        const charWidth = 7;
-        const charHeight = 12;
-        const paddingPercent = 0.1;
-        const maxWidth = Math.floor((vw * (1 - paddingPercent * 1.15)) / charWidth);
-        const maxHeight = Math.floor((vh * (1 - paddingPercent * 1.15)) / charHeight);
-        return {
-          width: Math.max(50, Math.min(maxWidth, 400)),
-          height: Math.max(10, Math.min(maxHeight, 200))
+        // Color mapping
+        const colorMap = {
+            '.': 'c57', ',': 'c57', '-': 'c99',
+            '~': 'c99', ':': 'c99', ';': 'c105',
+            '=': 'c105', '!': 'c105', '*': 'c105',
+            '#': 'c166', '@': 'c208', '$': 'c141'
         };
-      } catch (e) {
-        console.error('Dimension calculation failed:', e);
-        return { width: 190, height: 61 };
-      }
-    }
 
-    function preserveVoidlingState() {
-      // Get deform arrays
-      const complexity = Module.ccall('get_deform_complexity', 'number', [], []);
-      const deformPhases = [];
-      const deformFreqs = [];
-
-      for (let i = 0; i < complexity; i++) {
-        deformPhases.push(Module.ccall('get_deform_phase', 'number', ['number'], [i]));
-        deformFreqs.push(Module.ccall('get_deform_freq', 'number', ['number'], [i]));
-      }
-
-      return {
-        position: {
-          movementX: Module.ccall('get_movement_x', 'number', [], []),
-          movementY: Module.ccall('get_movement_y', 'number', [], []),
-          targetX: Module.ccall('get_target_x', 'number', [], []),
-          targetY: Module.ccall('get_target_y', 'number', [], []),
-          lastTargetX: Module.ccall('get_last_target_x', 'number', [], []),
-          lastTargetY: Module.ccall('get_last_target_y', 'number', [], [])
-        },
-        rotation: {
-          rotX: Module.ccall('get_rot_x', 'number', [], []),
-          rotY: Module.ccall('get_rot_y', 'number', [], []),
-          rotZ: Module.ccall('get_rot_z', 'number', [], []),
-          targetRotX: Module.ccall('get_target_rot_x', 'number', [], []),
-          targetRotY: Module.ccall('get_target_rot_y', 'number', [], []),
-          targetRotZ: Module.ccall('get_target_rot_z', 'number', [], []),
-          rotationSpeed: Module.ccall('get_rotation_speed', 'number', [], [])
-        },
-        behavior: {
-          current: Module.ccall('get_current_behavior', 'number', [], []),
-          timer: Module.ccall('get_behavior_timer', 'number', [], []),
-          stuckCounter: Module.ccall('get_stuck_counter', 'number', [], []),
-          horizontalPersistenceTimer: Module.ccall('get_horizontal_persistence_timer', 'number', [], [])
-        },
-        deformation: {
-          complexity: complexity,
-          phases: deformPhases,
-          frequencies: deformFreqs
-        },
-        time: Module.ccall('get_current_time', 'number', [], [])
-      };
-    }
-
-    function restoreVoidlingState(state) {
-      // Restore position
-      Module.ccall('set_movement_x', null, ['number'], [state.position.movementX]);
-      Module.ccall('set_movement_y', null, ['number'], [state.position.movementY]);
-      Module.ccall('set_target_x', null, ['number'], [state.position.targetX]);
-      Module.ccall('set_target_y', null, ['number'], [state.position.targetY]);
-
-      // Restore rotation
-      Module.ccall('set_rot_x', null, ['number'], [state.rotation.rotX]);
-      Module.ccall('set_rot_y', null, ['number'], [state.rotation.rotY]);
-      Module.ccall('set_rot_z', null, ['number'], [state.rotation.rotZ]);
-
-      // Restore behavior and time
-      Module.ccall('set_current_behavior', null, ['number'], [state.behavior.current]);
-      Module.ccall('set_current_time', null, ['number'], [state.time]);
-
-      // Restore deformation state
-      if (state.deformation) {
-        for (let i = 0; i < state.deformation.complexity; i++) {
-          if (i < state.deformation.phases.length) {
-            Module.ccall('set_deform_phase', null, ['number', 'number'], [i, state.deformation.phases[i]]);
-          }
-          if (i < state.deformation.frequencies.length) {
-            Module.ccall('set_deform_freq', null, ['number', 'number'], [i, state.deformation.frequencies[i]]);
-          }
-        }
-      }
-    }
-    function checkMemoryUsage() {
-      if (performance.memory) {
-        const memoryUsage = performance.memory.usedJSHeapSize / (1024 * 1024);
-        if (memoryUsage > MEMORY_THRESHOLD_MB) {
-          console.warn(`High memory usage: ${memoryUsage.toFixed(2)}MB`);
-          forceCleanup();
-        }
-      }
-    }
-
-    function forceCleanup() {
-      frameBuffer.clear();
-
-      if (Module && Module._cleanup) {
-        const state = preserveVoidlingState();
-        Module._cleanup();
-        Module._initVoidling();
-
-        const dims = calculateDimensions();
-        Module._set_dimensions(dims.width, dims.height);
-        restoreVoidlingState(state);
-      }
-
-      bufferPool.cleanup();
-
-      if (outputElement) {
-        outputElement.innerHTML = '';
-      }
-
-      bufferArray = new Uint8Array(0);
-      frameCounter = 0;
-      lastFrameTime = 0;
-
-      if (typeof window.gc === 'function') {
-        try {
-          window.gc();
-        } catch (e) {
-          console.log('Manual GC not available');
-        }
-      }
-    }
-
-    // Event listeners
-    document.addEventListener('visibilitychange', function () {
-      isTabVisible = !document.hidden;
-      if (document.hidden) {
-        forceCleanup();
-        if (resizeTimeout) {
-          cancelAnimationFrame(resizeTimeout);
-          resizeTimeout = null;
-        }
-      }
-    });
-
-    window.addEventListener('resize', () => {
-      if (resizeTimeout) {
-        cancelAnimationFrame(resizeTimeout);
-      }
-
-      resizeTimeout = requestAnimationFrame(() => {
-        try {
-          forceCleanup();
-          const dims = calculateDimensions();
-          Module._set_dimensions(dims.width, dims.height);
-        } catch (e) {
-          console.error('Resize handling failed:', e);
-        }
-      });
-    });
-
-    window.addEventListener('error', function (e) {
-      if (e.message.includes('wasm')) {
-        console.error('WASM loading failed:', e);
-        document.getElementById('output').innerHTML = 'Failed to initialize voidling. Please refresh the page.';
-      }
-    });
-
-    // Main Module configuration
-    var Module = {
-      onRuntimeInitialized: function () {
-        try {
-          outputElement = document.getElementById('output');
-          if (!outputElement) throw new Error('Output element not found');
-
-          Module._initialize_trig_cache();
-          Module._initVoidling();
-
-          const dims = calculateDimensions();
-          Module._set_dimensions(dims.width, dims.height);
-
-          function updateDisplay(timestamp) {
-            const now = Date.now();
-            if (now - lastMemoryCheck > MEMORY_CHECK_INTERVAL) {
-              checkMemoryUsage();
-              lastMemoryCheck = now;
+        // Circular buffer for frame management
+        class CircularFrameBuffer {
+            constructor(maxSize) {
+                this.maxSize = maxSize;
+                this.buffer = new Array(maxSize);
+                this.head = 0;
+                this.tail = 0;
+                this.size = 0;
             }
 
-            if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
-              requestAnimationFrame(updateDisplay);
-              return;
+            push(frame) {
+                if (this.size === this.maxSize) {
+                    if (this.buffer[this.tail]) {
+                        bufferPool.return(this.buffer[this.tail]);
+                    }
+                    this.tail = (this.tail + 1) % this.maxSize;
+                    this.size--;
+                }
+                
+                this.buffer[this.head] = frame;
+                this.head = (this.head + 1) % this.maxSize;
+                this.size++;
             }
 
-            lastFrameTime = timestamp;
-
-            if (frameCounter % CLEANUP_INTERVAL === 0) {
-              forceCleanup();
+            get(index) {
+                if (index >= this.size) return null;
+                return this.buffer[(this.tail + index) % this.maxSize];
             }
 
+            clear() {
+                while (this.size > 0) {
+                    if (this.buffer[this.tail]) {
+                        bufferPool.return(this.buffer[this.tail]);
+                    }
+                    this.tail = (this.tail + 1) % this.maxSize;
+                    this.size--;
+                }
+                this.head = 0;
+                this.tail = 0;
+            }
+        }
+
+        // Optimized buffer pool
+        class OptimizedBufferPool {
+            constructor(maxPoolSize) {
+                this.pools = new Map();
+                this.maxPoolSize = maxPoolSize;
+                this.totalBuffers = 0;
+            }
+
+            get(size) {
+                if (!this.pools.has(size)) {
+                    this.pools.set(size, []);
+                }
+
+                const pool = this.pools.get(size);
+                if (pool.length > 0) {
+                    this.totalBuffers--;
+                    return pool.pop();
+                }
+
+                return new Uint8Array(size);
+            }
+
+            return(buffer) {
+                const size = buffer.length;
+                if (!this.pools.has(size)) {
+                    this.pools.set(size, []);
+                }
+
+                const pool = this.pools.get(size);
+                if (pool.length < this.maxPoolSize && this.totalBuffers < this.maxPoolSize * 2) {
+                    pool.push(buffer);
+                    this.totalBuffers++;
+                }
+            }
+
+            cleanup() {
+                for (const [size, pool] of this.pools) {
+                    while (pool.length > Math.min(3, this.maxPoolSize / 4)) {
+                        pool.pop();
+                        this.totalBuffers--;
+                    }
+                }
+            }
+        }
+
+        // Global variables
+        let lastMemoryCheck = 0;
+        let isTabVisible = true;
+        let frameCounter = 0;
+        let lastFrameTime = 0;
+        let outputElement;
+        let bufferArray = new Uint8Array(0);
+        let resizeTimeout;
+        
+        const frameBuffer = new CircularFrameBuffer(FRAME_HISTORY_SIZE);
+        const bufferPool = new OptimizedBufferPool(MAX_POOL_SIZE);
+
+        // Utility functions
+        function bufferToHTML(buffer, width) {
+            let html = '';
+            for (let i = 0; i < buffer.length; i++) {
+                const char = String.fromCharCode(buffer[i]);
+                const colorClass = colorMap[char];
+                html += colorClass ? 
+                    `<span class="${colorClass}">${char}</span>` : char;
+                if ((i + 1) % width === 0) html += '\n';
+            }
+            return html;
+        }
+
+        function buffersEqual(a, b) {
+            if (!a || !b || a.length !== b.length) return false;
+            for (let i = 0; i < a.length; i++) {
+                if (a[i] !== b[i]) return false;
+            }
+            return true;
+        }
+
+        function calculateDimensions() {
             try {
-              Module._animationFrame();
-
-              const bufferPtr = Module._getBuffer();
-              const bufferSize = Module._getBufferSize();
-
-              if (bufferArray.length !== bufferSize) {
-                bufferArray = new Uint8Array(Module.HEAPU8.buffer, bufferPtr, bufferSize);
-              }
-
-              const newBuffer = bufferPool.get(bufferSize);
-              newBuffer.set(new Uint8Array(Module.HEAPU8.buffer, bufferPtr, bufferSize));
-
-              const lastFrame = frameBuffer.get(0);
-              if (!lastFrame || !buffersEqual(newBuffer, lastFrame)) {
-                frameBuffer.push(newBuffer);
-                const html = bufferToHTML(newBuffer, dims.width);
-                outputElement.innerHTML = html;
-              } else {
-                bufferPool.return(newBuffer);
-              }
-
-              frameCounter++;
+                const vw = window.innerWidth;
+                const vh = window.innerHeight;
+                const charWidth = 7;
+                const charHeight = 12;
+                const paddingPercent = 0.1;
+                const maxWidth = Math.floor((vw * (1 - paddingPercent * 1.15)) / charWidth);
+                const maxHeight = Math.floor((vh * (1 - paddingPercent * 1.15)) / charHeight);
+                return {
+                    width: Math.max(50, Math.min(maxWidth, 400)),
+                    height: Math.max(10, Math.min(maxHeight, 200))
+                };
             } catch (e) {
-              console.error('Frame update failed:', e);
+                console.error('Dimension calculation failed:', e);
+                return { width: 190, height: 61 };
+            }
+        }
+
+        function preserveVoidlingState() {
+            // Get deform arrays
+            const complexity = Module.ccall('get_deform_complexity', 'number', [], []);
+            const deformPhases = [];
+            const deformFreqs = [];
+            
+            for (let i = 0; i < complexity; i++) {
+                deformPhases.push(Module.ccall('get_deform_phase', 'number', ['number'], [i]));
+                deformFreqs.push(Module.ccall('get_deform_freq', 'number', ['number'], [i]));
             }
 
-            requestAnimationFrame(updateDisplay);
-          }
-
-          requestAnimationFrame(updateDisplay);
-        } catch (e) {
-          console.error('Initialization failed:', e);
-          outputElement.innerHTML = 'Failed to initialize voidling. Please refresh the page.';
+            return {
+                position: {
+                    movementX: Module.ccall('get_movement_x', 'number', [], []),
+                    movementY: Module.ccall('get_movement_y', 'number', [], []),
+                    targetX: Module.ccall('get_target_x', 'number', [], []),
+                    targetY: Module.ccall('get_target_y', 'number', [], []),
+                    lastTargetX: Module.ccall('get_last_target_x', 'number', [], []),
+                    lastTargetY: Module.ccall('get_last_target_y', 'number', [], [])
+                },
+                rotation: {
+                    rotX: Module.ccall('get_rot_x', 'number', [], []),
+                    rotY: Module.ccall('get_rot_y', 'number', [], []),
+                    rotZ: Module.ccall('get_rot_z', 'number', [], []),
+                    targetRotX: Module.ccall('get_target_rot_x', 'number', [], []),
+                    targetRotY: Module.ccall('get_target_rot_y', 'number', [], []),
+                    targetRotZ: Module.ccall('get_target_rot_z', 'number', [], []),
+                    rotationSpeed: Module.ccall('get_rotation_speed', 'number', [], [])
+                },
+                behavior: {
+                    current: Module.ccall('get_current_behavior', 'number', [], []),
+                    timer: Module.ccall('get_behavior_timer', 'number', [], []),
+                    stuckCounter: Module.ccall('get_stuck_counter', 'number', [], []),
+                    horizontalPersistenceTimer: Module.ccall('get_horizontal_persistence_timer', 'number', [], [])
+                },
+                deformation: {
+                    complexity: complexity,
+                    phases: deformPhases,
+                    frequencies: deformFreqs
+                },
+                time: Module.ccall('get_current_time', 'number', [], [])
+            };
         }
-      }
-    };
 
-    // Cleanup on page unload
-    window.addEventListener('unload', () => {
-      try {
-        if (Module && Module._cleanup) {
-          Module._cleanup();
+        function restoreVoidlingState(state) {
+            // Restore position
+            Module.ccall('set_movement_x', null, ['number'], [state.position.movementX]);
+            Module.ccall('set_movement_y', null, ['number'], [state.position.movementY]);
+            Module.ccall('set_target_x', null, ['number'], [state.position.targetX]);
+            Module.ccall('set_target_y', null, ['number'], [state.position.targetY]);
+            
+            // Restore rotation
+            Module.ccall('set_rot_x', null, ['number'], [state.rotation.rotX]);
+            Module.ccall('set_rot_y', null, ['number'], [state.rotation.rotY]);
+            Module.ccall('set_rot_z', null, ['number'], [state.rotation.rotZ]);
+            
+            // Restore behavior and time
+            Module.ccall('set_current_behavior', null, ['number'], [state.behavior.current]);
+            Module.ccall('set_current_time', null, ['number'], [state.time]);
+            
+            // Restore deformation state
+            if (state.deformation) {
+                for (let i = 0; i < state.deformation.complexity; i++) {
+                    if (i < state.deformation.phases.length) {
+                        Module.ccall('set_deform_phase', null, ['number', 'number'], [i, state.deformation.phases[i]]);
+                    }
+                    if (i < state.deformation.frequencies.length) {
+                        Module.ccall('set_deform_freq', null, ['number', 'number'], [i, state.deformation.frequencies[i]]);
+                    }
+                }
+            }
         }
-        forceCleanup();
-      } catch (e) {
-        console.error('Cleanup failed:', e);
-      }
-    });
-  </script>
-  <script src="voidling.js"></script>
-  <script src="voidling-config.js"></script>
-  <script>
-    $(document).ready(function () {
-      $.get('http://localhost:47900/api/cat', function (data) {
-        $('#dataContainer').html(`
-          <h2>${data.title}</h2>
-          <p>${data.body}</p>
-        `);
+        function checkMemoryUsage() {
+            if (performance.memory) {
+                const memoryUsage = performance.memory.usedJSHeapSize / (1024 * 1024);
+                if (memoryUsage > MEMORY_THRESHOLD_MB) {
+                    console.warn(`High memory usage: ${memoryUsage.toFixed(2)}MB`);
+                    forceCleanup();
+                }
+            }
+        }
+
+        function forceCleanup() {
+            frameBuffer.clear();
+            
+            if (Module && Module._cleanup) {
+                const state = preserveVoidlingState();
+                Module._cleanup();
+                Module._initVoidling();
+                
+                const dims = calculateDimensions();
+                Module._set_dimensions(dims.width, dims.height);
+                restoreVoidlingState(state);
+            }
+
+            bufferPool.cleanup();
+            
+            if (outputElement) {
+                outputElement.innerHTML = '';
+            }
+
+            bufferArray = new Uint8Array(0);
+            frameCounter = 0;
+            lastFrameTime = 0;
+
+            if (typeof window.gc === 'function') {
+                try {
+                    window.gc();
+                } catch (e) {
+                    console.log('Manual GC not available');
+                }
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('visibilitychange', function() {
+            isTabVisible = !document.hidden;
+            if (document.hidden) {
+                forceCleanup();
+                if (resizeTimeout) {
+                    cancelAnimationFrame(resizeTimeout);
+                    resizeTimeout = null;
+                }
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if (resizeTimeout) {
+                cancelAnimationFrame(resizeTimeout);
+            }
+            
+            resizeTimeout = requestAnimationFrame(() => {
+                try {
+                    forceCleanup();
+                    const dims = calculateDimensions();
+                    Module._set_dimensions(dims.width, dims.height);
+                } catch (e) {
+                    console.error('Resize handling failed:', e);
+                }
+            });
+        });
+
+        window.addEventListener('error', function(e) {
+            if (e.message.includes('wasm')) {
+                console.error('WASM loading failed:', e);
+                document.getElementById('output').innerHTML = 'Failed to initialize voidling. Please refresh the page.';
+            }
+        });
+
+        var Module = {
+            onRuntimeInitialized: function() {
+                try {
+                    outputElement = document.getElementById('output');
+                    if (!outputElement) throw new Error('Output element not found');
+
+                    Module._initialize_trig_cache();
+                    
+                    // Wait for config to be applied before initializing voidling
+                    const initializeVoidling = () => {
+                        if (Module._set_base_radius) {
+                            // Trigger the config application
+                            const event = new Event('DOMContentLoaded');
+                            window.dispatchEvent(event);
+                            
+                            // Short delay to ensure configs are applied
+                            setTimeout(() => {
+                                Module._initVoidling();
+                                
+                                const dims = calculateDimensions();
+                                const bgbox = document.getElementById('backgroundbox');
+                                bgbox.style.width = 6*dims.width + "px";
+                                bgbox.style.height = 11*dims.height + "px";
+
+                                Module._set_dimensions(dims.width, dims.height);
+
+                                function updateDisplay(timestamp) {
+                                    const now = Date.now();
+                                    if (now - lastMemoryCheck > MEMORY_CHECK_INTERVAL) {
+                                        checkMemoryUsage();
+                                        lastMemoryCheck = now;
+                                    }
+
+                                    if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
+                                        requestAnimationFrame(updateDisplay);
+                                        return;
+                                    }
+
+                                    lastFrameTime = timestamp;
+
+                                    if (frameCounter % CLEANUP_INTERVAL === 0) {
+                                        forceCleanup();
+                                    }
+
+                                    try {
+                                        Module._animationFrame();
+                                        
+                                        const bufferPtr = Module._getBuffer();
+                                        const bufferSize = Module._getBufferSize();
+                                        
+                                        if (bufferArray.length !== bufferSize) {
+                                            bufferArray = new Uint8Array(Module.HEAPU8.buffer, bufferPtr, bufferSize);
+                                        }
+                                        
+                                        const newBuffer = bufferPool.get(bufferSize);
+                                        newBuffer.set(new Uint8Array(Module.HEAPU8.buffer, bufferPtr, bufferSize));
+                                        
+                                        const lastFrame = frameBuffer.get(0);
+                                        if (!lastFrame || !buffersEqual(newBuffer, lastFrame)) {
+                                            frameBuffer.push(newBuffer);
+                                            const html = bufferToHTML(newBuffer, dims.width);
+                                            outputElement.innerHTML = html;
+                                        } else {
+                                            bufferPool.return(newBuffer);
+                                        }
+
+                                        frameCounter++;
+                                    } catch (e) {
+                                        console.error('Frame update failed:', e);
+                                    }
+                                    
+                                    requestAnimationFrame(updateDisplay);
+                                }
+                                
+                                requestAnimationFrame(updateDisplay);
+                            }, 100);
+                        } else {
+                            setTimeout(initializeVoidling, 10);
+                        }
+                    };
+                    
+                    initializeVoidling();
+                } catch (e) {
+                    console.error('Initialization failed:', e);
+                    outputElement.innerHTML = 'Failed to initialize voidling. Please refresh the page.';
+                }
+            }
+        };
+
+        // Cleanup on page unload
+        window.addEventListener('unload', () => {
+            try {
+                if (Module && Module._cleanup) {
+                    Module._cleanup();
+                }
+                forceCleanup();
+            } catch (e) {
+                console.error('Cleanup failed:', e);
+            }
+        });
+    </script>
+    <script src="voidling.js"></script>
+    <script>
+      $(document).ready(function () {
+        $.get('http://localhost:47900/api/cat', function (data) {
+          $('#dataContainer').html(`
+            <h2>${data.title}</h2>
+            <p>${data.body}</p>
+          `);
+        });
       });
-    });
-
-    let socket;
-    let reconnectInterval = 2000;
-    let keepAliveInterval = 3000;
-    let keepAliveTimer;
-
-    function connectWebSocket() {
-      // Open a WebSocket connection
-      socket = new WebSocket('ws://localhost:47901/ws');
-
-      // Handle the open event
-      socket.onopen = function (event) {
-        console.log('WebSocket connection opened:', event);
-
-        //        // Start the keepalive timer
-        //        keepAliveTimer = setInterval(function () {
-        //          socket.send(JSON.stringify({action:"ping"}));
-        //        }, keepAliveInterval);
-        //      };
-
-        // Handle incoming messages
-        socket.onmessage = function (event) {
-          console.log('Message received:', event.data);
-          let msg = JSON.parse(event.data);
-          if (msg.action == "vdata") {
-            setBaseRadius(msg.value);
-          } else if (msg.action == "ping") {
-            socket.send(JSON.stringify({ action: "pong" }));
-          }
-        };
-
-        // Handle the close event
-        socket.onclose = function (event) {
-          console.log('WebSocket connection closed:', event);
-          $('#messages').append('<p>WebSocket connection closed</p>');
-
-          // Clear the keepalive timer
-          clearInterval(keepAliveTimer);
-
-          // Attempt to reconnect
-          setTimeout(connectWebSocket, reconnectInterval);
-        };
-
-        // Handle errors
-        socket.onerror = function (error) {
-          console.error('WebSocket error:', error);
-          $('#messages').append('<p>WebSocket error: ' + error.message + '</p>');
-        };
+  
+      let socket;
+      let reconnectInterval = 2000;
+      let keepAliveInterval = 3000;
+      let keepAliveTimer;
+  
+      function connectWebSocket() {
+        // Open a WebSocket connection
+        socket = new WebSocket('ws://localhost:47901/ws');
+  
+        // Handle the open event
+        socket.onopen = function (event) {
+          console.log('WebSocket connection opened:', event);
+  
+          //        // Start the keepalive timer
+          //        keepAliveTimer = setInterval(function () {
+          //          socket.send(JSON.stringify({action:"ping"}));
+          //        }, keepAliveInterval);
+          //      };
+  
+          // Handle incoming messages
+          socket.onmessage = function (event) {
+            console.log('Message received:', event.data);
+            let msg = JSON.parse(event.data);
+            if (msg.action == "vdata") {
+              //setBaseRadius(msg.value);
+              renderAssets("assetbox", msg.assets);
+              renderAssets("watchlistbox", msg.watchlist);
+              renderAssets("investmentbox", msg.latestinvestment);
+            } else if (msg.action == "ping") {
+              socket.send(JSON.stringify({ action: "pong" }));
+            }
+          };
+  
+          // Handle the close event
+          socket.onclose = function (event) {
+            console.log('WebSocket connection closed:', event);
+            $('#messages').append('<p>WebSocket connection closed</p>');
+  
+            // Clear the keepalive timer
+            clearInterval(keepAliveTimer);
+  
+            // Attempt to reconnect
+            setTimeout(connectWebSocket, reconnectInterval);
+          };
+  
+          // Handle errors
+          socket.onerror = function (error) {
+            console.error('WebSocket error:', error);
+            $('#messages').append('<p>WebSocket error: ' + error.message + '</p>');
+          };
+        }
       }
+      connectWebSocket();
+    </script>
+
+  
+  <script>
+    const voidlingAssets = [
+      { name: 'RG', id: 'Feut3r89xpN6nuF1w3otRcjuYcAatygjEqxW7MeiHArW', price: '$2400', change: '+5%' },
+      { name: 'PNUT', id: '4AZRPNEfCJ7iw28rJu5aUyeQhYcvdcNm8cswyL51AY9i', price: '$3533', change: '+10%' },
+      { name: 'WWW', id: '45A2W6WEkQGkLpawnkkDhgNMKkTs3oYHrabxfUzppump', price: '$210', change: '+3%' }
+    ];
+
+    const latestInvestment = [
+      { name: 'PNUT', id: '4AZRPNEfCJ7iw28rJu5aUyeQhYcvdcNm8cswyL51AY9i', price: '$3533', change: '+10%' }
+    ];
+
+    const watchlist = [
+      { name: 'Pepito', id: 'D1ySHVWnaWQsf8WiskayoF7oHuvXLp4CXvYw3PaS8N7B', change1h: '1h: +5%', change4h: '4h: +3%' },
+      { name: 'WWW', id: '45A2W6WEkQGkLpawnkkDhgNMKkTs3oYHrabxfUzppump', change1h: '1h: +5%', change4h: '4h: +3%' },
+      { name: 'CENTS', id: 'C9FVTtx4WxgHmz55FEvQgykq8rqiLS8xRBVgqQVtpump', change1h: '1h: +5%', change4h: '4h: +3%' },
+      { name: 'GOAT', id: 'CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump', change1h: '1h: +5%', change4h: '4h: +3%' },
+      { name: 'WIF', id: '21AErpiB8uSb94oQKRcwuHqyHF93njAxBSbdUrpupump', change1h: '1h: +5%', change4h: '4h: +3%' }
+    ];
+
+    const dexScreenerUrl = function (address) {
+      return "https://dexscreener.com/solana/" + address;
     }
-    connectWebSocket();
+
+    const textGap = "    ";
+    function renderAssets(containerId, assets) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      const maxNameLength = Math.max(...assets.map(asset => asset.name.length));
+      const tabSize = 4;
+
+      for(const asset of assets) {
+        console.log("yooo")
+        const assetDiv = document.createElement('div');
+        const nameLength = asset.name.length;
+        const tabsNeeded = Math.ceil((maxNameLength - nameLength) / tabSize);
+        const tabs = '\t'.repeat(tabsNeeded);
+
+        assetDiv.className = 'asset';
+        assetDiv.innerHTML = `${textGap}${asset.name}${tabs} | <a target="_blank" href="${dexScreenerUrl(asset.address)}">${asset.address}</a>`;
+        container.appendChild(assetDiv);
+      }
+
+    }
+
   </script>
 </body>
-
 </html>

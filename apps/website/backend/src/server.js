@@ -9,7 +9,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import { addCatEvent } from './db/postgresdbhandler.js'
-import { getData } from './chaindata.js';
+import { getData, getPortfolioStats } from './chaindata.js';
 
 app.use(cors());
 app.use(express.json());
@@ -22,9 +22,9 @@ let maxCacheAge = 12000; // 12 seconds
 const pingInterval = 4500;
 const checkConnectionInterval = pingInterval * 2;
 const maxPongWaitTime = 3000;
-const CACHE_UPDATE_FREQUENCY = 25000;
+const CACHE_UPDATE_FREQUENCY = 15000;
 const SLOW_CACHE_UPDATE_FREQUENCY = 60000 * 60 * 1; // 1 per hour
-
+const VOIDLING_DATA = "vdata";
 
 // Define the SSE endpoint URL
 const sseUrl = 'https://api.thecatdoor.com/sse/v1/events'; // Replace with your actual SSE endpoint URL
@@ -36,17 +36,16 @@ const eventSource = new EventSource(sseUrl);
 let cachedChainData = null;
 setInterval(async () => {
   if(wss.clients.size > 0) {
-    cachedChainData = await getData();
+    cachedChainData = await getPortfolioStats();
 
-    let jsonStr = JSON.stringify(cachedChainData);
     wss.clients.forEach(async (ws) => {
-      ws.send(jsonStr);
+      ws.send(JSON.stringify({ action: VOIDLING_DATA, ...cachedChainData }));
     });
   }
 
 }, CACHE_UPDATE_FREQUENCY);
 
-setInterval(async () => { cachedChainData = await getData(); }, SLOW_CACHE_UPDATE_FREQUENCY);
+setInterval(async () => { cachedChainData = await getPortfolioStats(); }, SLOW_CACHE_UPDATE_FREQUENCY);
 
 
 
@@ -71,8 +70,8 @@ eventSource.addEventListener('customEvent', function (event) {
 });
 
 
-app.listen(config.CATSITE_REST_PORT, () => {
-  logger.info('REST server running on port: ' + config.CATSITE_REST_PORT)
+app.listen(config.VLINGSITE_REST_PORT, () => {
+  logger.info('REST server running on port: ' + config.VLINGSITE_REST_PORT)
 });
 
 let wss = startWebsocketServer();
@@ -135,7 +134,6 @@ async function handlePingPong(msg, ws) {
 }
 
 const ping = (ws) => {
-  let numClients = 0;
   ws.pingSentAt = Date.now();
   ws.send(JSON.stringify({ action: "ping" }));
 
@@ -149,7 +147,7 @@ const ping = (ws) => {
 
 function startWebsocketServer() {
 
-  let port = config.CATSITE_WS_PORT;
+  let port = config.VLINGSITE_WS_PORT;
 
   const server = createServer();
   const wss = new WebSocketServer({ server });
@@ -171,7 +169,7 @@ function startWebsocketServer() {
       }
     });
 
-    ws.send(JSON.stringify({ action: "vdata", value: cachedChainData }));
+    ws.send(JSON.stringify({ action: VOIDLING_DATA, ...cachedChainData }));
 
   });
 
@@ -195,28 +193,6 @@ function randomNumber(max) {
   return Math.floor(Math.random() * (max + 1));
 }
 
-
-async function fetchFeed() {
-  try {
-    let backend = get(config.RG_API_BACKEND);
-    let reply = await fetch(backend + "/api/rg/feed?minBuy=50000");
-    if (reply) {
-      let obj = await reply.json();
-      return obj && obj.feed ? obj.feed : null;
-      //return processFeed(replyJson.feed);
-    }
-  } catch (err) {
-    logger.error("Something went wrong trying to fetch the feed from the backend" + err);
-  }
-}
-
-
-/*
-setInterval(async () => {
-  cachedLockReply = await fetchLocks();
-}, LOCKS_REFRESH_INTERVAL);
-
-*/
 function time(seconds) {
   const secsPerDay = 86400;
   const secsPerHour = 3600;
@@ -250,4 +226,4 @@ function time(seconds) {
 
 }
 
-cachedChainData = await getData();
+cachedChainData = await getPortfolioStats();
