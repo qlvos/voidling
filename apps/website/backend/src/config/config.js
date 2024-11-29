@@ -14,35 +14,35 @@ config.DEXTOOLS_API_KEY = get({
   default: process.env.DEXTOOLS_API_KEY
 })
 
-config.CATSITE_WS_PORT = get({
+config.VLINGSITE_WS_PORT = get({
   dev: null,
   test: null,
   prod: null,
   default: "47901"
 });
 
-config.CAT_AGENT_POSTGRES_DATABASE = get({
+config.VLING_POSTGRES_DATABASE = get({
   dev: null,
   test: null,
   prod: null,
-  default: "cat_agent_db"
+  default: "voidling_agent_db"
 });
 
-config.CAT_AGENT_POSTGRES_URL = get({
+config.VLING_POSTGRES_URL = get({
   dev: null,
   test: null,
   prod: null,
-  default: process.env.CAT_AGENT_POSTGRES_URL,
+  default: process.env.VLING_POSTGRES_URL,
 });
 
-config.CAT_AGENT_POSTGRES_CREDENTIALS = get({
+config.VLING_POSTGRES_CREDENTIALS = get({
   dev: null,
   test: null,
   prod: null,
-  default: process.env.CAT_AGENT_POSTGRES_CREDENTIALS,
+  default: process.env.VLING_POSTGRES_CREDENTIALS,
 });
 
-config.CATSITE_REST_PORT = get({
+config.VLINGSITE_REST_PORT = get({
   dev: null,
   test: null,
   prod: null,

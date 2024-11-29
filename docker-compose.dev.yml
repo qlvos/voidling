@@ -11,9 +11,9 @@ services:
       - ./apps/website/frontend/src:/usr/share/nginx/html
     environment:
       - WDS_SOCKET_HOST=127.0.0.1
-      - CAT_AGENT_API_BACKEND_IP  
-      - CAT_AGENT_BACKEND_SERVICE_NAME=backend
-      - CAT_AGENT_FRONTEND_SERVICE_NAME=frontend
+      - VLING_API_BACKEND_IP  
+      - VLING_BACKEND_SERVICE_NAME=backend
+      - VLING_FRONTEND_SERVICE_NAME=frontend
 
   backend:
     build:
@@ -26,10 +26,10 @@ services:
       - ./apps/website/backend:/catagent/apps/website/backend
     environment:
       - WDS_SOCKET_HOST=127.0.0.1
-      - CAT_AGENT_API_BACKEND_IP
-      - CAT_AGENT_POSTGRES_URL=postgres
-      - CAT_AGENT_POSTGRES_CREDENTIALS
-      - CAT_AGENT_REDIS_URL=redis
+      - VLING_API_BACKEND_IP
+      - VLING_POSTGRES_URL=postgres
+      - VLING_POSTGRES_CREDENTIALS
+      - VLING_REDIS_URL=redis
       - DEXTOOLS_API_KEY
 
   trader:
@@ -39,11 +39,11 @@ services:
     volumes:
       - ./apps/trader/src:/apps/trader/src
     environment:
-      - CAT_AGENT_POSTGRES_URL=postgres
-      - CAT_AGENT_POSTGRES_CREDENTIALS
-      - CAT_AGENT_REDIS_URL=redis
-      - CAT_HELIUS_API_KEY
-      - CAT_WALLET_PRIVATE_KEY
+      - VLING_POSTGRES_URL=postgres
+      - VLING_POSTGRES_CREDENTIALS
+      - VLING_REDIS_URL=redis
+      - VLING_HELIUS_API_KEY
+      - VLING_WALLET_PRIVATE_KEY
     depends_on:
       - postgres
       - redis
@@ -52,11 +52,11 @@ services:
     image: timescale/timescaledb-ha:pg16
     restart: always
     environment:
-      - POSTGRES_PASSWORD=${CAT_ADMIN_POSTGRES_PASSWORD}
+      - POSTGRES_PASSWORD=${VLING_ADMIN_POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
-     - voidling-postgres-data:/home/postgres/pgdata/data
+     - vling-postgres-data:/home/postgres/pgdata/data
 
   adminer:
     image: adminer
@@ -81,5 +81,5 @@ services:
       - REDIS_DATABASES=16
 
 volumes:
-  voidling-postgres-data:
-  voidling-redis-data:
+  vling-postgres-data:
+  vling-redis-data:

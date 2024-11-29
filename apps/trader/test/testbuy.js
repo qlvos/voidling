@@ -15,6 +15,6 @@ let redisPublisher = redis.duplicate();
 redisPublisher.on('error', err => logger.error(err));
 redisPublisher.connect();
 
-await redisPublisher.publish(config.CAT_EVENT_KEY, JSON.stringify(
+await redisPublisher.publish(config.VLING_EVENT_KEY, JSON.stringify(
   {event: CAT_BUY_TOKEN, token: AURORA }
 ));

@@ -1,7 +1,7 @@
 import { config } from './../config/config.js';
 import knex from 'knex'
 
-let connectionString = 'postgres://' + config.CAT_AGENT_POSTGRES_CREDENTIALS + "@" + config.CAT_AGENT_POSTGRES_URL + "/" + config.CAT_AGENT_POSTGRES_DATABASE;
+let connectionString = 'postgres://' + config.VLING_POSTGRES_CREDENTIALS + "@" + config.VLING_POSTGRES_URL + "/" + config.VLING_POSTGRES_DATABASE;
 
 const db = knex({
   client: 'pg',

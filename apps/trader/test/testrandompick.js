@@ -13,4 +13,4 @@ redisPublisher.connect();
 
 console.log("yo")
 
-await redisPublisher.publish(config.CAT_EVENT_KEY, JSON.stringify({event: CAT_BUY_RANDOM_TOKEN }));
+await redisPublisher.publish(config.VLING_EVENT_KEY, JSON.stringify({event: CAT_BUY_RANDOM_TOKEN }));

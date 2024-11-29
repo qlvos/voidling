@@ -10,11 +10,11 @@ import { addBuy, addSell, getLastOpenTrade } from '../db/postgresdbhandler.js';
 
 const JUPITER_QUOTE_API_URL = "https://quote-api.jup.ag/v6/quote";
 const JUPITER_SWAP_API_URL = "https://quote-api.jup.ag/v6/swap";
-const HELIUS_API_URL = "https://mainnet.helius-rpc.com/?api-key=" + config.CAT_HELIUS_API_KEY;
+const HELIUS_API_URL = "https://mainnet.helius-rpc.com/?api-key=" + config.VLING_HELIUS_API_KEY;
 
 const connection = new Connection(HELIUS_API_URL, 'confirmed');
 
-const wallet = new Wallet(Keypair.fromSecretKey(bs58.decode(config.CAT_WALLET_PRIVATE_KEY)));
+const wallet = new Wallet(Keypair.fromSecretKey(bs58.decode(config.VLING_WALLET_PRIVATE_KEY)));
 const WRAPPED_SOL = "So11111111111111111111111111111111111111112";
 const MAX_AMOUNT = 0.01;
 const MAX_SLIPPAGE = 10;
@@ -23,19 +23,19 @@ const TRANSACTION_DELAY = 7000;
 
 export async function buyToken(token, redis) {
 
-  if (Number(config.CAT_BUY_AMOUNT) > MAX_AMOUNT) {
+  if (Number(config.VLING_BUY_AMOUNT) > MAX_AMOUNT) {
     logger.warn("Aborting as the amount was higher than the maximum allowed (" + MAX_AMOUNT + ")");
     return;
   }
 
-  let swapDetails = await swap(WRAPPED_SOL, token, config.CAT_BUY_AMOUNT);
+  let swapDetails = await swap(WRAPPED_SOL, token, config.VLING_BUY_AMOUNT);
 
 //let swapDetails = await getSwapDetails(token, '4sVT1wKVW3cy2ap87EC32CiSHvG2Aa7wEiGEEAfWHChBPULJfDc7i6RrHedhsmKZdScxdd9LzhWLGJZHPiAhqKf7');
 
 
   if(swapDetails) {
     // save to DB (buys) !
-    await addBuy(WRAPPED_SOL, token, config.CAT_BUY_AMOUNT, swapDetails.receivedAmount, swapDetails.receivedAmountRaw, Date.now());
+    await addBuy(WRAPPED_SOL, token, config.VLING_BUY_AMOUNT, swapDetails.receivedAmount, swapDetails.receivedAmountRaw, Date.now());
     logger.info("Buy saved in database");
   }
   return swapDetails;
@@ -176,7 +176,7 @@ async function getSwapDetails(token, soldToken, transactionHash) {
   let soldTokenDetails = await getTokenDetails(soldToken);
 
   return  {
-    spentSol: config.CAT_BUY_AMOUNT,
+    spentSol: config.VLING_BUY_AMOUNT,
     receivedToken: details,
     soldToken: soldTokenDetails,
     receivedAmount: received,

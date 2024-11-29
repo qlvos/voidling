@@ -7,7 +7,7 @@ let redisConnection;
 
 export async function getRedisConnection() {
 
-  let url = 'redis://' + config.CAT_AGENT_REDIS_URL;
+  let url = 'redis://' + config.VLING_REDIS_URL;
   redisConnection = createClient({ 
     url: url,
     pingInterval: 5000,

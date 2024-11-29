@@ -15,11 +15,11 @@ server {
   }
 
   location /api/cat {
-    proxy_pass http://${CAT_AGENT_BACKEND_SERVICE_NAME}:47900/api/cat/;
+    proxy_pass http://${VLING_BACKEND_SERVICE_NAME}:47900/api/cat/;
   }
 
   location /ws {
-      proxy_pass http://${CAT_AGENT_BACKEND_SERVICE_NAME}:47901;
+      proxy_pass http://${VLING_BACKEND_SERVICE_NAME}:47901;
       proxy_http_version 1.1;
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection $http_connection;

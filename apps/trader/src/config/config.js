@@ -22,25 +22,25 @@ export const config = {};
 
 
 
-config.CAT_HELIUS_API_KEY = get({
+config.VLING_HELIUS_API_KEY = get({
   dev: null,
   test: null,
   prod: null,
-  default: process.env.CAT_HELIUS_API_KEY
+  default: process.env.VLING_HELIUS_API_KEY
 });
 
-config.CAT_BUY_AMOUNT = get({
+config.VLING_BUY_AMOUNT = get({
   dev: null,
   test: null,
   prod: null,
   default: 0.0001
 });
 
-config.CAT_WALLET_PRIVATE_KEY = get({
+config.VLING_WALLET_PRIVATE_KEY = get({
   dev: null,
   test: null,
   prod: null,
-  default: process.env.CAT_WALLET_PRIVATE_KEY
+  default: process.env.VLING_WALLET_PRIVATE_KEY
 });
 
 config.SOLANA_RPC_URL = get({
@@ -51,40 +51,40 @@ config.SOLANA_RPC_URL = get({
 });
 
 
-config.CAT_EVENT_KEY = get({
+config.VLING_EVENT_KEY = get({
   dev: null,
-  test: "test_cat_event",
+  test: "test_voidling_event",
   prod: null,
-  default: "cat_event"
+  default: "voidling_event"
 });
 
-config.CAT_AGENT_POSTGRES_DATABASE = get({
+config.VLING_POSTGRES_DATABASE = get({
   dev: null,
   test: null,
   prod: null,
-  default: "cat_agent_db"
+  default: "voidling_agent_db"
 });
 
 
-config.CAT_AGENT_POSTGRES_URL = get({
+config.VLING_POSTGRES_URL = get({
   dev: null,
   test: null,
   prod: null,
-  default: process.env.CAT_AGENT_POSTGRES_URL,
+  default: process.env.VLING_POSTGRES_URL,
 });
 
-config.CAT_AGENT_POSTGRES_CREDENTIALS = get({
+config.VLING_POSTGRES_CREDENTIALS = get({
   dev: null,
   test: null,
   prod: null,
-  default: process.env.CAT_AGENT_POSTGRES_CREDENTIALS,
+  default: process.env.VLING_POSTGRES_CREDENTIALS,
 });
 
-config.CAT_AGENT_REDIS_URL = get({
+config.VLING_REDIS_URL = get({
   dev: null,
   test: null,
   prod: null,
-  default: 'localhost:6379'//process.env.CAT_AGENT_REDIS_URL
+  default: 'localhost:6379'//process.env.VLING_REDIS_URL
 });
 
 config.TG_REAPER_API_ID = get({

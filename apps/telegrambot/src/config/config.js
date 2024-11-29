@@ -20,18 +20,18 @@ config.NAME = {
 
 export const config = {};
 
-config.CAT_AGENT_TELEGRAM_TOKEN = get({
+config.VLING_TELEGRAM_TOKEN = get({
   dev: null,
-  test: process.env.CAT_TG_BOT_KEY_TEST,
+  test: process.env.VLING_TG_BOT_KEY_TEST,
   prod: null,
-  default: process.env.CAT_TG_BOT_KEY
+  default: process.env.VLING_TG_BOT_KEY
 });
 
-config.CAT_TG_CHANNEL_ID = get({
+config.VLING_TG_CHANNEL_ID = get({
   dev: null,
-  test: process.env.CAT_TG_CHANNEL_ID_TEST,
+  test: process.env.VLING_TG_CHANNEL_ID_TEST,
   prod: null,
-  default: process.env.CAT_TG_CHANNEL_ID
+  default: process.env.VLING_TG_CHANNEL_ID
 });
 
 config.GOD_TG_ACCOUNT = get({
@@ -49,39 +49,39 @@ config.FIGURE_TG_ACCOUNT = get({
 });
 
 
-config.CAT_EVENT_KEY = get({
+config.VLING_EVENT_KEY = get({
   dev: null,
-  test: "test_cat_event",
+  test: "test_voidling_event",
   prod: null,
-  default: "cat_event"
+  default: "voidling_event"
 });
 
-config.CAT_AGENT_POSTGRES_DATABASE = get({
+config.VLING_POSTGRES_DATABASE = get({
   dev: null,
   test: null,
   prod: null,
-  default: "cat_agent_db"
+  default: "voidling_agent_db"
 });
 
-config.CAT_AGENT_POSTGRES_URL = get({
+config.VLING_POSTGRES_URL = get({
   dev: null,
   test: null,
   prod: null,
-  default: process.env.CAT_AGENT_POSTGRES_URL,
+  default: process.env.VLING_POSTGRES_URL,
 });
 
-config.CAT_AGENT_POSTGRES_CREDENTIALS = get({
+config.VLING_POSTGRES_CREDENTIALS = get({
   dev: null,
   test: null,
   prod: null,
-  default: process.env.CAT_AGENT_POSTGRES_CREDENTIALS,
+  default: process.env.VLING_POSTGRES_CREDENTIALS,
 });
 
-config.CAT_AGENT_REDIS_URL = get({
+config.VLING_REDIS_URL = get({
   dev: null,
   test: null,
   prod: null,
-  default: 'localhost:6379'//process.env.CAT_AGENT_REDIS_URL
+  default: 'localhost:6379'//process.env.VLING_REDIS_URL
 });
 
 config.TG_REAPER_API_ID = get({

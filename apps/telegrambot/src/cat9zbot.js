@@ -12,12 +12,10 @@ export class CatBot {
     this.redisPublisher.on('error', err => logger.error(err));
     this.redisPublisher.connect();
 
-    this.TELEGRAM_BOT_TOKEN = config.CAT_AGENT_TELEGRAM_TOKEN;
+    this.TELEGRAM_BOT_TOKEN = config.VLING_TELEGRAM_TOKEN;
 
     this.bot = new TelegramBot(this.TELEGRAM_BOT_TOKEN, { polling: true });
     
-    this.bot.onText(/\/startai/, this.startai.bind(this));
-    this.bot.onText(/\/stopai/, this.stopai.bind(this));
     this.bot.onText(/\/catbought/, this.fakecatbought.bind(this));
     this.bot.onText(/\/buyrandom/, this.buyrandom.bind(this));
     this.bot.onText(/\/closetrade/, this.closetrade.bind(this));
@@ -29,10 +27,10 @@ export class CatBot {
     this.channel = new Map();
     this.startGlobal;
 
-    this.channel.set(Number(config.CAT_TG_CHANNEL_ID), true);
+    this.channel.set(Number(config.VLING_TG_CHANNEL_ID), true);
 
 
-    redis.subscribe(config.CAT_EVENT_KEY, async (message) => {
+    redis.subscribe(config.VLING_EVENT_KEY, async (message) => {
   
       if (message != null) {
         try {
@@ -61,7 +59,7 @@ export class CatBot {
       return;
     }
     console.log("yo!")
-    await this.redisPublisher.publish(config.CAT_EVENT_KEY, JSON.stringify({event: CAT_BUY_RANDOM_TOKEN }));
+    await this.redisPublisher.publish(config.VLING_EVENT_KEY, JSON.stringify({event: CAT_BUY_RANDOM_TOKEN }));
   }
 
   async closetrade(context) {
@@ -69,7 +67,7 @@ export class CatBot {
       logger.info("not a super user, cannot stop a trade!")
       return;
     }
-    await this.redisPublisher.publish(config.CAT_EVENT_KEY, JSON.stringify({event: CAT_SELL_TOKEN }));
+    await this.redisPublisher.publish(config.VLING_EVENT_KEY, JSON.stringify({event: CAT_SELL_TOKEN }));
   }
 
   async fakecatbought(context) {
@@ -77,51 +75,15 @@ export class CatBot {
       logger.info("not a super user, cannot do a fake bought message!")
       return;
     }
-    await this.redisPublisher.publish(config.CAT_EVENT_KEY, JSON.stringify({event: CAT_BOUGHT_TOKEN }));
+    await this.redisPublisher.publish(config.VLING_EVENT_KEY, JSON.stringify({event: CAT_BOUGHT_TOKEN }));
   }
 
   async signalBoughtToken(msg) {
-    await this.bot.sendMessage(config.CAT_TG_CHANNEL_ID, `The cat bought ${msg.tokenInfo.name} (${msg.tokenInfo.symbol})`);
+    await this.bot.sendMessage(config.VLING_TG_CHANNEL_ID, `The cat bought ${msg.tokenInfo.name} (${msg.tokenInfo.symbol})`);
   }
 
   async signalSoldToken(msg) {
-    await this.bot.sendMessage(config.CAT_TG_CHANNEL_ID, `The cat sold ${msg.soldToken.name}`);
-  }
-
-  async startai(context) {
-    logger.info("request to start ai");
-    if(!this.isSuperUser(context.from.id)) {
-      logger.info("not a super user, cannot start ai!")
-      return;
-    }
-    //this.redis.publish(RG_EVENT_KEY, JSON.stringify({event: RG_START_AI}));
-  }
-
-  async stopai(context) {
-    logger.info("request to stop ai");
-    if(!this.isSuperUser(context.from.id)) {
-      logger.info("not a super user, cannot stop ai!")
-      return;
-    }
-    this.redis.publish(RG_EVENT_KEY, JSON.stringify({event: RG_STOP_AI}));
-  }
-
-  async startx(context) {
-    logger.info("request to start x");
-    if(!this.isSuperUser(context.from.id)) {
-      logger.info("not a super user, cannot start x!")
-      return;
-    }
-    this.redis.publish(RG_EVENT_KEY, JSON.stringify({event: RG_START_X}));
-  }
-
-  async stopx(context) {
-    logger.info("request to stop ai");
-    if(!this.isSuperUser(context.from.id)) {
-      logger.info("not a super user, cannot stop x!")
-      return;
-    }
-    this.redis.publish(RG_EVENT_KEY, JSON.stringify({event: RG_STOP_X}));
+    await this.bot.sendMessage(config.VLING_TG_CHANNEL_ID, `The cat sold ${msg.soldToken.name}`);
   }
 
   async sendPhoto(chatId, situation, text, img) {

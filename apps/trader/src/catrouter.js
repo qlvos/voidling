@@ -13,16 +13,16 @@ export async function catRouter(message, redis) {
   console.log(message)
   if(message.event == CAT_BUY_TOKEN) {
     let swapDetails = await buyToken(message.token, redis);
-    await this.redisPublisher.publish(config.CAT_EVENT_KEY, JSON.stringify({event: CAT_BOUGHT_TOKEN }));
+    await this.redisPublisher.publish(config.VLING_EVENT_KEY, JSON.stringify({event: CAT_BOUGHT_TOKEN }));
   } else if(message.event == CAT_BUY_RANDOM_TOKEN) {
     let choice = pickToken();
     console.log(choice);
     let tokenInfo = await buyToken(choice.address, redis);
     console.log(tokenInfo)
-    await redis.publish(config.CAT_EVENT_KEY, JSON.stringify({event: CAT_BOUGHT_TOKEN, tokenInfo }));
+    await redis.publish(config.VLING_EVENT_KEY, JSON.stringify({event: CAT_BOUGHT_TOKEN, tokenInfo }));
   } else if(message.event == CAT_SELL_TOKEN) {
     let sellInfo = await sellToken(redis);
     console.log(sellInfo);
-    await redis.publish(config.CAT_EVENT_KEY, JSON.stringify({event: CAT_SOLD_TOKEN, ...sellInfo }));
+    await redis.publish(config.VLING_EVENT_KEY, JSON.stringify({event: CAT_SOLD_TOKEN, ...sellInfo }));
   } 
 }

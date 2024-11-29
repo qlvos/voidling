@@ -9,8 +9,8 @@ export async function init() {
   redisPublisher.on('error', err => logger.error(err));
   redisPublisher.connect();
   
-  logger.info("Redis subscribing to " + config.CAT_EVENT_KEY);
-  await redis.subscribe(config.CAT_EVENT_KEY, async (message) => {
+  logger.info("Redis subscribing to " + config.VLING_EVENT_KEY);
+  await redis.subscribe(config.VLING_EVENT_KEY, async (message) => {
   
     if (message != null) {
       try {
