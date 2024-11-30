@@ -22,7 +22,7 @@ let maxCacheAge = 12000; // 12 seconds
 const pingInterval = 4500;
 const checkConnectionInterval = pingInterval * 2;
 const maxPongWaitTime = 3000;
-const CACHE_UPDATE_FREQUENCY = 15000;
+const CACHE_UPDATE_FREQUENCY = 60000;
 const SLOW_CACHE_UPDATE_FREQUENCY = 60000 * 60 * 1; // 1 per hour
 const VOIDLING_DATA = "vdata";
 
