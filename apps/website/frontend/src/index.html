@@ -16,6 +16,10 @@
       font-family: monospace;
     }
 
+    pre {
+      tab-size: 2;
+    }
+
     #output {
       white-space: pre;
       font-size: 12px;
@@ -108,6 +112,7 @@
    |,4-  ) )-,_. ,\ (  `'-'
   '---''(_/--'  `-'\_)
 </pre>
+
     </div>
 
   </div>
@@ -605,22 +610,42 @@
       return "https://dexscreener.com/solana/" + address;
     }
 
+    function formatAmount(amount) {
+      return parseInt(amount, 10).toLocaleString('en-US');
+    }
+
+    function tabs(tabSize, maxLength, value) {
+      
+      const nameLength = value.length;
+      const tabsNeeded = Math.ceil((maxLength - nameLength) / tabSize);
+      console.log(value)
+      console.log(tabsNeeded)
+      return '\t'.repeat(tabsNeeded);
+    }
+
     const textGap = "    ";
     function renderAssets(containerId, assets) {
+      console.log(assets)
+      console.log("-----")
       const container = document.getElementById(containerId);
       container.innerHTML = '';
-      const maxNameLength = Math.max(...assets.map(asset => asset.name.length));
-      const tabSize = 4;
+      const maxNameLength = Math.max(...assets.map(asset => asset.token.symbol.length));
+      const maxAddressLength = Math.max(...assets.map(asset => asset.address.length));
+      const tabSize = 2;
 
       for (const asset of assets) {
-        console.log("yooo")
         const assetDiv = document.createElement('div');
-        const nameLength = asset.name.length;
-        const tabsNeeded = Math.ceil((maxNameLength - nameLength) / tabSize);
-        const tabs = '\t'.repeat(tabsNeeded);
+        
 
         assetDiv.className = 'asset';
-        assetDiv.innerHTML = `${textGap}${asset.name}${tabs} | <a target="_blank" href="${dexScreenerUrl(asset.address)}">${asset.address}</a>`;
+        assetDiv.innerHTML = `${textGap}${asset.token.symbol}${tabs(tabSize, maxNameLength, asset.token.symbol)} | <a target="_blank" href="${dexScreenerUrl(asset.address)}">${asset.address}</a>`;
+
+        if(asset.holdingsUsdValue) {
+          let t = tabs(tabSize, maxAddressLength, asset.address);
+          assetDiv.innerHTML += `${t}${t.length==0 ? " " : ""}| $${formatAmount(asset.holdingsUsdValue)}`
+        }
+        
+
         container.appendChild(assetDiv);
       }
 

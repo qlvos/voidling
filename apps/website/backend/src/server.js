@@ -9,7 +9,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import { addCatEvent } from './db/postgresdbhandler.js'
-import { getData, getPortfolioStats } from './chaindata.js';
+import { getData, getPortfolioStats, getHoldings } from './chaindata.js';
 
 app.use(cors());
 app.use(express.json());
@@ -46,8 +46,6 @@ setInterval(async () => {
 }, CACHE_UPDATE_FREQUENCY);
 
 setInterval(async () => { cachedChainData = await getPortfolioStats(); }, SLOW_CACHE_UPDATE_FREQUENCY);
-
-
 
 // Listen for messages from the SSE endpoint
 eventSource.onmessage = async function (event) {
@@ -227,3 +225,4 @@ function time(seconds) {
 }
 
 cachedChainData = await getPortfolioStats();
+
