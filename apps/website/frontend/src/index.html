@@ -488,19 +488,13 @@
                       if (smallScreen) {
                         if ((frameCounter > 0 && ((frameCounter % smallScreenDrawRate) == 0))) {
                           outputElement.innerHTML = html;
-                        } else {
-                          console.log("skipping!")
                         }
 
                       } else {
                         if ((frameCounter > 0 && !((frameCounter % bigScreenSkipRate) == 0))) {
                           outputElement.innerHTML = html;
-                        } else {
-                          console.log("skipping!")
                         }
                       }
-
-
 
                     } else {
                       bufferPool.return(newBuffer);
