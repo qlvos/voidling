@@ -35,11 +35,15 @@ const eventSource = new EventSource(sseUrl);
 let cachedChainData = null;
 setInterval(async () => {
   if(wss.clients.size > 0) {
-    cachedChainData = await getPortfolioStats();
+    try {
+      cachedChainData = await getPortfolioStats();
+      wss.clients.forEach(async (ws) => {
+        ws.send(JSON.stringify({ action: VOIDLING_DATA, ...cachedChainData }));
+      });
+    } catch (err) {
+      logger.err("failed fetching portfolio " + err);
+    }
 
-    wss.clients.forEach(async (ws) => {
-      ws.send(JSON.stringify({ action: VOIDLING_DATA, ...cachedChainData }));
-    });
   }
 
 }, CACHE_UPDATE_FREQUENCY);

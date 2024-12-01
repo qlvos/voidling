@@ -74,8 +74,6 @@ export async function getPortfolioStats() {
   let assets = await fetchTokenBalances(walletAddress);
 
   const sixHchangeAvg = assets.reduce((sum, asset) => sum + asset.priceChange6h, 0) / assets.length;
-  const fiveMchangeAvg = assets.reduce((sum, asset) => sum + asset.priceChange5m, 0) / assets.length;
-  const twentyfourHchangeAvg = assets.reduce((sum, asset) => sum + asset.priceChange24h, 0) / assets.length;
 
   let normalized = {
     radius: normalize(RADIUS_MIN, RADIUS_MAX, Math.min(VARIATION_MIN, sixHchangeAvg), Math.max(VARIATION_MAX, sixHchangeAvg), sixHchangeAvg)
@@ -112,11 +110,8 @@ async function getLastTrade(assetDictionary) {
   let lastTrade = await getLastOpenTrade();
   if (lastTrade) {
     let assetDetails = assetDictionary.get(lastTrade.toaddress.toLowerCase());
-    console.log("abc")
-    console.log(lastTrade)
-    console.log(assetDetails)
     if (!assetDetails) {
-      console.log("eehh")
+
       // backup
       let url = `${TOKEN_PRICE_URL}/${lastTrade.toaddress}/price`;
       let res = await getJSON(url, null, { 'x-api-key': config.DEXTOOLS_API_KEY });
