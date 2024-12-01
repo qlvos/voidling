@@ -7,6 +7,13 @@ function get(parameter) {
 
 export const config = {};
 
+config.VLING_HELIUS_API_KEY = get({
+  dev: null,
+  test: null,
+  prod: null,
+  default: process.env.VLING_HELIUS_API_KEY
+});
+
 config.DEXTOOLS_API_KEY = get({
   dev: null,
   test: null,
@@ -25,7 +32,7 @@ config.VLING_POSTGRES_DATABASE = get({
   dev: null,
   test: null,
   prod: null,
-  default: "voidling_agent_db"
+  default: "voidling_db"
 });
 
 config.VLING_POSTGRES_URL = get({

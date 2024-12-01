@@ -1,19 +1,19 @@
 // voidling-config.js
 window.VoidlingConfig = {
     // === BASIC SHAPE AND SIZE ===
-    baseRadius: 6.0,
+    baseRadius: 3.0,
     aspectRatio: 0.9,
     fillDensity: 0.7,
-    stepSize: 0.04,
+    stepSize: 0.08,
 
     // === MOVEMENT BEHAVIOR ===
     moveSpeed: 0.015,
     moveChangeFrequency: 3,
-    maxMoveDistance: 150.0,
+    maxMoveDistance: 50.0,
     minMoveDistance: 30.0,
-    xBias: 5.5,
-    yBias: 1.0,
-    maxHorizontalPersistence: 1500,
+    xBias: 1.0,
+    yBias: 6.0,
+    maxHorizontalPersistence: 500,
 
     // === ROTATION AND ORIENTATION ===
     minRotationSpeed: 0.4,

@@ -15,7 +15,7 @@ export async function catRouter(message, redis) {
     let swapDetails = await buyToken(message.token, redis);
     await this.redisPublisher.publish(config.VLING_EVENT_KEY, JSON.stringify({event: CAT_BOUGHT_TOKEN }));
   } else if(message.event == CAT_BUY_RANDOM_TOKEN) {
-    let choice = pickToken();
+    let choice = await pickToken();
     console.log(choice);
     let tokenInfo = await buyToken(choice.address, redis);
     console.log(tokenInfo)

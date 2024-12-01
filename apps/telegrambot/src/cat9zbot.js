@@ -3,6 +3,8 @@ import { config } from './config/config.js';
 import TelegramBot from "node-telegram-bot-api";
 import { CAT_BOUGHT_TOKEN, CAT_SOLD_TOKEN, CAT_BUY_RANDOM_TOKEN, CAT_SELL_TOKEN } from './config/eventkeys.js';
 
+const VOIDLING_IMAGE = "https://i.ibb.co/DbNb3rN/voidling.png";
+
 export class CatBot {
   // new ReaperBot(simulator, test, activate, block);
   constructor(redis) {
@@ -19,6 +21,7 @@ export class CatBot {
     this.bot.onText(/\/catbought/, this.fakecatbought.bind(this));
     this.bot.onText(/\/buyrandom/, this.buyrandom.bind(this));
     this.bot.onText(/\/closetrade/, this.closetrade.bind(this));
+    this.bot.onText(/\/t/, this.testmessage.bind(this));
     
     // 60 second timeout
     this.nextMinintervalSeconds = 60;//this.test ? 0 : 60;
@@ -53,12 +56,30 @@ export class CatBot {
 
   }
 
+  async testmessage(context) {
+    if(!this.isSuperUser(context.from.id)) {
+      logger.info("not a super user, cannot buy random tokens!")
+      return;
+    }
+
+    await this.sendPhoto(config.VLING_TG_CHANNEL_ID, `The voidling bought a token`);
+    
+  }
+
+  async sendPhoto(channel, message) {
+    try {
+      await this.bot.sendPhoto(channel, VOIDLING_IMAGE, {caption:message, parse_mode:"html"});
+    } catch (err) {
+      // backup
+      await this.bot.sendMessage(channel, message);
+    }
+  }
+
   async buyrandom(context) {
     if(!this.isSuperUser(context.from.id)) {
       logger.info("not a super user, cannot buy random tokens!")
       return;
     }
-    console.log("yo!")
     await this.redisPublisher.publish(config.VLING_EVENT_KEY, JSON.stringify({event: CAT_BUY_RANDOM_TOKEN }));
   }
 
@@ -79,52 +100,11 @@ export class CatBot {
   }
 
   async signalBoughtToken(msg) {
-    await this.bot.sendMessage(config.VLING_TG_CHANNEL_ID, `The cat bought ${msg.tokenInfo.name} (${msg.tokenInfo.symbol})`);
+    await this.sendPhoto(config.VLING_TG_CHANNEL_ID, `The voidling bought ${msg.tokenInfo.receivedToken.name} (${msg.tokenInfo.receivedToken.symbol})`);
   }
 
   async signalSoldToken(msg) {
-    await this.bot.sendMessage(config.VLING_TG_CHANNEL_ID, `The cat sold ${msg.soldToken.name}`);
-  }
-
-  async sendPhoto(chatId, situation, text, img) {
-    logger.info("sendPhoto called !")
-    logger.info(this.channel.size)
-    if(!text || text.length == 0) {
-      return;
-    }
-
-    try {
-      let image = img == null ? await getImageFromDb(this.db, situation, (await this.getMode()).mode) : img;
-      try {
-        let res = await this.bot.sendPhoto(chatId, image, {caption:text, parse_mode:"html"});
-      } catch (err) {
-        try {
-          logger.error(err);
-          await this.bot.sendPhoto(chatId, image, {caption:text, parse_mode:"html"});
-        } catch (err) {
-          logger.error(err);
-          // last try, default image
-          try {
-            logger.error(err);
-            await this.bot.sendPhoto(chatId, "https://static.wikia.nocookie.net/vsbattles/images/c/c1/FrimReaperMotM_Render.png/revision/latest/scale-to-width-down/350?cb=20200327212226", {caption:text, parse_mode:"html"});
-          } catch(err) {
-            // very last try, send a message
-            try {
-              logger.error(err);
-              if(text) {
-                await this.bot.sendMessage(chatId, text);
-              }
-            } catch(err) {
-              // give up
-              logger.error(err);
-            }
-          }
-        }
-      }
-
-    } catch(err) {
-      logger.error(err);
-    }
+    await this.sendPhoto(config.VLING_TG_CHANNEL_ID, `The voidling sold ${msg.soldToken.name}`);
   }
 
   async start(ctx) {

@@ -11,7 +11,6 @@ services:
       - ./apps/website/frontend/src:/usr/share/nginx/html
     environment:
       - WDS_SOCKET_HOST=127.0.0.1
-      - VLING_API_BACKEND_IP  
       - VLING_BACKEND_SERVICE_NAME=backend
       - VLING_FRONTEND_SERVICE_NAME=frontend
 
@@ -26,11 +25,11 @@ services:
       - ./apps/website/backend:/catagent/apps/website/backend
     environment:
       - WDS_SOCKET_HOST=127.0.0.1
-      - VLING_API_BACKEND_IP
       - VLING_POSTGRES_URL=postgres
       - VLING_POSTGRES_CREDENTIALS
       - VLING_REDIS_URL=redis
       - DEXTOOLS_API_KEY
+      - VLING_HELIUS_API_KEY
 
   trader:
     build:
@@ -44,9 +43,27 @@ services:
       - VLING_REDIS_URL=redis
       - VLING_HELIUS_API_KEY
       - VLING_WALLET_PRIVATE_KEY
+      - DEXTOOLS_API_KEY
     depends_on:
       - postgres
       - redis
+
+  telegrambot:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./apps/telegrambot
+    volumes:
+      - ./apps/telegrambot/src:/apps/telegrambot/src
+    environment:
+      - VLING_TG_BOT_KEY
+      - VLING_TG_BOT_KEY_TEST
+      - VLING_TG_CHANNEL_ID
+      - VLING_TG_CHANNEL_ID_TEST
+      - GOD_TG_ACCOUNT
+      - FIGURE_TG_ACCOUNT
+      - VLING_POSTGRES_URL=postgres
+      - VLING_POSTGRES_CREDENTIALS
+      - VLING_REDIS_URL=redis
 
   postgres:
     image: timescale/timescaledb-ha:pg16

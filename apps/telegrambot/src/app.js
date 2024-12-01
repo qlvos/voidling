@@ -6,7 +6,7 @@ import { logger } from './logger.js';
 (async () => {
   let redisConnection = await getRedisConnection();
   let catBot = new CatBot(redisConnection);
-  logger.info("CatBot started!")
+  logger.info("VoidlingBot started!")
 })();
 
 

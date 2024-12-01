@@ -48,7 +48,6 @@ config.FIGURE_TG_ACCOUNT = get({
   default: process.env.FIGURE_TG_ACCOUNT
 });
 
-
 config.VLING_EVENT_KEY = get({
   dev: null,
   test: "test_voidling_event",
@@ -60,7 +59,7 @@ config.VLING_POSTGRES_DATABASE = get({
   dev: null,
   test: null,
   prod: null,
-  default: "voidling_agent_db"
+  default: "voidling_db"
 });
 
 config.VLING_POSTGRES_URL = get({
@@ -81,19 +80,5 @@ config.VLING_REDIS_URL = get({
   dev: null,
   test: null,
   prod: null,
-  default: 'localhost:6379'//process.env.VLING_REDIS_URL
+  default: process.env.VLING_REDIS_URL
 });
-
-config.TG_REAPER_API_ID = get({
-  dev: null,
-  test: null,
-  prod: null,
-  default: process.env.TG_REAPER_API_ID
-})
-
-config.TG_REAPER_API_HASH = get({
-  dev: null,
-  test: null,
-  prod: null,
-  default: process.env.TG_REAPER_API_HASH
-})

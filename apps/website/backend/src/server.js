@@ -9,7 +9,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import { addCatEvent } from './db/postgresdbhandler.js'
-import { getData, getPortfolioStats, getHoldings } from './chaindata.js';
+import { getPortfolioStats } from './chaindata.js';
 
 app.use(cors());
 app.use(express.json());
@@ -31,7 +31,6 @@ const sseUrl = 'https://api.thecatdoor.com/sse/v1/events'; // Replace with your 
 
 // Create an EventSource instance
 const eventSource = new EventSource(sseUrl);
-
 
 let cachedChainData = null;
 setInterval(async () => {

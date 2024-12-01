@@ -11,6 +11,7 @@ import { addBuy, addSell, getLastOpenTrade } from '../db/postgresdbhandler.js';
 const JUPITER_QUOTE_API_URL = "https://quote-api.jup.ag/v6/quote";
 const JUPITER_SWAP_API_URL = "https://quote-api.jup.ag/v6/swap";
 const HELIUS_API_URL = "https://mainnet.helius-rpc.com/?api-key=" + config.VLING_HELIUS_API_KEY;
+const TOKEN_PRICE_URL = 'https://public-api.dextools.io/trial/v2/token/solana';
 
 const connection = new Connection(HELIUS_API_URL, 'confirmed');
 
@@ -30,12 +31,18 @@ export async function buyToken(token, redis) {
 
   let swapDetails = await swap(WRAPPED_SOL, token, config.VLING_BUY_AMOUNT);
 
+
+  // complement with token price
+  let priceDetails = await getTokenPriceDetails(token);
+  console.log("xxxxx")
+  console.log(priceDetails)
+
 //let swapDetails = await getSwapDetails(token, '4sVT1wKVW3cy2ap87EC32CiSHvG2Aa7wEiGEEAfWHChBPULJfDc7i6RrHedhsmKZdScxdd9LzhWLGJZHPiAhqKf7');
 
 
   if(swapDetails) {
     // save to DB (buys) !
-    await addBuy(WRAPPED_SOL, token, config.VLING_BUY_AMOUNT, swapDetails.receivedAmount, swapDetails.receivedAmountRaw, Date.now());
+    await addBuy(WRAPPED_SOL, token, config.VLING_BUY_AMOUNT, swapDetails.receivedAmount, swapDetails.receivedAmountRaw, priceDetails ? priceDetails.price : -1, Date.now());
     logger.info("Buy saved in database");
   }
   return swapDetails;
@@ -149,30 +156,40 @@ export async function sellToken(redis) {
 async function getSwapDetails(token, soldToken, transactionHash) {
   const cfg = { commitment: 'confirmed', maxSupportedTransactionVersion: 0 } // Set the maximum supported transaction version };
   let tx = await connection.getTransaction(transactionHash, cfg);
-  if(!tx) {
-    logger.info("failed to get tx, wait a bit...")
+  let maxRetries = 3;
+  let tries = 0;
+  
+  while(!tx && tries < maxRetries) {
+    logger.info(`failed to get tx, wait a bit... (try ${tries+1} / ${maxRetries}`);
     await new Promise(resolve => setTimeout(resolve, TRANSACTION_DELAY));
     tx = await connection.getTransaction(transactionHash, cfg);
+    if(tx) {
+      break;
+    }
   }
-
-  let walletPreTokens = tx.meta.preTokenBalances.filter(
-    (item) => item.mint.toLowerCase() == token.toLowerCase() && item.owner.toLowerCase() == wallet.publicKey.toString().toLowerCase());
-  let walletPostTokens = tx.meta.postTokenBalances.filter(
-    (item) => item.mint.toLowerCase() == token.toLowerCase() && item.owner.toLowerCase() == wallet.publicKey.toString().toLowerCase());
 
   let receivedRaw = -1;
   let received = - 1;
-  if (walletPostTokens.length == 1) {
-    let preTokens = (walletPreTokens && walletPreTokens.length) == 1 ? walletPreTokens[0].uiTokenAmount.uiAmount : 0;
-    let preTokensRaw = (walletPreTokens && walletPreTokens.length) == 1 ? walletPreTokens[0].uiTokenAmount.amount : 0;
-    let postTokens = walletPostTokens[0].uiTokenAmount.uiAmount;
-    let postTokensRaw = walletPostTokens[0].uiTokenAmount.amount;
-    received = postTokens - preTokens;
-    receivedRaw = Number(postTokensRaw) - Number(preTokensRaw);
+
+  if(tx) {
+    let walletPreTokens = tx.meta.preTokenBalances.filter(
+      (item) => item.mint.toLowerCase() == token.toLowerCase() && item.owner.toLowerCase() == wallet.publicKey.toString().toLowerCase());
+    let walletPostTokens = tx.meta.postTokenBalances.filter(
+      (item) => item.mint.toLowerCase() == token.toLowerCase() && item.owner.toLowerCase() == wallet.publicKey.toString().toLowerCase());
+
+    if (walletPostTokens.length == 1) {
+      let preTokens = (walletPreTokens && walletPreTokens.length) == 1 ? walletPreTokens[0].uiTokenAmount.uiAmount : 0;
+      let preTokensRaw = (walletPreTokens && walletPreTokens.length) == 1 ? walletPreTokens[0].uiTokenAmount.amount : 0;
+      let postTokens = walletPostTokens[0].uiTokenAmount.uiAmount;
+      let postTokensRaw = walletPostTokens[0].uiTokenAmount.amount;
+      received = postTokens - preTokens;
+      receivedRaw = Number(postTokensRaw) - Number(preTokensRaw);
+    }
+  } else {
+    logger.warn("Could not get details from tx " + transactionHash + ", this does not mean it failed but token amount details will be missing");
   }
 
   let details = await getTokenDetails(token);
-
   let soldTokenDetails = await getTokenDetails(soldToken);
 
   return  {
@@ -223,17 +240,16 @@ async function getTokenDetails(token) {
   return { name: data.result.content.metadata.name, symbol: data.result.content.metadata.symbol }
 }
 
-async function getTokenBalance(token) {
+async function getTokenPriceDetails(token) {
+  let url = `${TOKEN_PRICE_URL}/${token}/price`;
+  logger.info("calling " + url);
   try {
-    // Fetch the token accounts by owner
-    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(wallet.publicKey, { mint: new PublicKey(token) });
-    // Extract the balance from the token accounts 
-    const tokenBalance = tokenAccounts.value.reduce((acc, account) => { 
-      const balance = account.account.data.parsed.info.tokenAmount.uiAmount;
-      return acc + balance;
-    }, 0);
-    return tokenBalance;
-  } catch (error) {
-    logger.error('Error fetching token balance:', error);
+    let res = await getJSON(url, null, {'x-api-key': config.DEXTOOLS_API_KEY});
+    if(res && res.statusCode && res.statusCode == 200 && res.data) {
+      return res.data;
+    }
+  } catch (err) {
+    logger.warn("Failed fetching price data from dextools on token " + token);
+    logger.warn(err);
   }
 }

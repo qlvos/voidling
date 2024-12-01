@@ -20,7 +20,12 @@ config.NAME = {
 
 export const config = {};
 
-
+config.DEXTOOLS_API_KEY = get({
+  dev: null,
+  test: null,
+  prod: null,
+  default: process.env.DEXTOOLS_API_KEY
+})
 
 config.VLING_HELIUS_API_KEY = get({
   dev: null,
@@ -62,9 +67,8 @@ config.VLING_POSTGRES_DATABASE = get({
   dev: null,
   test: null,
   prod: null,
-  default: "voidling_agent_db"
+  default: "voidling_db"
 });
-
 
 config.VLING_POSTGRES_URL = get({
   dev: null,
@@ -84,7 +88,7 @@ config.VLING_REDIS_URL = get({
   dev: null,
   test: null,
   prod: null,
-  default: 'localhost:6379'//process.env.VLING_REDIS_URL
+  default: process.env.VLING_REDIS_URL
 });
 
 config.TG_REAPER_API_ID = get({
