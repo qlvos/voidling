@@ -22,7 +22,7 @@ services:
       - "47900:47900"
       - "47901:47901"
     volumes:
-      - ./apps/website/backend:/catagent/apps/website/backend
+      - ./apps/website/backend:/voidling/apps/website/backend
     environment:
       - WDS_SOCKET_HOST=127.0.0.1
       - VLING_POSTGRES_URL=postgres
@@ -30,6 +30,7 @@ services:
       - VLING_REDIS_URL=redis
       - DEXTOOLS_API_KEY
       - VLING_HELIUS_API_KEY
+      - VLING_HYPERBOLIC_API_KEY
 
   trader:
     build:

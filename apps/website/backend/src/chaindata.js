@@ -2,6 +2,9 @@ import { config } from './config/config.js';
 import { logger } from './logger.js';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getLastOpenTrade, getWatchlist } from './db/postgresdbhandler.js';
+import { getVoidlingEmotion } from './aimodel.js';
+import { getVoidlingUserPrompt } from './prompts.js';
+import { SERENE, AGITATED, EXCITED, CURIOUS, CAUTIOUS } from './prompts.js';
 import bent from 'bent';
 const getJSON = bent('json');
 
@@ -69,12 +72,51 @@ const VARIATION_MAX = 100;
 const RADIUS_MIN = 4;
 const RADIUS_MAX = 8;
 
+let valueChangeMoods = [
+  {
+    emotion: AGITATED,
+    maxValue: -50
+  },
+  {
+    emotion: CAUTIOUS,
+    maxValue: -10
+  },  
+  {
+    emotion: SERENE,
+    maxValue: 5
+  },
+  {
+    emotion: CURIOUS,
+    maxValue: 20
+  },
+  {
+    emotion: EXCITED,
+    maxValue: 99999
+  },
+]
+
+function getMood(moodMatrix, value) {
+  for(const mood of moodMatrix) {
+    if(value <= mood.maxValue) {
+      return { emotion : mood.emotion } ;
+    }
+  }
+}
+
 export async function getPortfolioStats() {
-
   let assets = await fetchTokenBalances(walletAddress);
-
   const sixHchangeAvg = assets.reduce((sum, asset) => sum + asset.priceChange6h, 0) / assets.length;
 
+  let emotion;
+  let reply = await getVoidlingEmotion(getVoidlingUserPrompt(assets));
+  
+  try {
+    emotion = JSON.parse(reply);
+  } catch(err) {
+    // json parse failed, backup
+    emotion = getMood(valueChangeMoods, sixHchangeAvg);
+  }
+  
   let normalized = {
     radius: normalize(RADIUS_MIN, RADIUS_MAX, Math.min(VARIATION_MIN, sixHchangeAvg), Math.max(VARIATION_MAX, sixHchangeAvg), sixHchangeAvg)
   }
@@ -96,13 +138,14 @@ export async function getPortfolioStats() {
 
   // find this token and get it's up to date name and price information etc etc.
   let wList = await getWatchlist();
-  let watchList = wList ? wList.map((asset) => { return { token: { symbol: asset.symbol }, address: asset.address } }) : null;
+  let watchList = wList ? wList.map((asset) => { return { token: { name: asset.name, symbol: asset.symbol }, address: asset.address } }) : null;
 
   return {
     assets: assets,
     stats: normalized,
     watchlist: watchList,
-    latestinvestment: [lastTrade]
+    latestinvestment: [lastTrade],
+    ...emotion
   }
 }
 

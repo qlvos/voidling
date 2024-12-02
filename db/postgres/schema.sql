@@ -1,6 +1,8 @@
 
 \connect "voidling_db";
 
+-- Adminer 4.8.1 PostgreSQL 16.6 (Ubuntu 16.6-1.pgdg22.04+1) dump
+
 DROP TABLE IF EXISTS "buys";
 DROP SEQUENCE IF EXISTS buys_id_seq;
 CREATE SEQUENCE buys_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
@@ -13,7 +15,16 @@ CREATE TABLE "public"."buys" (
     "receivedamountraw" character varying NOT NULL,
     "timestamp" bigint NOT NULL,
     "id" integer DEFAULT nextval('buys_id_seq') NOT NULL,
+    "tokenusdvalue" numeric,
     CONSTRAINT "buys_pkey" PRIMARY KEY ("id")
+) WITH (oids = false);
+
+
+DROP TABLE IF EXISTS "catevent";
+CREATE TABLE "public"."catevent" (
+    "type" character varying NOT NULL,
+    "img" character varying NOT NULL,
+    "timestamp" bigint NOT NULL
 ) WITH (oids = false);
 
 
@@ -29,6 +40,14 @@ CREATE TABLE "public"."sells" (
     CONSTRAINT "sells_pkey" PRIMARY KEY ("id")
 ) WITH (oids = false);
 
+
+DROP TABLE IF EXISTS "watchlist";
+CREATE TABLE "public"."watchlist" (
+    "name" character varying,
+    "symbol" character varying NOT NULL,
+    "address" character varying NOT NULL,
+    CONSTRAINT "watchlist_address" UNIQUE ("address")
+) WITH (oids = false);
 
 CREATE ROLE voidling_db_user WITH LOGIN PASSWORD 'REPLACE_ME';
 

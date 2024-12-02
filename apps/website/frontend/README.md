@@ -1,13 +1,13 @@
 
 These are the variables exposed by the wasm, which can be used to modify the voidlings behavior:
 ```
-var _initVoidlingWithConfig = Module["_initVoidlingWithConfig"] = (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27) => (_initVoidlingWithConfig = Module["_initVoidlingWithConfig"] = wasmExports["initVoidlingWithConfig"])(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27);
-var _initialize_trig_cache = Module["_initialize_trig_cache"] = () => (_initialize_trig_cache = Module["_initialize_trig_cache"] = wasmExports["initialize_trig_cache"])();
-var _set_dimensions = Module["_set_dimensions"] = (a0, a1) => (_set_dimensions = Module["_set_dimensions"] = wasmExports["set_dimensions"])(a0, a1);
-var _getBufferSize = Module["_getBufferSize"] = () => (_getBufferSize = Module["_getBufferSize"] = wasmExports["getBufferSize"])();
-var _set_base_radius = Module["_set_base_radius"] = a0 => (_set_base_radius = Module["_set_base_radius"] = wasmExports["set_base_radius"])(a0);
-var _set_aspect_ratio = Module["_set_aspect_ratio"] = a0 => (_set_aspect_ratio = Module["_set_aspect_ratio"] = wasmExports["set_aspect_ratio"])(a0);
-var _set_move_speed = Module["_set_move_speed"] = a0 => (_set_move_speed = Module["_set_move_speed"] = wasmExports["set_move_speed"])(a0);
+var _initVoidlingWithConfig
+var _initialize_trig_cache
+var _set_dimensions
+var _getBufferSize
+var _set_base_radius
+var _set_aspect_ratio
+var _set_move_speed
 var _set_move_change_frequency = Module["_set_move_change_frequency"] = a0 => (_set_move_change_frequency = Module["_set_move_change_frequency"] = wasmExports["set_move_change_frequency"])(a0);
 var _set_min_rotation_speed = Module["_set_min_rotation_speed"] = a0 => (_set_min_rotation_speed = Module["_set_min_rotation_speed"] = wasmExports["set_min_rotation_speed"])(a0);
 var _set_max_rotation_speed = Module["_set_max_rotation_speed"] = a0 => (_set_max_rotation_speed = Module["_set_max_rotation_speed"] = wasmExports["set_max_rotation_speed"])(a0);

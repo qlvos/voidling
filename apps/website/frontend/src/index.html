@@ -5,6 +5,7 @@
   <title>voidling v0.9 - Optimized</title>
   <style>
     body {
+      tab-size: 2;
       background-color: #252525;
       color: #fff;
       margin: 0;
@@ -75,22 +76,46 @@
       color: #af87ff;
     }
 
-    .c57:hover { 
+    .c57:hover {
       cursor: pointer;
     }
 
-    .c208:hover { cursor: pointer; color: #ff0000; /* Change to the desired color */ }
-    .c105:hover { cursor: pointer; color: #ff0000; /* Change to the desired color */ }
-    .c166:hover { cursor: pointer; color: #ff0000; /* Change to the desired color */ }
-    .c99:hover { cursor: pointer; color: #ff0000; /* Change to the desired color */ }
-    .c141:hover { cursor: pointer; color: #ff0000; /* Change to the desired color */ }
+    .c166:hover {
+      cursor: pointer;
+    }
+
+    .c99:hover {
+      cursor: pointer;
+    }
+
+    .c141:hover {
+      cursor: pointer;
+    }
 
     .portfolio {
+      tab-size: 2;
       position: absolute;
-      top: 12%;
       background-color: transparent;
-      color: #554d64;
+      color: lightgray;/*#554d64;*/
       z-index: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      /* Change from 20px to 0 */
+      overflow: hidden;
+      /* Change from auto to hidden */
+      width: fit-content;
+      /* Add this */
+      height: fit-content;
+      /* Add this */
+    }
+
+    .voidling {
+      position: absolute;
+      background-color: transparent;
+      color: lightgray;
+      z-index: 1;
+      text-align: right;
       display: flex;
       flex-direction: column;
       padding: 0;
@@ -119,8 +144,7 @@
     #investmentheader {
       display: block;
       margin-top: 0px;
-      font-weight: bold;
-      /*color: lightgray;*/
+      color: lightgray;
     }
 
     .asset {
@@ -131,9 +155,14 @@
 </head>
 
 <body>
-  
+
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="./prophecies.js"></script>
+  <script src="./voidling-config-agitated.js"></script>
+  <script src="./voidling-config-cautious.js"></script>
+  <script src="./voidling-config-curious.js"></script>
+  <script src="./voidling-config-excited.js"></script>
+  <script src="./voidling-config-serene.js"></script>
 
   <div class="container">
     <pre id="output"></pre>
@@ -149,6 +178,8 @@
         </span>
         </pre>
       </div>
+    </div>
+    <div id="voidlingbox" class="voidling">
     </div>
   </div>
 
@@ -189,7 +220,10 @@
 
     updateVoidlingSize();
 
+    let emotion;
     let currentRadius = null;
+    let lastTextChange = Date.now();
+    let text = '';
 
     // portfolio box offset compared to the voidling square
     const PORTFOLIO_OFFSET_TOP = 1.8;
@@ -486,35 +520,49 @@
     }
 
     function initVoidlingConfig() {
+      console.log("init cfg " + emotion)
+      let cfg = voidlingConfigSerene;
+      if(emotion) {
+        if(emotion == "EXCITED") {
+          cfg = voidlingConfigExcited;
+        } else if (emotion == "CURIOUS") {
+          cfg = voidlingConfigCurious;
+        } else if (emotion == "CAUTIOUS") {
+          cfg = voidlingConfigCautious;
+        } else if (emotion == "AGITATED") {
+          cfg = voidlingConfigAgitated;
+        }
+      }
+
       Module._initVoidlingWithConfig(
-        currentRadius != null ? currentRadius : window.VoidlingConfig.baseRadius,
-        window.VoidlingConfig.aspectRatio,
-        window.VoidlingConfig.moveSpeed,
-        window.VoidlingConfig.moveChangeFrequency,
-        window.VoidlingConfig.minRotationSpeed,
-        window.VoidlingConfig.maxRotationSpeed,
-        window.VoidlingConfig.rotationSmoothness,
-        window.VoidlingConfig.maxRotationAngle,
-        window.VoidlingConfig.baseDeformStrength,
-        window.VoidlingConfig.extraDeformStrength,
-        window.VoidlingConfig.deformFrequency,
-        window.VoidlingConfig.drippiness,
-        window.VoidlingConfig.deformComplexity,
-        window.VoidlingConfig.timeSpeed,
-        window.VoidlingConfig.perspectiveDistance,
-        window.VoidlingConfig.perspectiveStrength,
-        window.VoidlingConfig.stepSize,
-        window.VoidlingConfig.fillDensity,
-        window.VoidlingConfig.maxMoveDistance,
-        window.VoidlingConfig.borderSquishFactor,
-        window.VoidlingConfig.minSkewness,
-        window.VoidlingConfig.minMoveDistance,
-        window.VoidlingConfig.behaviorChangeTime,
-        window.VoidlingConfig.behaviorWeight,
-        window.VoidlingConfig.deformSmoothness,
-        window.VoidlingConfig.xBias,
-        window.VoidlingConfig.yBias,
-        window.VoidlingConfig.maxHorizontalPersistence
+        cfg.baseRadius,
+        cfg.aspectRatio,
+        cfg.moveSpeed,
+        cfg.moveChangeFrequency,
+        cfg.minRotationSpeed,
+        cfg.maxRotationSpeed,
+        cfg.rotationSmoothness,
+        cfg.maxRotationAngle,
+        cfg.baseDeformStrength,
+        cfg.extraDeformStrength,
+        cfg.deformFrequency,
+        cfg.drippiness,
+        cfg.deformComplexity,
+        cfg.timeSpeed,
+        cfg.perspectiveDistance,
+        cfg.perspectiveStrength,
+        cfg.stepSize,
+        cfg.fillDensity,
+        cfg.maxMoveDistance,
+        cfg.borderSquishFactor,
+        cfg.minSkewness,
+        cfg.minMoveDistance,
+        cfg.behaviorChangeTime,
+        cfg.behaviorWeight,
+        cfg.deformSmoothness,
+        cfg.xBias,
+        cfg.yBias,
+        cfg.maxHorizontalPersistence
       );
     }
 
@@ -524,7 +572,8 @@
 
       // Cleanup WebAssembly resources if available
       if (Module && Module._cleanup) {
-        const state = preserveVoidlingState(); // Preserve the current state
+        try {
+          const state = preserveVoidlingState(); // Preserve the current state
         Module._cleanup(); // Call WebAssembly cleanup function
 
         // Reinitialize the Voidling with its configuration
@@ -535,6 +584,11 @@
           Module._set_dimensions(dims.width, dims.height);
           restoreVoidlingState(state); // Restore the previous state
         }
+          
+        } catch(err) {
+          console.log(err)
+        }
+
       }
 
       // Cleanup buffer pool
@@ -630,8 +684,14 @@
 
               let offsetTop = window.isMobile ? PORTFOLIO_OFFSET_TOP_MOBILE : PORTFOLIO_OFFSET_TOP;
               let offsetLeft = window.isMobile ? PORTFOLIO_OFFSET_LEFT_MOBILE : PORTFOLIO_OFFSET_LEFT;
-              document.getElementById('portfoliobox').style.top = `${outputElement.offsetTop * offsetTop}px`;
+              document.getElementById('portfoliobox').style.top = `${outputElement.offsetTop * offsetTop * 1.4}px`;
               document.getElementById('portfoliobox').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
+
+              document.getElementById('voidlingbox').style.top = `${outputElement.offsetTop * offsetTop}px`;
+              document.getElementById('voidlingbox').style.width = `${outputElement.offsetWidth * 0.95}px`;
+              
+
+
 
               if (!isRunning) return; // Stop the loop if not running
               if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
@@ -680,39 +740,58 @@
                   if (outputElement.innerHTML !== html) {
                     outputElement.innerHTML = html; // Update DOM only if necessary
 
-                    //const elements = document.querySelectorAll('.c57');
-
-                    const elementIds = Object.values(colorMap);
+                    let watchBrain = true;
+                    if(watchBrain) {
+                      const elementIds = Object.values(colorMap);
                     let uniqueElementIds = new Set(elementIds);
                     let elements = [];
-                    for(const id of uniqueElementIds) {
-                      elements.push(...document.querySelectorAll("."+id))
+                    for (const id of uniqueElementIds) {
+                      elements.push(...document.querySelectorAll("." + id))
                     }
 
-                    elements = elements.sort((a, b) => {
-                      return a.id - b.id
-                    })
+                   // elements = elements.sort((a, b) => {
+                   //   return a.id - b.id
+                   // })
 
-                    let length = 20;
+                    let length = 60;
+
+                    let now = Date.now();
+                    let minTextKeep = 500;
                     elements.forEach((element, index) => {
                       element.addEventListener('mouseover', () => {
+                        //Module._set_move_speed(0.0001);
+                        //window.VoidlingConfig.moveSpeed = 0.0001;
+                        //Module._set_move_speed=0.0001;
+
+                        
+                        //window.VoidlingConfig.baseRadius = currentRadius;
 
                         let counter = 0;
                         for (let i = Math.max(0, index - length); i <= Math.min(elements.length - 1, index + length); i++) {
                           //console.log(elements[i])
-                          elements[i].style.color="#FFFFFF";
-                          elements[i].innerHTML = prophecies.charAt(Math.min(i, prophecies.length))
+                          elements[i].style.color = "#FFFFFF";
+                          elements[i].style.cursor = "pointer";
+
+                          if (counter >= (length * 2)) {
+                            break;
+                          }
+
+                          let char = prophecies.charAt(Math.min(i, prophecies.length))
+                          elements[i].innerHTML = char;
                           elements[i].classList.add('hovered');
                           ++counter;
                         }
                       });
-                
+
                       element.addEventListener('mouseout', () => {
                         for (let i = Math.max(0, index - length); i <= Math.min(elements.length - 1, index + length); i++) {
                           elements[i].classList.remove('hovered');
                         }
                       });
                     });
+
+                    }
+
 
 
                   }
@@ -844,11 +923,22 @@
           let msg = JSON.parse(event.data);
           if (msg.action == "vdata") {
 
+            /*
             if (window.VoidlingConfig && msg.stats && msg.stats.radius != null) {
               currentRadius = msg.stats.radius;
               Module._set_base_radius(currentRadius)
               window.VoidlingConfig.baseRadius = currentRadius;
             }
+            */
+            if(emotion != msg.emotion) {
+              console.log("New emotion!")
+              console.log(msg.emotion)
+              forceCleanup();
+              // change config !
+            }
+            emotion = msg.emotion;
+
+            document.getElementById("voidlingbox").innerHTML = msg.comment;
 
             renderAssets("assetbox", msg.assets);
             renderAssets("watchlistbox", msg.watchlist);
@@ -891,25 +981,35 @@
     }
 
     function formatAmount(amount) {
+      if(amount == null) {
+        return null;
+      }
       return parseInt(amount, 10).toLocaleString('en-US');
       return amnt < 0 ? ("-" + amnt) : amnt;
     }
 
-    function formatPercentage(variation) {
-      let percentage = ((variation * 100) - 100).toFixed(1);
-      return (percentage > 0 ? "+" : "") + percentage + "%";
+    function formatPercentage(variation, ratio) {
+      if(variation == null) {
+        return null;
+      }
+      let percentage = ratio ? ((variation * 100) - 100).toFixed(0) : variation.toFixed(0);
+      return (percentage > -1 ? "+" : "") + percentage + "%";
     }
 
-    function tabs(tabSize, maxLength, value) {
-
-      const nameLength = value.length;
-      const tabsNeeded = Math.ceil((maxLength - nameLength) / tabSize);
-      return '\t'.repeat(tabsNeeded);
+    function calculatePaddings(strings, maxLength) {
+      return strings.map(str => {
+        const paddingNeeded = maxLength - str.length;
+        return ' '.repeat(paddingNeeded);
+      });
     }
 
     function shortenIfNeeded(str) {
       let maxlength = 15;
       return (window.isMobile && str.length > maxlength) ? (str.substr(0, 3) + "..." + str.substr(str.length - 3)) : str;
+    }
+
+    function shorten(str) {
+      return (str.substr(0, 3) + "..." + str.substr(str.length - 3));
     }
 
     const textGap = "    ";
@@ -920,26 +1020,47 @@
       }
       const container = document.getElementById(containerId);
       container.innerHTML = '';
-      const maxNameLength = Math.max(...assets.map(asset => asset.token.symbol.length));
-      const maxAddressLength = Math.max(...assets.map(asset => asset.address.length));
-      const tabSize = 2;
 
-      for (const asset of assets) {
+      let formattedAssets = assets.map((asset) => {
+        return {
+          token : {
+            symbol : asset.token.symbol,
+            name : asset.token.name
+          },
+          address: shorten(asset.address),
+          holdingsUsdValue: formatAmount(asset.holdingsUsdValue),
+          priceChange6h: formatPercentage(asset.priceChange6h),
+          assetBagValue: formatAmount(asset.assetBagValue),
+          variation: formatPercentage(asset.variation)
+        }
+      });
+
+      let names = formattedAssets.map(asset => asset.token.name);
+      const maxNameLength = Math.max(...names.map(name => name.length));
+      const namePaddings = calculatePaddings(names, maxNameLength);
+
+      let holdingUsdValues = formattedAssets.map(item => item.holdingsUsdValue);
+      let hasHoldingValues = formattedAssets.length > 0 && formattedAssets[0].holdingsUsdValue != null;
+      const maxHoldingUsdValueLength = hasHoldingValues ? Math.max(...holdingUsdValues.map(item => item.length)) : null;
+      const usdHoldingPaddings = hasHoldingValues ? calculatePaddings(holdingUsdValues, maxHoldingUsdValueLength) : null;
+
+      for (let i=0; i<formattedAssets.length; i++) {
+        let asset = formattedAssets[i];
         const assetDiv = document.createElement('div');
-
         assetDiv.className = 'asset';
-        assetDiv.innerHTML = `${textGap}${asset.token.symbol}${tabs(tabSize, maxNameLength, asset.token.symbol)} | <a target="_blank" href="${dexScreenerUrl(asset.address)}">${shortenIfNeeded(asset.address)}</a>`;
+        assetDiv.innerHTML = `${textGap}${asset.token.name}${namePaddings[i]} | <a target="_blank" href="${dexScreenerUrl(asset.address)}">${asset.address}</a>`;
 
         if (asset.holdingsUsdValue != null) {
-          let t = tabs(tabSize, maxAddressLength, asset.address);
-          assetDiv.innerHTML += `${t}${t.length == 0 ? " " : ""}| $${formatAmount(asset.holdingsUsdValue)}`
+          assetDiv.innerHTML += ` | $${asset.holdingsUsdValue}`
+        }
+
+        if (asset.priceChange6h != null) {
+          assetDiv.innerHTML += `${usdHoldingPaddings[i]} | [6H]`
         }
 
         if (asset.variation != null) {
-          let t = tabs(tabSize, maxAddressLength, asset.address);
-          assetDiv.innerHTML += `${t}${t.length == 0 ? " " : ""}| $${formatAmount(asset.bagValue)} (${formatPercentage(asset.variation)})`
+          assetDiv.innerHTML += ` | $${asset.bagValue} (${asset.variation})`
         }
-
         container.appendChild(assetDiv);
       }
     }

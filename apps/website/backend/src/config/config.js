@@ -7,6 +7,13 @@ function get(parameter) {
 
 export const config = {};
 
+config.VLING_HYPERBOLIC_API_KEY = get({
+  dev: null,
+  test: null,
+  prod: null,
+  default: process.env.VLING_HYPERBOLIC_API_KEY
+});
+
 config.VLING_HELIUS_API_KEY = get({
   dev: null,
   test: null,
