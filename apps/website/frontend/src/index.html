@@ -1014,6 +1014,14 @@
 
     const textGap = "    ";
 
+    function truncateString(str, maxLength) {
+      if (str.length > maxLength) {
+        return str.slice(0, maxLength) + '...';
+      } else {
+        return str;
+      }
+    }
+
     function renderAssets(containerId, assets) {
       if (!assets || assets.length == 0) {
         return;
@@ -1021,11 +1029,13 @@
       const container = document.getElementById(containerId);
       container.innerHTML = '';
 
+
+
       let formattedAssets = assets.map((asset) => {
         return {
           token : {
             symbol : asset.token.symbol,
-            name : asset.token.name
+            name : truncateString(asset.token.name, 10)
           },
           address: shorten(asset.address),
           holdingsUsdValue: formatAmount(asset.holdingsUsdValue),
@@ -1044,6 +1054,11 @@
       const maxHoldingUsdValueLength = hasHoldingValues ? Math.max(...holdingUsdValues.map(item => item.length)) : null;
       const usdHoldingPaddings = hasHoldingValues ? calculatePaddings(holdingUsdValues, maxHoldingUsdValueLength) : null;
 
+      let priceChange6hValues = formattedAssets.map(item => item.priceChange6h);
+      let hasPriceChange6hValues = formattedAssets.length > 0 && formattedAssets[0].priceChange6h != null;
+      const max6hValueLength = hasPriceChange6hValues ? Math.max(...priceChange6hValues.map(item => item.length)) : null;
+      const priceChangePaddings = hasPriceChange6hValues ? calculatePaddings(priceChange6hValues, max6hValueLength) : null;
+
       for (let i=0; i<formattedAssets.length; i++) {
         let asset = formattedAssets[i];
         const assetDiv = document.createElement('div');
@@ -1055,7 +1070,7 @@
         }
 
         if (asset.priceChange6h != null) {
-          assetDiv.innerHTML += `${usdHoldingPaddings[i]} | [6H]`
+          assetDiv.innerHTML += ` ${usdHoldingPaddings[i]}| ${asset.priceChange6h}${priceChangePaddings[i]} | [6H]`
         }
 
         if (asset.variation != null) {

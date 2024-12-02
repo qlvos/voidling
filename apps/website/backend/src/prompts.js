@@ -15,7 +15,7 @@ export function getVoidlingUserPrompt(assetStats) {
     ` Asset: ${asset.token.symbol}, Performance: ${Number(asset.priceChange6h).toFixed(1)}%\n`;
     
   }
-  prompt += ` Overall portfolio performance: ${(sixHchangeAvg > 0 ? "+" : "") + sixHchangeAvg}%`;
+  prompt += ` Overall portfolio performance: ${(sixHchangeAvg > 0 ? "+" : "") + sixHchangeAvg.toFixed(1)}%`;
   return prompt;
 }
 export const VOIDLING_SYSTEM_PROMPT = `
