@@ -1,7 +1,7 @@
 import { config } from './config/config.js';
 import { logger } from './logger.js';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { getLastOpenTrade, getWatchlist } from './db/postgresdbhandler.js';
+import { getLastOpenTrade, getWatchlist, getBuys, getSells } from './db/postgresdbhandler.js';
 import { getVoidlingEmotion } from './aimodel.js';
 import { getVoidlingUserPrompt } from './prompts.js';
 import { SERENE, AGITATED, EXCITED, CURIOUS, CAUTIOUS } from './prompts.js';
@@ -64,9 +64,6 @@ async function fetchTokenBalances(walletAddress) {
   return assetData;
 }
 
-
-const NUM_BUYS_MAX_RANGE = 3000;
-const NUM_SELLS_MAX_RANGE = 3000;
 const VARIATION_MIN = -100;
 const VARIATION_MAX = 100;
 const RADIUS_MIN = 4;
@@ -108,9 +105,8 @@ export async function getPortfolioStats() {
   const sixHchangeAvg = assets.reduce((sum, asset) => sum + asset.priceChange6h, 0) / assets.length;
 
   let emotion;
-  let reply = await getVoidlingEmotion(getVoidlingUserPrompt(assets));
-  
   try {
+    let reply = await getVoidlingEmotion(getVoidlingUserPrompt(assets));
     emotion = JSON.parse(reply);
   } catch(err) {
     // json parse failed, backup
@@ -134,7 +130,8 @@ export async function getPortfolioStats() {
   // the last trade
   let assetDictionary = new Map();
   assets.map((asset) => assetDictionary.set(asset.address.toLowerCase(), asset));
-  let lastTrade = await getLastTrade(assetDictionary);
+
+  let tradeLog = await getTradeLog(assetDictionary);
 
   // find this token and get it's up to date name and price information etc etc.
   let wList = await getWatchlist();
@@ -144,9 +141,74 @@ export async function getPortfolioStats() {
     assets: assets,
     stats: normalized,
     watchlist: watchList,
-    latestinvestment: [lastTrade],
+    tradelog: tradeLog,
     ...emotion
   }
+}
+
+async function getTradeLog(assetDictionary) {
+  let buys = await getBuys();
+
+  let log = [];
+
+  if(buys && buys.length > 0) {
+    for(const buy of buys) {
+      let tokenDetails;
+      if(assetDictionary && assetDictionary.has(buy.toaddress.toLowerCase())) {
+        tokenDetails = assetDictionary.get(buy.toaddress.toLowerCase());
+      } else {
+        tokenDetails = await getTokenDetails(buy.toaddress);
+        if(!assetDictionary) {
+          assetDictionary = new Map();
+        }
+        assetDictionary.set(buy.toaddress.toLowerCase(), tokenDetails);
+        await new Promise(resolve => setTimeout(resolve, API_CALL_WAIT));
+      }
+      console.log(tokenDetails)
+
+      log.push({
+        action: "buy",
+        token: tokenDetails.token,
+        address: buy.toaddress,
+        tokens: buy.receivedamount,
+        usdvalue: Number(buy.receivedamount) * Number(buy.tokenusdvalue),
+        timestamp: Number(buy.timestamp)
+      })
+    }
+  }
+
+  let sells = await getSells();
+  if(sells && sells.length > 0) {
+    for(const sell of sells) {
+      let tokenDetails;
+      if(assetDictionary && assetDictionary.has(sell.toaddress.toLowerCase())) {
+        tokenDetails = assetDictionary.get(sell.toaddress.toLowerCase());
+      } else {
+        tokenDetails = await getTokenDetails(sell.toaddress);
+        if(!assetDictionary) {
+          assetDictionary = new Map();
+        }
+        assetDictionary.set(sell.toaddress.toLowerCase(), tokenDetails);
+        await new Promise(resolve => setTimeout(resolve, API_CALL_WAIT));
+      }
+
+      let usdValueAtSell = Number(sell.boughtamount) * Number(sell.tokenusdvalue);
+      log.push({
+        action: "sell",
+        token: tokenDetails.token,
+        address: sell.toaddress,
+        tokens: sell.boughtamount,
+        usdvalue: usdValueAtSell,
+        variation: usdValueAtSell / (Number(sell.boughtamount) * Number(sell.boughtusdvalue)),
+        timestamp: Number(sell.timestamp)
+      })
+    }
+  }
+
+  log.sort((a, b) => { return b.timestamp - a.timestamp });
+
+  return log;
+
 }
 
 async function getLastTrade(assetDictionary) {

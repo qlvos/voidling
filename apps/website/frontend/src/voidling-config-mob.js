@@ -36,6 +36,6 @@ const voidlingConfigVanilla = {
     minSkewness: 0.3,           // Minimum shape distortion | Sets base asymmetry | Higher = more base asymmetry
  
     // === BEHAVIOR CONTROL ===
-    behaviorChangeTime: 100,    // Time between behavior switches | Controls behavior persistence | Higher = behaviors last longer
+    behaviorChangeTime: 50,    // Time between behavior switches | Controls behavior persistence | Higher = behaviors last longer
     behaviorWeight: 1.2         // Influence of behavior on movement | Affects decision strength | Higher = more committed to behaviors
  };

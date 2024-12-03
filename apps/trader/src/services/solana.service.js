@@ -30,15 +30,8 @@ export async function buyToken(token, redis) {
   }
 
   let swapDetails = await swap(WRAPPED_SOL, token, config.VLING_BUY_AMOUNT);
-
-
   // complement with token price
   let priceDetails = await getTokenPriceDetails(token);
-  console.log("xxxxx")
-  console.log(priceDetails)
-
-//let swapDetails = await getSwapDetails(token, '4sVT1wKVW3cy2ap87EC32CiSHvG2Aa7wEiGEEAfWHChBPULJfDc7i6RrHedhsmKZdScxdd9LzhWLGJZHPiAhqKf7');
-
 
   if(swapDetails) {
     // save to DB (buys) !
@@ -146,8 +139,17 @@ export async function sellToken(redis) {
   let lastOpenTrade = await getLastOpenTrade();
   if(lastOpenTrade) {
     logger.info("selling trade " + lastOpenTrade)
+    // get the token price
+    let priceDetails;
+    try {
+      priceDetails = await getTokenPriceDetails(lastOpenTrade.toaddress);
+    } catch (err) {
+      logger.warn("Could not fetch price details, not blocking...");
+    }
+    
     let sellInfo = await swap(lastOpenTrade.toaddress, lastOpenTrade.fromaddress, lastOpenTrade.receivedamount);
-    await addSell(lastOpenTrade.id, sellInfo.solDifference, Date.now());
+
+    await addSell(lastOpenTrade.id, sellInfo.solDifference, priceDetails ? priceDetails.price : -1, Date.now());
     return sellInfo;
   }
 

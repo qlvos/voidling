@@ -14,9 +14,9 @@ export async function addBuy(from, to, fromAmount, toAmount, toAmountRaw, tokenU
     [from, to, fromAmount, toAmount, toAmountRaw, tokenUsdValue, timestamp]);
 }
 
-export async function addSell(buyid, profitloss, timestamp) {
-  await db.raw(`INSERT INTO "sells" ("buyid", "profitloss", "timestamp") VALUES (?, ?, ?) ON CONFLICT DO NOTHING`, 
-    [buyid, profitloss, timestamp]);
+export async function addSell(buyid, profitloss, tokenusdvalue, timestamp) {
+  await db.raw(`INSERT INTO "sells" ("buyid", "profitloss", "tokenusdvalue", "timestamp") VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING`, 
+    [buyid, profitloss, tokenusdvalue, timestamp]);
 }
 
 export async function getLastOpenTrade() {

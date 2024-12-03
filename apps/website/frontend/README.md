@@ -8,7 +8,7 @@ var _getBufferSize
 var _set_base_radius
 var _set_aspect_ratio
 var _set_move_speed
-var _set_move_change_frequency = Module["_set_move_change_frequency"] = a0 => (_set_move_change_frequency = Module["_set_move_change_frequency"] = wasmExports["set_move_change_frequency"])(a0);
+var _set_move_change_frequency
 var _set_min_rotation_speed = Module["_set_min_rotation_speed"] = a0 => (_set_min_rotation_speed = Module["_set_min_rotation_speed"] = wasmExports["set_min_rotation_speed"])(a0);
 var _set_max_rotation_speed = Module["_set_max_rotation_speed"] = a0 => (_set_max_rotation_speed = Module["_set_max_rotation_speed"] = wasmExports["set_max_rotation_speed"])(a0);
 var _set_rotation_smoothness = Module["_set_rotation_smoothness"] = a0 => (_set_rotation_smoothness = Module["_set_rotation_smoothness"] = wasmExports["set_rotation_smoothness"])(a0);
