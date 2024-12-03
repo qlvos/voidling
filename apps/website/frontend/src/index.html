@@ -53,26 +53,32 @@
     }
 
     .c57 {
+      background-color: #252525;
       color: #5f00ff;
     }
 
     .c99 {
+      background-color: #252525;
       color: #875fff;
     }
 
     .c105 {
+      background-color: #252525;
       color: #8787ff;
     }
 
     .c166 {
+      background-color: #252525;
       color: #d75f00;
     }
 
     .c208 {
+      background-color: #252525;
       color: #ff8700;
     }
 
     .c141 {
+      background-color: #252525;
       color: #af87ff;
     }
 
@@ -97,7 +103,7 @@
       position: absolute;
       background-color: transparent;
       color: lightgray;/*#554d64;*/
-      z-index: 1;
+      z-index: 0;
       display: flex;
       flex-direction: column;
       padding: 0;
@@ -163,6 +169,7 @@
   <script src="./voidling-config-curious.js"></script>
   <script src="./voidling-config-excited.js"></script>
   <script src="./voidling-config-serene.js"></script>
+  <script src="./voidling-config-mob.js"></script>
 
   <div class="container">
     <pre id="output"></pre>
@@ -224,6 +231,13 @@
     let currentRadius = null;
     let lastTextChange = Date.now();
     let text = '';
+    const assetBoxId = "assetbox";
+    const watchlistBoxId = "watchlistbox";
+
+    const scrollSettings = new Map();
+    scrollSettings.set(assetBoxId, { top: 1, size: 3 } )
+    scrollSettings.set(watchlistBoxId, { top: 1, size: 3 } )
+    
 
     // portfolio box offset compared to the voidling square
     const PORTFOLIO_OFFSET_TOP = 1.8;
@@ -249,6 +263,32 @@
       '=': 'c105', '!': 'c105', '*': 'c105',
       '#': 'c166', '@': 'c208', '$': 'c141'
     };
+
+    let assetBoxHover = false;
+
+    function manageMouseOver(box) {
+      const rect = box.getBoundingClientRect();     
+      const x = event.clientX;
+      const y = event.clientY;
+      if(x > rect.left && x < (rect.left+rect.width) && y > rect.top && y < (rect.top+rect.height)) {
+        let pbox = document.getElementById("portfoliobox");
+        assetBoxHover = true;
+        pbox.style.zIndex='10';
+        return true;
+      } else {
+        if(assetBoxHover) {
+          let pbox = document.getElementById("portfoliobox");
+          pbox.style.zIndex='0';
+          assetBoxHover = false;
+        }
+      }
+    }
+  
+    document.addEventListener('mousemove', (event) => {
+      manageMouseOver(document.getElementById(assetBoxId)) ||
+      manageMouseOver(document.getElementById(watchlistBoxId))
+    });
+ 
 
     // Circular buffer for frame management
     class CircularFrameBuffer {
@@ -441,7 +481,8 @@
 
     function preserveVoidlingState() {
       // Function body unchanged
-      const complexity = Module.ccall('get_deform_complexity', 'number', [], []);
+     
+      const complexity = Module._get_deform_complexity();
       const deformPhases = [];
       const deformFreqs = [];
 
@@ -449,6 +490,7 @@
         deformPhases.push(Module.ccall('get_deform_phase', 'number', ['number'], [i]));
         deformFreqs.push(Module.ccall('get_deform_freq', 'number', ['number'], [i]));
       }
+      
 
       return {
         position: {
@@ -521,6 +563,7 @@
 
     function initVoidlingConfig() {
       console.log("init cfg " + emotion)
+
       let cfg = voidlingConfigSerene;
       if(emotion) {
         if(emotion == "EXCITED") {
@@ -532,6 +575,10 @@
         } else if (emotion == "AGITATED") {
           cfg = voidlingConfigAgitated;
         }
+      }
+
+      if(window.isMobile) {
+        cfg = voidlingConfigVanilla;
       }
 
       Module._initVoidlingWithConfig(
@@ -574,7 +621,7 @@
       if (Module && Module._cleanup) {
         try {
           const state = preserveVoidlingState(); // Preserve the current state
-        Module._cleanup(); // Call WebAssembly cleanup function
+          Module._cleanup(); // Call WebAssembly cleanup function
 
         // Reinitialize the Voidling with its configuration
         if (window.VoidlingConfig) {
@@ -650,6 +697,7 @@
           Module._initialize_trig_cache();
 
           const loadConfig = () => {
+            /*
             return new Promise((resolve) => {
               const configScript = document.createElement('script');
               configScript.src = window.isMobile ? 'voidling-config-mob.js' : 'voidling-config.js';
@@ -666,14 +714,16 @@
 
               document.body.appendChild(configScript);
             });
+            */
           };
 
           const initializeVoidling = async () => {
             await loadConfig();
 
-            if (!window.VoidlingConfig) {
-              throw new Error('Config not loaded properly');
-            }
+            //if (!window.VoidlingConfig) {
+            //  throw new Error('Config not loaded properly');
+            //}
+
 
             initVoidlingConfig();
 
@@ -690,9 +740,6 @@
               document.getElementById('voidlingbox').style.top = `${outputElement.offsetTop * offsetTop}px`;
               document.getElementById('voidlingbox').style.width = `${outputElement.offsetWidth * 0.95}px`;
               
-
-
-
               if (!isRunning) return; // Stop the loop if not running
               if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
                 requestAnimationFrame(updateDisplay);
@@ -789,11 +836,7 @@
                         }
                       });
                     });
-
                     }
-
-
-
                   }
                 } else {
                   bufferPool.return(newBuffer); // Return unused buffer to pool
@@ -835,6 +878,11 @@
         Module._getBuffer = Module.cwrap('getBuffer', 'number', []);
         Module._getBufferSize = Module.cwrap('getBufferSize', 'number', []);
         Module._initialize_trig_cache = Module.cwrap('initialize_trig_cache', null, []);
+        Module._get_deform_complexity = Module.cwrap('get_deform_complexity', 'number', []);
+        console.log("_initialize_trig_cache")
+        console.log(Module._initialize_trig_cache)
+        console.log("_get_deform_complexity")
+        console.log(Module._get_deform_complexity)
       }
     };
 
@@ -922,26 +970,17 @@
         socket.onmessage = function (event) {
           let msg = JSON.parse(event.data);
           if (msg.action == "vdata") {
-
-            /*
-            if (window.VoidlingConfig && msg.stats && msg.stats.radius != null) {
-              currentRadius = msg.stats.radius;
-              Module._set_base_radius(currentRadius)
-              window.VoidlingConfig.baseRadius = currentRadius;
-            }
-            */
             if(emotion != msg.emotion) {
               console.log("New emotion!")
               console.log(msg.emotion)
               forceCleanup();
-              // change config !
             }
             emotion = msg.emotion;
 
             document.getElementById("voidlingbox").innerHTML = msg.comment;
 
-            renderAssets("assetbox", msg.assets);
-            renderAssets("watchlistbox", msg.watchlist);
+            renderAssets(assetBoxId, msg.assets, scrollSettings.get(assetBoxId));
+            renderAssets("watchlistbox", msg.watchlist, scrollSettings.get(watchlistBoxId));
 
             if (msg.latestinvestment && msg.latestinvestment.length > 0 && msg.latestinvestment[0] != null) {
               document.getElementById("investmentheader").innerHTML = "Latest investment";
@@ -1022,20 +1061,18 @@
       }
     }
 
-    function renderAssets(containerId, assets) {
+    function renderAssets(containerId, assets, scrollSettings) {
       if (!assets || assets.length == 0) {
         return;
       }
       const container = document.getElementById(containerId);
       container.innerHTML = '';
 
-
-
       let formattedAssets = assets.map((asset) => {
         return {
           token : {
             symbol : asset.token.symbol,
-            name : truncateString(asset.token.name, 10)
+            name : truncateString(asset.token.name, (window.isMobile ? 10 : 20))
           },
           address: shorten(asset.address),
           holdingsUsdValue: formatAmount(asset.holdingsUsdValue),
@@ -1059,11 +1096,39 @@
       const max6hValueLength = hasPriceChange6hValues ? Math.max(...priceChange6hValues.map(item => item.length)) : null;
       const priceChangePaddings = hasPriceChange6hValues ? calculatePaddings(priceChange6hValues, max6hValueLength) : null;
 
-      for (let i=0; i<formattedAssets.length; i++) {
+      let start = scrollSettings ? (scrollSettings.top-1) : 0;
+
+      let counter = 0;
+
+      const upDiv = document.createElement('div');
+      container.appendChild(upDiv)
+      if(scrollSettings && scrollSettings.top > 1) {
+        upDiv.innerHTML = "<b>^ </b>";
+        upDiv.style.cursor = "pointer";
+
+        upDiv.onclick = function() {
+          scrollSettings.top=(scrollSettings.top-1);
+          renderAssets(containerId, assets, scrollSettings);
+        };
+        
+      } else {
+        upDiv.innerHTML = "&nbsp;";
+      }
+
+
+      for (let i=start; i<formattedAssets.length; i++) {
+
+        if(scrollSettings) {
+          if(counter >= scrollSettings.size) {
+            break;
+          }
+        }
+        ++counter;
+
         let asset = formattedAssets[i];
         const assetDiv = document.createElement('div');
         assetDiv.className = 'asset';
-        assetDiv.innerHTML = `${textGap}${asset.token.name}${namePaddings[i]} | <a target="_blank" href="${dexScreenerUrl(asset.address)}">${asset.address}</a>`;
+        assetDiv.innerHTML = `${i+1} ${asset.token.name}${namePaddings[i]} | <a target="_blank" href="${dexScreenerUrl(asset.address)}">${asset.address}</a>`;
 
         if (asset.holdingsUsdValue != null) {
           assetDiv.innerHTML += ` | $${asset.holdingsUsdValue}`
@@ -1078,6 +1143,26 @@
         }
         container.appendChild(assetDiv);
       }
+
+      if(scrollSettings) {
+        const nextDiv = document.createElement('div');
+
+        if(!((formattedAssets.length > scrollSettings.size) && !((scrollSettings.top) + scrollSettings.size > formattedAssets.length))) {
+          nextDiv.innerHTML = "&nbsp;"
+          container.appendChild(nextDiv)
+          return;
+        }
+
+        nextDiv.innerHTML = "<b>v </b>";
+        nextDiv.style.cursor = "pointer";
+
+        nextDiv.onclick = function() {
+          scrollSettings.top=(scrollSettings.top+1);
+          renderAssets(containerId, assets, scrollSettings);
+        };
+        container.appendChild(nextDiv)
+      }
+
     }
   </script>
 </body>
