@@ -405,7 +405,7 @@
             
             const colorClass = customColor || colorMap[char];
             html += colorClass ? 
-                `<span class="${colorClass}">${char}</span>` : char;
+                `<span id="${i}" class="${colorClass}">${char}</span>` : char;
             if ((i + 1) % width === 0) html += '\n';
         }
         return html;
@@ -714,6 +714,51 @@
                   const html = bufferToHTML(newBuffer, dims.width);
                   if (outputElement.innerHTML !== html) {
                     outputElement.innerHTML = html; // Update DOM only if necessary
+
+                    let watchBrain = true;
+                    if(watchBrain) {
+                      const elementIds = Object.values(colorMap);
+                      let uniqueElementIds = new Set(elementIds);
+                      let elements = [];
+                      for (const id of uniqueElementIds) {
+                        elements.push(...document.querySelectorAll("." + id))
+                      }
+
+                    // elements = elements.sort((a, b) => {
+                    //   return a.id - b.id
+                    // })
+
+                      let length = 60;
+
+                      let now = Date.now();
+                      let minTextKeep = 500;
+                      elements.forEach((element, index) => {
+                        element.addEventListener('mouseover', () => {
+                          let counter = 0;
+                          for (let i = Math.max(0, index - length); i <= Math.min(elements.length - 1, index + length); i++) {
+                            elements[i].style.color = "#FFFFFF";
+                            elements[i].style.cursor = "pointer";
+
+                            if (counter >= (length * 2)) {
+                              break;
+                            }
+
+                            let char = prophecies.charAt(Math.min(i, prophecies.length))
+                            elements[i].innerHTML = char;
+                            elements[i].classList.add('hovered');
+                            ++counter;
+                          }
+                        });
+
+                        element.addEventListener('mouseout', () => {
+                          for (let i = Math.max(0, index - length); i <= Math.min(elements.length - 1, index + length); i++) {
+                            elements[i].classList.remove('hovered');
+                          }
+                        });
+                      });
+                    }
+
+
                   }
                 } else {
                   bufferPool.return(newBuffer); // Return unused buffer to pool
