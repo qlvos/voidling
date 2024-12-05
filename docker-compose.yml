@@ -72,7 +72,7 @@ services:
     environment:
       - POSTGRES_PASSWORD=${VLING_ADMIN_POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
      - vling-postgres-data:/home/postgres/pgdata/data
 
