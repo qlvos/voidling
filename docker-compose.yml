@@ -3,12 +3,12 @@ services:
 
   frontend:
     build:
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
       context: ./apps/website/frontend
     ports:
       - "3001:80"
-    volumes:
-      - ./apps/website/frontend/src:/usr/share/nginx/html
+#    volumes:
+#      - ./apps/website/frontend/src:/usr/share/nginx/html
     environment:
       - WDS_SOCKET_HOST=127.0.0.1
       - VLING_BACKEND_SERVICE_NAME=backend

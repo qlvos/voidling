@@ -1,6 +1,6 @@
 const voidlingConfigVanilla = {
     // === BASIC SHAPE AND SIZE ===
-    baseRadius: 4.0,         // Core size of the voidling | Affects border detection and deformation calculations | Higher = bigger creature
+    baseRadius: 3.5,         // Core size of the voidling | Affects border detection and deformation calculations | Higher = bigger creature
     aspectRatio: 0.9,        // Width vs height ratio | Interacts with perspective and squish effects | Higher = wider relative to height
     fillDensity: 0.5,        // How solid the voidling appears | Affects rendering performance | Higher = more solid appearance
     stepSize: 0.07,          // Granularity of render calculations | Affects smoothness and performance | Lower = smoother but slower

@@ -13,7 +13,11 @@ COPY . .
 #Expose the API port
 EXPOSE 3000
 
-CMD [ "npm", "run", "startdev"]
+FROM nginx:latest
+RUN rm /etc/nginx/conf.d/default.conf
+COPY ./template/nginx.conf.template.dev /etc/nginx/templates/nginx.conf.template
+COPY ./src /usr/share/nginx/html
+EXPOSE 80
 
 
 

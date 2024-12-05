@@ -1,0 +1,15 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "uglify": "uglifyjs ./src/*.js -c -m -o ./public/voidling-bundle.min.js"
+  },
+  "dependencies": {
+    "uglify-js": "^3.15.4"
+  },
+  "author": "",
+  "license": "ISC"
+}
