@@ -10,7 +10,7 @@ RUN npm install
 # Copy Source Files
 COPY . .
 
-RUN npm run uglify
+RUN npm run grunt
 
 #Expose the API port
 EXPOSE 3000
@@ -18,13 +18,15 @@ EXPOSE 3000
 FROM nginx:latest
 RUN rm /etc/nginx/conf.d/default.conf
 COPY ./template/nginx.conf.template.dev /etc/nginx/templates/nginx.conf.template
-COPY ./public /usr/share/nginx/html
 
 RUN rm -rf /usr/share/nginx/html/*
 
-COPY --from=build ./public /usr/share/nginx/html
+COPY --from=build ./build /usr/share/nginx/html
+COPY --from=build ./src/imports.js /usr/share/nginx/html/imports.js
 COPY --from=build ./src/*.wasm /usr/share/nginx/html
+COPY --from=build ./src/prophecies.js /usr/share/nginx/html
 COPY --from=build ./src/index.html /usr/share/nginx/html
+
 
 EXPOSE 80
 

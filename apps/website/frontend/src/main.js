@@ -1,5 +1,24 @@
+import { connectWebSocket } from "./chaindata.js"; 
+import { voidlingConfigSerene } from "./voidling-config-serene.js";
+import { voidlingConfigAgitated } from "./voidling-config-agitated.js";
+import { voidlingConfigCautious } from "./voidling-config-cautious.js";
+import { voidlingConfigCurious } from "./voidling-config-curious.js";
+import { voidlingConfigExcited } from "./voidling-config-excited.js";
+import { voidlingConfigVanilla } from "./voidling-config-mob.js";
+import { prophecies1, prophecies2, prophecies3, prophecies4, prophecies5, prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11 } from "./prophecies.js"
+
 window.isMobile = window.innerWidth <= 999;
 let lastMobileState = window.isMobile;
+
+let moduleInitialized = false;
+
+export function getModuleInitialized() {
+  return moduleInitialized;
+}
+
+export function setModuleInitialized(value) {
+  moduleInitialized = value;
+}
 
 function checkMobile() {
   window.isMobile = window.innerWidth <= 999;
@@ -11,13 +30,11 @@ function checkMobile() {
 }
 
 checkMobile();
-//console.log('Initial mobile state:', window.isMobile);
 
 function updateVoidlingSize() {
   document.documentElement.style.setProperty('--voidling-font-size',
     window.isMobile ? '24px' : '12px'
   );
-  //console.log('Font size updated to:', window.isMobile ? '24px' : '12px');
 }
 
 updateVoidlingSize();
@@ -25,24 +42,10 @@ updateVoidlingSize();
 checkMobile();
 //console.log('Initial mobile state:', window.isMobile);
 
-function updateVoidlingSize() {
-  document.documentElement.style.setProperty('--voidling-font-size',
-    window.isMobile ? '24px' : '12px'
-  );
-}
-
-updateVoidlingSize();
-
 let emotion = null;
-let moduleInitialized = false;
-const assetBoxId = "assetbox";
-const tradeLogId = "tradelogbox";
-const watchlistBoxId = "watchlistbox";
-
-const scrollSettings = new Map();
-scrollSettings.set(assetBoxId, { top: 1, size: 3 })
-scrollSettings.set(watchlistBoxId, { top: 1, size: 3 })
-scrollSettings.set(tradeLogId, { top: 1, size: 5 })
+export const assetBoxId = "assetbox";
+export const tradeLogId = "tradelogbox";
+export const watchlistBoxId = "watchlistbox";
 
 // portfolio box offset compared to the voidling square
 const PORTFOLIO_OFFSET_TOP = 1.2;
@@ -52,14 +55,12 @@ const PORTFOLIO_OFFSET_TOP_MOBILE = 2.5;
 const PORTFOLIO_OFFSET_LEFT_MOBILE = 1.2;
 
 // Configuration constants
-const EMOTION_LOAD_WAIT = 3000;
 const FRAME_INTERVAL = 48;
 const FRAME_HISTORY_SIZE = 48;
 const CLEANUP_INTERVAL = 200;
 const MEMORY_THRESHOLD_MB = 200;
 const MAX_POOL_SIZE = 6;
 const MEMORY_CHECK_INTERVAL = 1000;
-const MAX_FRAME_BUFFER_SIZE = 24;  // Maximum number of frames to keep
 const BUFFER_POOL_CLEANUP_INTERVAL = 100;  // Clean pool every N frames
 
 // Color mapping
@@ -71,6 +72,14 @@ const colorMap = {
 };
 
 let assetBoxHover = false;
+
+export function getEmotion() {
+  return emotion;
+}
+
+export function setEmotion(em) {
+  emotion = em;
+}
 
 function manageMouseOver(box) {
   const rect = box.getBoundingClientRect();
@@ -375,7 +384,7 @@ function checkMemoryUsage() {
   }
 }
 
-function forceCleanup() {
+export function forceCleanup() {
   frameBuffer.clear();
 
   // Clear the current buffer array
@@ -441,7 +450,7 @@ window.addEventListener('resize', onResize);
 document.addEventListener('DOMContentLoaded', function () {
   checkMobile();
   updateVoidlingSize();
-  connectWebSocket();
+  connectWebSocket();  
 });
 
 function initVoidlingConfig() {
@@ -495,7 +504,7 @@ function initVoidlingConfig() {
 
 }
 
-var Module = {
+export var Module = {
   onRuntimeInitialized: function () {
     try {
       outputElement = document.getElementById('output');
@@ -520,8 +529,11 @@ var Module = {
           }
 
           elements.forEach((element, index) => {
+            // not sure this check is needed
             if (!element.hasAttribute('data-has-listeners')) {
               element.setAttribute('data-has-listeners', 'true');
+
+              
               element.addEventListener('mouseover', () => {
                 if (element.innerHTML === '$') {
                   return;
@@ -591,17 +603,6 @@ var Module = {
 
         function updateDisplay(timestamp) {
 
-          let offsetTop = window.isMobile ? PORTFOLIO_OFFSET_TOP_MOBILE : PORTFOLIO_OFFSET_TOP;
-          let offsetLeft = window.isMobile ? PORTFOLIO_OFFSET_LEFT_MOBILE : PORTFOLIO_OFFSET_LEFT;
-          
-          document.getElementById('portfoliobox').style.top = `${outputElement.offsetTop * offsetTop * 1.4}px`;
-          document.getElementById('portfoliobox').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
-
-          document.getElementById('voidlingbox').style.bottom = `${outputElement.offsetTop * offsetTop}px`;
-          document.getElementById('voidlingbox').style.width = `${outputElement.offsetWidth * 0.95}px`;
-          const outerRect = outputElement.getBoundingClientRect();
-          document.getElementById('voidlingbox').style.left = `${outerRect.left}px`;          
-
           if (!isRunning) return;
           if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
             requestAnimationFrame(updateDisplay);
@@ -648,6 +649,17 @@ var Module = {
               const html = bufferToHTML(newBuffer, dims.width);
               if (outputElement.innerHTML !== html) {
                 outputElement.innerHTML = html; // Update DOM only if necessary
+
+                let offsetTop = window.isMobile ? PORTFOLIO_OFFSET_TOP_MOBILE : PORTFOLIO_OFFSET_TOP;
+                let offsetLeft = window.isMobile ? PORTFOLIO_OFFSET_LEFT_MOBILE : PORTFOLIO_OFFSET_LEFT;
+                
+                document.getElementById('portfoliobox').style.top = `${outputElement.offsetTop * offsetTop * 1.4}px`;
+                document.getElementById('portfoliobox').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
+      
+                document.getElementById('voidlingbox').style.bottom = `${outputElement.offsetTop * offsetTop}px`;
+                document.getElementById('voidlingbox').style.width = `${outputElement.offsetWidth * 0.95}px`;
+                const outerRect = outputElement.getBoundingClientRect();
+                document.getElementById('voidlingbox').style.left = `${outerRect.left}px`;
 
                 let watchBrain = true;
 
@@ -757,6 +769,7 @@ window.addEventListener('pageshow', function (event) {
 function loadVoidlingScript() {
   const voidlingScript = document.createElement('script');
   voidlingScript.src = window.isMobile ? 'voidling-mob.js' : 'voidling.js';
+  voidlingScript.type="module";
   document.body.appendChild(voidlingScript);
 }
 

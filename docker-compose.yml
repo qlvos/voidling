@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
       context: ./apps/website/frontend
     ports:
-      - "3001:80"
+      - "30011:80"
 #    volumes:
 #      - ./apps/website/frontend/src:/usr/share/nginx/html
     environment:
@@ -90,7 +90,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     ports:
-      - "6379:6379"
+      - "6380:6379"
       - "8001:8001"
     volumes:
       - vling-redis-data:/data

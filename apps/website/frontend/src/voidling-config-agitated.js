@@ -1,4 +1,4 @@
-const voidlingConfigAgitated = {
+export const voidlingConfigAgitated = {
     // === BASIC SHAPE AND SIZE ===
     baseRadius: 5.0,        // Core size of the voidling | Affects border detection and deformation calculations | Higher = bigger creature
     aspectRatio: 0.9,       // Width vs height ratio | Interacts with perspective and squish effects | Higher = wider relative to height

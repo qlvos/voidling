@@ -1,12 +1,27 @@
+import { forceCleanup, getEmotion, setEmotion, assetBoxId, tradeLogId, watchlistBoxId, getModuleInitialized } from "./main.js";
+const EMOTION_LOAD_WAIT = 3000;
 
 let socket;
 let reconnectInterval = 2000;
-let keepAliveInterval = 3000;
 let keepAliveTimer;
 
-function connectWebSocket() {
+const currentUrl = window.location.href; // Create a new URL object 
+const url = new URL(currentUrl); // Get the base part of the URL 
+const baseUrl = `${url.hostname}${url.port ? ':' + url.port : ''}`;
+const WS_ADDRESS = `ws://${baseUrl}/ws`
+
+const scrollSettings = new Map();
+scrollSettings.set(assetBoxId, { top: 1, size: 3 })
+scrollSettings.set(watchlistBoxId, { top: 1, size: 3 })
+scrollSettings.set(tradeLogId, { top: 1, size: 5 })
+
+const dexScreenerUrl = function (address) {
+  return "https://dexscreener.com/solana/" + address;
+}
+
+export function connectWebSocket() {
   // Open a WebSocket connection
-  socket = new WebSocket('ws://localhost:47901/ws');
+  socket = new WebSocket(WS_ADDRESS);
 
   // Handle the open event
   socket.onopen = function (event) {
@@ -15,15 +30,15 @@ function connectWebSocket() {
       //console.log('Message received:', event.data);
       let msg = JSON.parse(event.data);
       if (msg.action == "vdata") {
-        if (emotion != msg.emotion) {
+        if (getEmotion() != msg.emotion) {
           //console.log("New emotion!")
           document.getElementById("voidlingemotion").innerHTML = msg.emotion;
           //console.log(msg.emotion)
 
-          let emotionChangeTimeout = moduleInitialized ? 0 : EMOTION_LOAD_WAIT;
+          let emotionChangeTimeout = getModuleInitialized() ? 0 : EMOTION_LOAD_WAIT;
           setTimeout(() => { forceCleanup(); }, emotionChangeTimeout)
         }
-        emotion = msg.emotion;
+        setEmotion(msg.emotion);
 
         if (msg.comment) {
           document.getElementById("voidlingcomment").innerHTML = msg.comment;
@@ -65,6 +80,7 @@ function connectWebSocket() {
 }
 
 const textGap = "    ";
+const MOBILE_NAME_LENGTH = 8;
 
 function renderAssets(containerId, assets, scrollSettings) {
   if (!assets || assets.length == 0) {
@@ -77,13 +93,13 @@ function renderAssets(containerId, assets, scrollSettings) {
     return {
       token: {
         symbol: asset.token.symbol,
-        name: truncateString(asset.token.name, (window.isMobile ? 10 : 20))
+        name: truncateString(asset.token.name, (window.isMobile ? MOBILE_NAME_LENGTH : 20))
       },
       address: shorten(asset.address),
       holdingsUsdValue: formatAmount(asset.holdingsUsdValue),
-      priceChange6h: formatPercentage(asset.priceChange6h),
+      priceChange6h: formatPercentage(asset.priceChange6h, true),
       assetBagValue: formatAmount(asset.assetBagValue),
-      variation: formatPercentage(asset.variation)
+      variation: formatPercentage(asset.variation, true)
     }
   });
 
@@ -179,7 +195,7 @@ function renderLog(containerId, assets, scrollSettings) {
     return {
       token: {
         symbol: asset.token.symbol,
-        name: truncateString(asset.token.name, (window.isMobile ? 10 : 20))
+        name: truncateString(asset.token.name, (window.isMobile ? MOBILE_NAME_LENGTH : 20))
       },
       action: asset.action.toUpperCase(),
       address: shorten(asset.address),
@@ -259,4 +275,38 @@ function renderLog(containerId, assets, scrollSettings) {
     };
     container.appendChild(nextDiv)
   }
+}
+
+function formatAmount(amount) {
+  if(amount == null) {
+    return null;
+  }
+  return parseInt(amount, 10).toLocaleString('en-US');
+}
+
+function formatPercentage(variation, ratio) {
+  if(variation == null) {
+    return null;
+  }
+  let percentage = ratio ? ((variation * 100) - 100).toFixed(0) : variation.toFixed(0);
+  return (percentage > -1 ? "+" : "") + percentage + "%";
+}
+
+function calculatePaddings(strings, maxLength) {
+  return strings.map(str => {
+    const paddingNeeded = maxLength - str.length;
+    return ' '.repeat(paddingNeeded);
+  });
+}
+
+function truncateString(str, maxLength) {
+  if (str.length > maxLength) {
+    return str.slice(0, maxLength) + '...';
+  } else {
+    return str;
+  }
+}
+
+function shorten(str) {
+  return (str.substr(0, 3) + "..." + str.substr(str.length - 3));
 }

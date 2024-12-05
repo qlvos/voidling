@@ -164,7 +164,6 @@ async function getTradeLog(assetDictionary) {
         assetDictionary.set(buy.toaddress.toLowerCase(), tokenDetails);
         await new Promise(resolve => setTimeout(resolve, API_CALL_WAIT));
       }
-      console.log(tokenDetails)
 
       log.push({
         action: "buy",
@@ -253,9 +252,7 @@ function getStatsOverPeriod(assetStats, period) {
   let buys = 0;
   let sells = 0;
   let variation = 0;
-  console.log(period)
   for (const asset of assetStats) {
-    console.log(asset)
     volume += asset['volume' + period];
     buys += asset['buys' + period];
     sells += asset['sells' + period];
