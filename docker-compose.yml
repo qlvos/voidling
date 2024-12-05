@@ -7,8 +7,6 @@ services:
       context: ./apps/website/frontend
     ports:
       - "30011:80"
-#    volumes:
-#      - ./apps/website/frontend/src:/usr/share/nginx/html
     environment:
       - WDS_SOCKET_HOST=127.0.0.1
       - VLING_BACKEND_SERVICE_NAME=backend
@@ -16,13 +14,11 @@ services:
 
   backend:
     build:
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
       context: ./apps/website/backend
     ports:
       - "47900:47900"
       - "47901:47901"
-    volumes:
-      - ./apps/website/backend:/voidling/apps/website/backend
     environment:
       - WDS_SOCKET_HOST=127.0.0.1
       - VLING_POSTGRES_URL=postgres

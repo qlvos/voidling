@@ -1,7 +1,7 @@
 
 \connect "voidling_db";
 
--- Adminer 4.8.1 PostgreSQL 16.6 (Ubuntu 16.6-1.pgdg22.04+1) dump
+-- Adminer 4.8.1 PostgreSQL 16.4 (Ubuntu 16.4-1.pgdg22.04+2) dump
 
 DROP TABLE IF EXISTS "buys";
 DROP SEQUENCE IF EXISTS buys_id_seq;
@@ -37,6 +37,7 @@ CREATE TABLE "public"."sells" (
     "buyid" integer NOT NULL,
     "profitloss" integer NOT NULL,
     "timestamp" bigint NOT NULL,
+    "tokenusdvalue" numeric,
     CONSTRAINT "sells_pkey" PRIMARY KEY ("id")
 ) WITH (oids = false);
 
@@ -48,6 +49,9 @@ CREATE TABLE "public"."watchlist" (
     "address" character varying NOT NULL,
     CONSTRAINT "watchlist_address" UNIQUE ("address")
 ) WITH (oids = false);
+
+
+-- 2024-12-05 22:56:26.835145+00
 
 CREATE ROLE voidling_db_user WITH LOGIN PASSWORD 'REPLACE_ME';
 
