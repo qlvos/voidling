@@ -511,6 +511,7 @@ var Module = {
         Module._set_dimensions(dims.width, dims.height);
 
         function displayInnerThoughts() {
+          let lastProphecyIndex = -1;
           const elementIds = Object.values(colorMap);
           let uniqueElementIds = new Set(elementIds);
           let elements = [];
@@ -648,8 +649,7 @@ var Module = {
               if (outputElement.innerHTML !== html) {
                 outputElement.innerHTML = html; // Update DOM only if necessary
 
-                let watchBrain = false;
-                let lastProphecyIndex = -1;
+                let watchBrain = true;
 
                 if (watchBrain) {
                   displayInnerThoughts();
