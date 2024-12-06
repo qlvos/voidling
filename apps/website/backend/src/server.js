@@ -41,7 +41,8 @@ setInterval(async () => {
         ws.send(JSON.stringify({ action: VOIDLING_DATA, ...cachedChainData }));
       });
     } catch (err) {
-      logger.err("failed fetching portfolio " + err);
+      console.log(err)
+      logger.error("failed fetching portfolio " + err);
     }
   }
 }, CACHE_UPDATE_FREQUENCY);
