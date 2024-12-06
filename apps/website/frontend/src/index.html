@@ -62,7 +62,6 @@
         top: 12%;
         left: 7%;
         background-color: transparent;
-        color: /*light-gray;*/  #554d64;
         z-index: 1;
         display: flex;
         flex-direction: column;
@@ -99,16 +98,15 @@
         font-size: var(--voidling-font-size, 12px);
         margin: 0px 0;
         white-space: pre-wrap;
-        color: lightgray;
+        color: #554d64;
         padding-left: 10px;
-        padding-bottom: 10px;
+        padding-bottom: 30px;
     }
 
-    #investmentheader {
-        display: block;
-        margin-top: 0px;
-        font-weight: bold;
-        color: lightgray;
+    .portfolioheader {
+      display: block;
+        font-size: var(--voidling-header-font-size, 12px);
+        color: #554d64;
     }
 
     .asset {
@@ -123,11 +121,11 @@
     <pre id="output"></pre>
     <div id="portfoliobox" class="voidling-world">
       <div>
-        VOIDLING PORTFOLIO
+        <span id="abc" class="portfolioheader">VOIDLING PORTFOLIO</span>
         <span id="assetbox" class="assetboxclass"></span>
-        VOIDLING TRADES
+        <span class="portfolioheader">VOIDLING TRADES</span>
         <span id="tradelogbox" class="assetboxclass"></span>
-        VOID INDEX
+        <span class="portfolioheader">VOID INDEX</span>
         <span id="watchlistbox" class="assetboxclass">
         </span>
 

@@ -49,11 +49,6 @@ export function connectWebSocket() {
         renderLog(tradeLogId, msg.tradelog, scrollSettings.get(tradeLogId));
         renderAssets("watchlistbox", msg.watchlist, scrollSettings.get(watchlistBoxId));
 
-        if (msg.latestinvestment && msg.latestinvestment.length > 0 && msg.latestinvestment[0] != null) {
-          document.getElementById("investmentheader").innerHTML = "Latest investment";
-          renderAssets("investmentbox", msg.latestinvestment);
-        }
-
       } else if (msg.action == "ping") {
         socket.send(JSON.stringify({ action: "pong" }));
       }
