@@ -56,7 +56,7 @@ export const watchlistBoxId = "watchlistbox";
 const PORTFOLIO_OFFSET_TOP = 1.4;
 const PORTFOLIO_OFFSET_LEFT = 1.35;
 
-const PORTFOLIO_OFFSET_TOP_MOBILE = 2.5;
+const PORTFOLIO_OFFSET_TOP_MOBILE = 1.6;
 const PORTFOLIO_OFFSET_LEFT_MOBILE = 1.5;
 
 // Configuration constants
@@ -661,7 +661,7 @@ export var Module = {
                 document.getElementById('portfoliobox').style.top = `${outputElement.offsetTop * offsetTop * 1.4}px`;
                 document.getElementById('portfoliobox').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
       
-                document.getElementById('voidlingbox').style.bottom = `${outputElement.offsetTop * offsetTop * 1.4}px`;
+                document.getElementById('voidlingbox').style.bottom = `${outputElement.offsetTop * offsetTop * 1.2}px`;
                 document.getElementById('voidlingbox').style.width = `${outputElement.offsetWidth * 0.95}px`;
                 const outerRect = outputElement.getBoundingClientRect();
                 document.getElementById('voidlingbox').style.left = `${outerRect.left}px`;
