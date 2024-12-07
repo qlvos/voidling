@@ -57,11 +57,8 @@ export function connectWebSocket() {
     // Handle the close event
     socket.onclose = function (event) {
       console.log('WebSocket connection closed:', event);
-      $('#messages').append('<p>WebSocket connection closed</p>');
-
       // Clear the keepalive timer
       clearInterval(keepAliveTimer);
-
       // Attempt to reconnect
       setTimeout(connectWebSocket, reconnectInterval);
     };
@@ -69,7 +66,6 @@ export function connectWebSocket() {
     // Handle errors
     socket.onerror = function (error) {
       console.error('WebSocket error:', error);
-      $('#messages').append('<p>WebSocket error: ' + error.message + '</p>');
     };
   }
 }

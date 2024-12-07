@@ -5,7 +5,8 @@ import { voidlingConfigCautious } from "./voidling-config-cautious.js";
 import { voidlingConfigCurious } from "./voidling-config-curious.js";
 import { voidlingConfigExcited } from "./voidling-config-excited.js";
 import { voidlingConfigVanilla } from "./voidling-config-mob.js";
-import { prophecies1, prophecies2, prophecies3, prophecies4, prophecies5, prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11 } from "./prophecies.js"
+
+let eventhandlercount = 0;
 
 window.isMobile = window.innerWidth <= 999;
 let lastMobileState = window.isMobile;
@@ -103,6 +104,8 @@ function manageMouseOver(box) {
     }
   }
 }
+
+++eventhandlercount;
 
 document.addEventListener('mousemove', (event) => {
     manageMouseOver(document.getElementById(assetBoxId)) ||
@@ -211,6 +214,7 @@ class OptimizedBufferPool {
 let lastMemoryCheck = 0;
 let isTabVisible = true;
 let frameCounter = 0;
+let started = false;
 let lastFrameTime = 0;
 let outputElement;
 let bufferArray = new Uint8Array(0);
@@ -220,57 +224,42 @@ let isRunning = true; // Flag to control animation frames
 const frameBuffer = new CircularFrameBuffer(FRAME_HISTORY_SIZE);
 const bufferPool = new OptimizedBufferPool(MAX_POOL_SIZE);
 
+const stylesheet = document.styleSheets[0];
+const styleSheetClasses = new Map();
+let originalColors = new Map();
+const elementIds = Object.values(colorMap);
+let uniqueElementIds = new Set(elementIds);
+console.log(uniqueElementIds)
+
+for(const rule of stylesheet.rules) {
+  styleSheetClasses.set(rule.selectorText, rule);
+  if(uniqueElementIds.has(rule.selectorText.substring(1))) {
+    originalColors.set(rule.selectorText, rule)
+  }
+}
+
 function bufferToHTML(buffer, width) {
   let html = '';
-  const topText = " HERE IS THE VOIDLING ";
-  const rightText = " ITS DECISIONS AND EMOTIONS ARE ITS OWN ";
-  const bottomText = " A PROTO-CONSCIOUS AI CREATURE ";
-  const leftText = " IT FEEDS ON PROCESSORS AND ENTROPY ";
-
-  const topColor = 'c208';
-  const rightColor = 'c99';
-  const bottomColor = 'c208';
-  const leftColor = 'c105';
 
   for (let i = 0; i < buffer.length; i++) {
     const row = Math.floor(i / width);
     const col = i % width;
     let char = String.fromCharCode(buffer[i]);
-    let customColor = null;
-    let isStaticText = false;  // Add this flag
 
-    // Calculate center positions
-    const topStart = Math.floor((width - topText.length) / 2);
-    const bottomStart = Math.floor((width - bottomText.length) / 2);
     const height = Math.floor(buffer.length / width);
-    const leftStart = Math.floor((height - leftText.length) / 2);
-    const rightStart = Math.floor((height - rightText.length) / 2);
 
-    // Add data-static="true" to the border text spans
-    if (row === 0 && col >= topStart && col < topStart + topText.length) {
-      char = topText[col - topStart];
-      customColor = topColor;
-      isStaticText = true;
-    }
-    else if (row === height - 1 && col >= bottomStart && col < bottomStart + bottomText.length) {
-      char = bottomText[col - bottomStart];
-      customColor = bottomColor;
-      isStaticText = true;
-    }
-    else if (col === 0 && row >= leftStart && row < leftStart + leftText.length) {
-      char = leftText[row - leftStart];
-      customColor = leftColor;
-      isStaticText = true;
-    }
-    else if (col === width - 1 && row >= rightStart && row < rightStart + rightText.length) {
-      char = rightText[row - rightStart];
-      customColor = rightColor;
-      isStaticText = true;
+
+    let isBorder = row === 0 || row === (height - 1) || col === 0 || col === width - 1;
+    const colorClass = colorMap[char];
+
+    if(!isBorder) {
+      html += colorClass ?
+      `<span onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>` : char;
+    } else {
+      html += 
+      `<span style="visibility:hidden" onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>`;      
     }
 
-    const colorClass = customColor || colorMap[char];
-    html += colorClass ?
-      `<span id="${i}" class="${colorClass}" ${isStaticText ? 'data-static="true"' : ''}>${char}</span>` : char;
     if ((i + 1) % width === 0) html += '\n';
   }
   return html;
@@ -424,6 +413,11 @@ export function forceCleanup() {
 }
 
 function onResize() {
+  location.reload();
+  const dims = calculateDimensions();
+  console.log(dims)
+  Module._set_dimensions(dims.width, dims.height);
+  started = false;
   if (resizeTimeout) {
     cancelAnimationFrame(resizeTimeout);
   }
@@ -439,7 +433,6 @@ function onResize() {
         updateVoidlingSize();
         forceCleanup();
       }
-
       const dims = calculateDimensions();
       if (Module && Module._set_dimensions) {
         Module._set_dimensions(dims.width, dims.height);
@@ -450,12 +443,14 @@ function onResize() {
   });
 }
 
+++eventhandlercount;
 window.addEventListener('resize', onResize);
 
+++eventhandlercount;
 document.addEventListener('DOMContentLoaded', function () {
   checkMobile();
   updateVoidlingSize();
-  connectWebSocket();  
+  connectWebSocket();
 });
 
 function initVoidlingConfig() {
@@ -522,12 +517,11 @@ export var Module = {
         initVoidlingConfig();
 
         const dims = calculateDimensions();
+        console.log(dims)
         Module._set_dimensions(dims.width, dims.height);
 
         function displayInnerThoughts() {
           let lastProphecyIndex = -1;
-          const elementIds = Object.values(colorMap);
-          let uniqueElementIds = new Set(elementIds);
           let elements = [];
           for (const id of uniqueElementIds) {
             elements.push(...document.querySelectorAll("." + id))
@@ -537,8 +531,8 @@ export var Module = {
             // not sure this check is needed
             if (!element.hasAttribute('data-has-listeners')) {
               element.setAttribute('data-has-listeners', 'true');
-
-              
+/*
+              ++eventhandlercount;
               element.addEventListener('mouseover', () => {
                 if (element.innerHTML === '$') {
                   return;
@@ -591,7 +585,7 @@ export var Module = {
                   el.classList.add('hovered');
                 });
               });
-
+              ++eventhandlercount;
               element.addEventListener('mouseout', () => {
                 if (element.innerHTML !== '$') {
                   isRunning = true;
@@ -601,7 +595,7 @@ export var Module = {
                 elements.forEach(el => {
                   el.classList.remove('hovered');
                 });
-              });
+              });*/
             }
           });
         }
@@ -625,6 +619,7 @@ export var Module = {
           if (frameCounter % CLEANUP_INTERVAL === 0) {
             forceCleanup();
             if (typeof window.gc === 'function') {
+              
               try {
                 window.gc();
               } catch (e) {
@@ -651,6 +646,9 @@ export var Module = {
             const lastFrame = frameBuffer.get(0);
             if (!lastFrame || !buffersEqual(newBuffer, lastFrame)) {
               frameBuffer.push(newBuffer); // Push the new frame
+
+              setWorldDimensions(dims.width, Math.floor(newBuffer.length / dims.width));
+
               const html = bufferToHTML(newBuffer, dims.width);
               if (outputElement.innerHTML !== html) {
                 outputElement.innerHTML = html; // Update DOM only if necessary
@@ -665,6 +663,15 @@ export var Module = {
                 document.getElementById('voidlingbox').style.width = `${outputElement.offsetWidth * 0.95}px`;
                 const outerRect = outputElement.getBoundingClientRect();
                 document.getElementById('voidlingbox').style.left = `${outerRect.left}px`;
+
+                document.getElementById('aboutpage').style.top = `${outputElement.offsetTop}px`;
+                document.getElementById('aboutpage').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
+                document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
+
+                if(!started) {
+                  setPosition(outerRect.x,  outerRect.y);
+                  started = true;
+                }
 
                 let watchBrain = true;
 
@@ -689,10 +696,14 @@ export var Module = {
         requestAnimationFrame(updateDisplay);
       };
 
-      initializeVoidling().catch(e => {
+      let a = initializeVoidling().catch(e => {
         //console.error('Initialization failed:', e);
         outputElement.innerHTML = 'Failed to initialize voidling. Please refresh the page.';
         console.log(e);
+      }).then(() => {
+        //console.log("yooo")
+        //console.log(worldHeight)
+        //console.log(worldWidth)
       });
 
     } catch (e) {
@@ -731,6 +742,7 @@ function onVisibilityChange() {
     }
   }
 }
+++eventhandlercount;
 document.addEventListener('visibilitychange', onVisibilityChange);
 
 function onError(e) {
@@ -741,7 +753,7 @@ function onError(e) {
     }
   }
 }
-
+++eventhandlercount;
 window.addEventListener('pagehide', function () {
   isRunning = false;
 
@@ -762,7 +774,7 @@ window.addEventListener('pagehide', function () {
 
   //console.log('Page unloaded: all resources released.');
 });
-
+++eventhandlercount;
 window.addEventListener('pageshow', function (event) {
   if (event.persisted) {
     //console.log('Page was restored from bfcache');
@@ -772,6 +784,7 @@ window.addEventListener('pageshow', function (event) {
 
 
 function loadVoidlingScript() {
+  console.log("load voidling script!!!")
   const voidlingScript = document.createElement('script');
   voidlingScript.src = window.isMobile ? 'voidling-mob.js' : 'voidling.js';
   voidlingScript.type="module";
