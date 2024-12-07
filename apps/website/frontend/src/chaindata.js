@@ -28,29 +28,33 @@ export function connectWebSocket() {
     // Handle incoming messages
     socket.onmessage = function (event) {
       //console.log('Message received:', event.data);
-      let msg = JSON.parse(event.data);
-      if (msg.action == "vdata") {
-        if (getEmotion() != msg.emotion) {
-          //console.log("New emotion!")
-          document.getElementById("voidlingemotion").innerHTML = msg.emotion;
-          //console.log(msg.emotion)
-
-          let emotionChangeTimeout = getModuleInitialized() ? 0 : EMOTION_LOAD_WAIT;
-          setTimeout(() => { forceCleanup(); }, emotionChangeTimeout)
+      try {
+        let msg = JSON.parse(event.data);
+        if (msg.action == "vdata") {
+          if (getEmotion() != msg.emotion) {
+            //console.log("New emotion!")
+            document.getElementById("voidlingemotion").innerHTML = msg.emotion;
+            //console.log(msg.emotion)
+  
+            let emotionChangeTimeout = getModuleInitialized() ? 0 : EMOTION_LOAD_WAIT;
+            setTimeout(() => { forceCleanup(); }, emotionChangeTimeout)
+          }
+          setEmotion(msg.emotion);
+  
+          if (msg.comment) {
+            document.getElementById("voidlingcomment").innerHTML = msg.comment;
+          }
+  
+  
+          renderAssets(assetBoxId, msg.assets, scrollSettings.get(assetBoxId));
+          renderLog(tradeLogId, msg.tradelog, scrollSettings.get(tradeLogId));
+          renderAssets("watchlistbox", msg.watchlist, scrollSettings.get(watchlistBoxId));
+  
+        } else if (msg.action == "ping") {
+          socket.send(JSON.stringify({ action: "pong" }));
         }
-        setEmotion(msg.emotion);
-
-        if (msg.comment) {
-          document.getElementById("voidlingcomment").innerHTML = msg.comment;
-        }
-
-
-        renderAssets(assetBoxId, msg.assets, scrollSettings.get(assetBoxId));
-        renderLog(tradeLogId, msg.tradelog, scrollSettings.get(tradeLogId));
-        renderAssets("watchlistbox", msg.watchlist, scrollSettings.get(watchlistBoxId));
-
-      } else if (msg.action == "ping") {
-        socket.send(JSON.stringify({ action: "pong" }));
+      } catch (err) {
+        console.log("wrong json data, could parse it");
       }
     };
 
