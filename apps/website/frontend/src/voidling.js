@@ -1,8 +1,6 @@
 import { Module } from "./main.js"
-var ENVIRONMENT_IS_WEB = typeof window == "object";
-var ENVIRONMENT_IS_WORKER = typeof WorkerGlobalScope != "undefined";
-var ENVIRONMENT_IS_NODE = typeof process == "object" && typeof process.versions == "object" && typeof process.versions.node == "string" && process.type != "renderer";
-if (ENVIRONMENT_IS_NODE) {}
+var ENVIRONMENT_IS_WEB = true;
+var ENVIRONMENT_IS_WORKER = false;
 var moduleOverrides = Object.assign({}, Module);
 var arguments_ = [];
 var thisProgram = "./this.program";
@@ -18,36 +16,7 @@ function locateFile(path) {
     return scriptDirectory + path
 }
 var readAsync, readBinary;
-if (ENVIRONMENT_IS_NODE) {
-    var fs = require("fs");
-    var nodePath = require("path");
-    scriptDirectory = __dirname + "/";
-    readBinary = filename => {
-        filename = isFileURI(filename) ? new URL(filename) : nodePath.normalize(filename);
-        var ret = fs.readFileSync(filename);
-        return ret
-    };
-    readAsync = (filename, binary = true) => {
-        filename = isFileURI(filename) ? new URL(filename) : nodePath.normalize(filename);
-        return new Promise((resolve, reject) => {
-            fs.readFile(filename, binary ? undefined : "utf8", (err, data) => {
-                if (err) reject(err);
-                else resolve(binary ? data.buffer : data)
-            })
-        })
-    };
-    if (!Module["thisProgram"] && process.argv.length > 1) {
-        thisProgram = process.argv[1].replace(/\\/g, "/")
-    }
-    arguments_ = process.argv.slice(2);
-    if (typeof module != "undefined") {
-        module["exports"] = Module
-    }
-    quit_ = (status, toThrow) => {
-        process.exitCode = status;
-        throw toThrow
-    }
-} else if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
+if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
     if (ENVIRONMENT_IS_WORKER) {
         scriptDirectory = self.location.href
     } else if (typeof document != "undefined" && document.currentScript) {
@@ -58,41 +27,14 @@ if (ENVIRONMENT_IS_NODE) {
     } else {
         scriptDirectory = scriptDirectory.substr(0, scriptDirectory.replace(/[?#].*/, "").lastIndexOf("/") + 1)
     } {
-        if (ENVIRONMENT_IS_WORKER) {
-            readBinary = url => {
-                var xhr = new XMLHttpRequest;
-                xhr.open("GET", url, false);
-                xhr.responseType = "arraybuffer";
-                xhr.send(null);
-                return new Uint8Array(xhr.response)
+        readAsync = url => fetch(url, {
+            credentials: "same-origin"
+        }).then(response => {
+            if (response.ok) {
+                return response.arrayBuffer()
             }
-        }
-        readAsync = url => {
-            if (isFileURI(url)) {
-                return new Promise((resolve, reject) => {
-                    var xhr = new XMLHttpRequest;
-                    xhr.open("GET", url, true);
-                    xhr.responseType = "arraybuffer";
-                    xhr.onload = () => {
-                        if (xhr.status == 200 || xhr.status == 0 && xhr.response) {
-                            resolve(xhr.response);
-                            return
-                        }
-                        reject(xhr.status)
-                    };
-                    xhr.onerror = reject;
-                    xhr.send(null)
-                })
-            }
-            return fetch(url, {
-                credentials: "same-origin"
-            }).then(response => {
-                if (response.ok) {
-                    return response.arrayBuffer()
-                }
-                return Promise.reject(new Error(response.status + " : " + response.url))
-            })
-        }
+            return Promise.reject(new Error(response.status + " : " + response.url))
+        })
     }
 } else {}
 var out = Module["print"] || console.log.bind(console);
@@ -200,7 +142,6 @@ function abort(what) {
 }
 var dataURIPrefix = "data:application/octet-stream;base64,";
 var isDataURI = filename => filename.startsWith(dataURIPrefix);
-var isFileURI = filename => filename.startsWith("file://");
 
 function findWasmBinary() {
     var f = "voidling.wasm";
@@ -236,7 +177,7 @@ function instantiateArrayBuffer(binaryFile, imports, receiver) {
 }
 
 function instantiateAsync(binary, binaryFile, imports, callback) {
-    if (!binary && typeof WebAssembly.instantiateStreaming == "function" && !isDataURI(binaryFile) && !isFileURI(binaryFile) && !ENVIRONMENT_IS_NODE && typeof fetch == "function") {
+    if (!binary && typeof WebAssembly.instantiateStreaming == "function" && !isDataURI(binaryFile) && typeof fetch == "function") {
         return fetch(binaryFile, {
             credentials: "same-origin"
         }).then(response => {
@@ -286,12 +227,32 @@ function createWasm() {
     return {}
 }
 var ASM_CONSTS = {
-    4844: () => {
-        /*console.log("Voidling initialized successfully with config values")*/ },
-    4917: () => {
+    4860: () => {
+        if (typeof window.onDeformCleanup === "function") {
+            window.onDeformCleanup()
+        }
+    },
+    4944: () => {
+        console.log("Voidling initialized successfully with config values")
+    },
+    5017: () => {
+        if (typeof window.preserveVoidlingState === "function") {
+            window._tempVoidlingState = window.preserveVoidlingState()
+        }
+    },
+    5141: () => {
+        console.error("Failed to allocate memory for new deform complexity")
+    },
+    5215: () => {
+        if (window._tempVoidlingState && typeof window.restoreVoidlingState === "function") {
+            window.restoreVoidlingState(window._tempVoidlingState);
+            window._tempVoidlingState = null
+        }
+    },
+    5397: () => {
         console.error("Voidling not properly initialized")
     },
-    4973: () => {
+    5453: () => {
         console.log("Voidling WASM module loaded")
     }
 };

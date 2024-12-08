@@ -45,7 +45,6 @@ export function connectWebSocket() {
             document.getElementById("voidlingcomment").innerHTML = msg.comment;
           }
   
-  
           renderAssets(assetBoxId, msg.assets, scrollSettings.get(assetBoxId));
           renderLog(tradeLogId, msg.tradelog, scrollSettings.get(tradeLogId));
           renderAssets("watchlistbox", msg.watchlist, scrollSettings.get(watchlistBoxId));

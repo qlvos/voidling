@@ -5,6 +5,8 @@ import { voidlingConfigCautious } from "./voidling-config-cautious.js";
 import { voidlingConfigCurious } from "./voidling-config-curious.js";
 import { voidlingConfigExcited } from "./voidling-config-excited.js";
 import { voidlingConfigVanilla } from "./voidling-config-mob.js";
+import { prophecies1, prophecies2, prophecies3, prophecies4, prophecies5, prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11 } from "../prophecies.js";
+import OptimizedBufferPool from './optimizedbufferpool.js';
 
 let eventhandlercount = 0;
 
@@ -12,6 +14,7 @@ window.isMobile = window.innerWidth <= 999;
 let lastMobileState = window.isMobile;
 
 let moduleInitialized = false;
+
 
 export function getModuleInitialized() {
   return moduleInitialized;
@@ -124,6 +127,10 @@ class CircularFrameBuffer {
     this.size = 0;
   }
 
+  get length() {
+    return this.size; // Use the `size` property for the length
+  }
+
   push(frame) {
     if (this.size === this.maxSize) {
       if (this.buffer[this.tail]) {
@@ -146,67 +153,17 @@ class CircularFrameBuffer {
   clear() {
     while (this.size > 0) {
       if (this.buffer[this.tail]) {
-        // Explicitly zero out the buffer before returning it
-        this.buffer[this.tail].fill(0);
-        bufferPool.return(this.buffer[this.tail]);
-        this.buffer[this.tail] = null;  // Clear the reference
+        this.buffer[this.tail].fill(0); // Zero out
+        bufferPool.return(this.buffer[this.tail]); // Return to pool
       }
+      this.buffer[this.tail] = null; // Remove reference
       this.tail = (this.tail + 1) % this.maxSize;
       this.size--;
     }
+    this.buffer.fill(null); // Clear all
     this.head = 0;
     this.tail = 0;
-  }
-}
-
-class OptimizedBufferPool {
-  constructor(maxPoolSize) {
-    this.pools = new Map();
-    this.maxPoolSize = maxPoolSize;
-    this.totalBuffers = 0;
-  }
-
-  get(size) {
-    if (!this.pools.has(size)) {
-      this.pools.set(size, []);
-      //console.log('Created new pool for size:', size);
-    }
-
-    const pool = this.pools.get(size);
-    if (pool.length > 0) {
-      this.totalBuffers--;
-      return pool.pop();
-    }
-
-    return new Uint8Array(size);
-  }
-
-  return(buffer) {
-    const size = buffer.length;
-    if (!this.pools.has(size)) {
-      this.pools.set(size, []);
-    }
-
-    const pool = this.pools.get(size);
-    // Zero out the buffer before returning it to pool
-    buffer.fill(0);
-
-    if (pool.length < this.maxPoolSize && this.totalBuffers < this.maxPoolSize * 2) {
-      pool.push(buffer);
-      this.totalBuffers++;
-    }
-  }
-
-  cleanup() {
-    for (const [size, pool] of this.pools) {
-      while (pool.length > Math.max(2, this.maxPoolSize / 4)) {  // More aggressive cleanup
-        const buffer = pool.pop();
-        if (buffer) {
-          buffer.fill(0);  // Zero out before discarding
-        }
-        this.totalBuffers--;
-      }
-    }
+    console.log("FrameBuffer cleared.");
   }
 }
 
@@ -298,6 +255,15 @@ function calculateDimensions() {
   }
 }
 
+function resetDimensions() {
+  if (!Module || !Module._set_dimensions) return;
+
+  const dims = calculateDimensions();
+  Module._set_dimensions(dims.width, dims.height);
+  console.log("Dimensions reset to:", dims);
+}
+
+
 function preserveVoidlingState() {
   // Function body unchanged
   const complexity = Module._get_deform_complexity();
@@ -370,46 +336,76 @@ function restoreVoidlingState(state) {
 
 function checkMemoryUsage() {
   if (performance.memory) {
-    const memoryUsage = performance.memory.usedJSHeapSize / (1024 * 1024);
-    if (memoryUsage > MEMORY_THRESHOLD_MB) {
-      //console.warn(`High memory usage: ${memoryUsage.toFixed(2)}MB`);
+    const jsHeapSize = performance.memory.usedJSHeapSize / (1024 * 1024);
+    const totalHeapSize = performance.memory.totalJSHeapSize / (1024 * 1024);
+    console.log(`Memory usage: JS Heap ${jsHeapSize.toFixed(2)}MB / Total Heap ${totalHeapSize.toFixed(2)}MB`);
+
+    if (jsHeapSize > MEMORY_THRESHOLD_MB) {
+      console.warn(`High memory usage: ${jsHeapSize.toFixed(2)}MB`);
       forceCleanup();
     }
   }
+
+  if (Module && Module._getBufferSize) {
+    const bufferSize = Module._getBufferSize();
+    console.log(`WASM buffer size: ${(bufferSize / (1024 * 1024)).toFixed(2)}MB`);
+
+    if (bufferSize > MEMORY_THRESHOLD_MB * 1024 * 1024) {
+      console.warn(`Excessive WASM memory usage: ${bufferSize} bytes`);
+      forceCleanup();
+    }
+  }
+
+  console.log("Memory check complete.");
 }
 
+
 export function forceCleanup() {
-  frameBuffer.clear();
+  try {
+    console.log('forceCleanup: Starting cleanup process...');
 
-  // Clear the current buffer array
-  if (bufferArray && bufferArray.length > 0) {
-    bufferArray.fill(0);
-    bufferArray = new Uint8Array(0);
+    // Clear frame buffer and reset state
+    frameBuffer.clear();
+
+    if (bufferArray && bufferArray.length > 0) {
+      bufferArray.fill(0);
+      bufferArray = null; // Explicitly release memory
+    }
+
+    // Clean up the WebAssembly module
+    if (Module && Module._cleanup) {
+      const state = preserveVoidlingState(); // Save the current voidling state
+      Module._cleanup(); // Perform WASM-specific cleanup
+
+      if (moduleInitialized) {
+        clearDeformHistory(); // Reset deform history
+        resetDimensions();    // Recalculate and apply dimensions
+      }
+
+      initVoidlingConfig();       // Reinitialize configuration
+      restoreVoidlingState(state); // Restore the saved voidling state
+    }
+
+    // Clean up buffer pools
+    bufferPool.cleanup();
+
+    // Clear output element content if it exists
+    if (outputElement) {
+      outputElement.innerHTML = '';
+    }
+
+    // Reset other global variables
+    bufferArray = null; // Explicitly nullify buffer array
+    frameCounter = 0;
+    lastFrameTime = 0;
+
+    console.log('forceCleanup: All buffers cleared, WebAssembly state reset.');
+
+    // Restart the animation loop
+    startAnimation();
+  } catch (e) {
+    console.error('forceCleanup: An error occurred during cleanup:', e);
   }
-
-  if (Module && Module._cleanup) {
-    const state = preserveVoidlingState();
-    Module._cleanup();
-
-    initVoidlingConfig()
-
-    const dims = calculateDimensions();
-    Module._set_dimensions(dims.width, dims.height);
-    restoreVoidlingState(state);
-
-  }
-
-  bufferPool.cleanup();
-
-  if (outputElement) {
-    outputElement.innerHTML = '';
-  }
-
-  bufferArray = new Uint8Array(0);
-  frameCounter = 0;
-  lastFrameTime = 0;
-
-  //console.log('forceCleanup: All buffers cleared, WebAssembly state reset.');
 }
 
 function onResize() {
@@ -513,113 +509,31 @@ export var Module = {
       Module._initialize_trig_cache();
 
       const initializeVoidling = async () => {
-
         initVoidlingConfig();
-
+      
         const dims = calculateDimensions();
-        console.log(dims)
+        console.log(dims);
         Module._set_dimensions(dims.width, dims.height);
-
-        function displayInnerThoughts() {
-          let lastProphecyIndex = -1;
-          let elements = [];
-          for (const id of uniqueElementIds) {
-            elements.push(...document.querySelectorAll("." + id))
-          }
-
-          elements.forEach((element, index) => {
-            // not sure this check is needed
-            if (!element.hasAttribute('data-has-listeners')) {
-              element.setAttribute('data-has-listeners', 'true');
-/*
-              ++eventhandlercount;
-              element.addEventListener('mouseover', () => {
-                if (element.innerHTML === '$') {
-                  return;
-                }
-
-                isRunning = false;
-                let prophecyIndex = 0;
-
-                // Create an array of valid elements with their positions
-                const validElements = elements
-                  .map(el => {
-                    const rect = el.getBoundingClientRect();
-                    return {
-                      element: el,
-                      top: rect.top,
-                      left: rect.left
-                    };
-                  })
-                  .filter(item => {
-                    const el = item.element;
-                    return el.innerHTML !== '$' &&
-                      !el.hasAttribute('data-static') &&
-                      !el.parentElement.classList.contains('voidling-world') &&
-                      !el.parentElement.classList.contains('voidling-world2');
-                  })
-                  .sort((a, b) => {
-                    if (a.top === b.top) {
-                      return a.left - b.left;
-                    }
-                    return a.top - b.top;
-                  });
-
-                // Select random prophecy text
-                const prophecyTexts = [prophecies1, prophecies2, prophecies3, prophecies4, prophecies5, prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11];
-                let randomIndex;
-                do {
-                  randomIndex = Math.floor(Math.random() * prophecyTexts.length);
-                } while (randomIndex === lastProphecyIndex && prophecyTexts.length > 1);
-                lastProphecyIndex = randomIndex;
-                let prophecies = prophecyTexts[randomIndex];
-
-                // Replace characters in reading order, loop back to start if needed
-                validElements.forEach(item => {
-                  const el = item.element;
-                  el.style.color = "#c7bbe0";
-                  el.style.cursor = "pointer";
-                  // Loop back to start of prophecy text if we run out of characters
-                  el.innerHTML = prophecies.charAt(prophecyIndex % prophecies.length);
-                  prophecyIndex++;
-                  el.classList.add('hovered');
-                });
-              });
-              ++eventhandlercount;
-              element.addEventListener('mouseout', () => {
-                if (element.innerHTML !== '$') {
-                  isRunning = true;
-                  requestAnimationFrame(updateDisplay);
-                }
-
-                elements.forEach(el => {
-                  el.classList.remove('hovered');
-                });
-              });*/
-            }
-          });
-        }
-
-        function updateDisplay(timestamp) {
-
+      
+        // Animation logic, moved globally for proper reuse
+        window.updateDisplay = function (timestamp) {
           if (!isRunning) return;
           if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
             requestAnimationFrame(updateDisplay);
             return;
           }
-
+      
           const now = Date.now();
           if (now - lastMemoryCheck > MEMORY_CHECK_INTERVAL) {
             checkMemoryUsage();
             lastMemoryCheck = now;
           }
-
+      
           lastFrameTime = timestamp;
-
+      
           if (frameCounter % CLEANUP_INTERVAL === 0) {
             forceCleanup();
             if (typeof window.gc === 'function') {
-              
               try {
                 window.gc();
               } catch (e) {
@@ -627,35 +541,37 @@ export var Module = {
               }
             }
           }
-
+      
           try {
             Module._animationFrame();
-
+      
             const bufferPtr = Module._getBuffer();
             const bufferSize = Module._getBufferSize();
-
-            if (bufferArray.length !== bufferSize) {
-              bufferArray = new Uint8Array(Module.HEAPU8.buffer, bufferPtr, bufferSize);
-            } else {
-              bufferArray.set(Module.HEAPU8.subarray(bufferPtr, bufferPtr + bufferSize));
+      
+            if(bufferArray) {
+              if (bufferArray.length !== bufferSize) {
+                bufferArray = new Uint8Array(Module.HEAPU8.buffer, bufferPtr, bufferSize);
+              } else {
+                bufferArray.set(Module.HEAPU8.subarray(bufferPtr, bufferPtr + bufferSize));
+              }
             }
-
-            const newBuffer = bufferPool.get(bufferSize); // Get a reusable buffer
+      
+            const newBuffer = bufferPool.get(bufferSize);
             newBuffer.set(Module.HEAPU8.subarray(bufferPtr, bufferPtr + bufferSize));
-
+      
             const lastFrame = frameBuffer.get(0);
             if (!lastFrame || !buffersEqual(newBuffer, lastFrame)) {
-              frameBuffer.push(newBuffer); // Push the new frame
-
+              frameBuffer.push(newBuffer);
+      
               setWorldDimensions(dims.width, Math.floor(newBuffer.length / dims.width));
-
+      
               const html = bufferToHTML(newBuffer, dims.width);
               if (outputElement.innerHTML !== html) {
-                outputElement.innerHTML = html; // Update DOM only if necessary
-
+                outputElement.innerHTML = html;
+      
                 let offsetTop = window.isMobile ? PORTFOLIO_OFFSET_TOP_MOBILE : PORTFOLIO_OFFSET_TOP;
                 let offsetLeft = window.isMobile ? PORTFOLIO_OFFSET_LEFT_MOBILE : PORTFOLIO_OFFSET_LEFT;
-                
+      
                 document.getElementById('portfoliobox').style.top = `${outputElement.offsetTop * offsetTop * 1.4}px`;
                 document.getElementById('portfoliobox').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
       
@@ -663,39 +579,39 @@ export var Module = {
                 document.getElementById('voidlingbox').style.width = `${outputElement.offsetWidth * 0.95}px`;
                 const outerRect = outputElement.getBoundingClientRect();
                 document.getElementById('voidlingbox').style.left = `${outerRect.left}px`;
-
+      
                 document.getElementById('aboutpage').style.top = `${outputElement.offsetTop}px`;
                 document.getElementById('aboutpage').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
                 document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
-
-                if(!started) {
-                  setPosition(outerRect.x,  outerRect.y);
+      
+                if (!started) {
+                  setPosition(outerRect.x, outerRect.y);
                   started = true;
                 }
-
+      
                 let watchBrain = true;
-
                 if (watchBrain) {
                   displayInnerThoughts();
                 }
               }
             } else {
-              bufferPool.return(newBuffer); // Return unused buffer to pool
+              bufferPool.return(newBuffer);
             }
-
+      
             frameCounter++;
             if (frameCounter % BUFFER_POOL_CLEANUP_INTERVAL === 0) {
               bufferPool.cleanup();
             }
           } catch (e) {
-            //console.error('Frame update failed:', e);
+            console.error('Frame update failed:', e);
           }
-
+      
           requestAnimationFrame(updateDisplay);
-        }
-        requestAnimationFrame(updateDisplay);
+        };
+      
+        requestAnimationFrame(updateDisplay); // Start animation loop
       };
-
+      
       let a = initializeVoidling().catch(e => {
         //console.error('Initialization failed:', e);
         outputElement.innerHTML = 'Failed to initialize voidling. Please refresh the page.';
@@ -730,6 +646,106 @@ export var Module = {
 
   }
 };
+
+function clearDeformHistory() {
+  if (!Module || !Module.ccall) return;
+
+  const complexity = Module._get_deform_complexity();
+  if (complexity <= 0) return;
+
+  for (let i = 0; i < complexity; i++) {
+    const currentPhase = Module.ccall('get_deform_phase', 'number', ['number'], [i]);
+    const currentFreq = Module.ccall('get_deform_freq', 'number', ['number'], [i]);
+
+    if (Math.abs(currentPhase) > 0.001) {
+      Module.ccall('set_deform_phase', null, ['number', 'number'], [i, 0.0]);
+    }
+    if (Math.abs(currentFreq - 1.0) > 0.001) {
+      Module.ccall('set_deform_freq', null, ['number', 'number'], [i, 1.0]);
+    }
+  }
+  console.log("Deform history cleared.");
+}
+
+
+export function startAnimation() {
+  console.log("start!")
+  function updateDisplay(timestamp) {
+    if (!isRunning) return;
+  
+    if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
+      // should this not rather NOT call requestAnimationFrame here !?
+      return;
+    }
+  
+    const now = Date.now();
+    if (now - lastMemoryCheck > MEMORY_CHECK_INTERVAL) {
+      checkMemoryUsage(); // Check and log memory usage
+      lastMemoryCheck = now;
+    }
+  
+    lastFrameTime = timestamp;
+  
+    try {
+      if (!Module || !Module._animationFrame || !Module._getBuffer || !Module._getBufferSize) {
+        console.error("Module or essential methods are not available.");
+        return;
+      }
+  
+      Module._animationFrame();
+  
+      const bufferPtr = Module._getBuffer();
+      //console.log(bufferPtr)
+      const bufferSize = Module._getBufferSize();
+  
+      if (!bufferPtr || bufferSize <= 0) {
+        console.error("Buffer pointer or size is invalid.");
+        return;
+      }
+  
+      if (!bufferArray || bufferArray.byteLength !== bufferSize) {
+        console.log("Initializing or resizing bufferArray to size:", bufferSize);
+        bufferArray = new Uint8Array(Module.HEAPU8.buffer, bufferPtr, bufferSize);
+      } else {
+        bufferArray.set(Module.HEAPU8.subarray(bufferPtr, bufferPtr + bufferSize));
+      }
+  
+      const newBuffer = bufferPool.get(bufferSize);
+      newBuffer.set(Module.HEAPU8.subarray(bufferPtr, bufferPtr + bufferSize));
+  
+      const lastFrame = frameBuffer.length > 0 ? frameBuffer.get(0) : null;
+  
+      if (!lastFrame || !buffersEqual(newBuffer, lastFrame)) {
+        frameBuffer.push(newBuffer);
+  
+        const dims = calculateDimensions();
+        const worldHeight = Math.floor(newBuffer.length / dims.width);
+        setWorldDimensions(dims.width, worldHeight);
+  
+        if (outputElement) {
+          const html = bufferToHTML(newBuffer, dims.width);
+          if (outputElement.innerHTML !== html) {
+            outputElement.innerHTML = html;
+          }
+        }
+      } else {
+        bufferPool.return(newBuffer);
+      }
+  
+      frameCounter++;
+      if (frameCounter % BUFFER_POOL_CLEANUP_INTERVAL === 0) {
+        bufferPool.cleanup();
+      }
+    } catch (e) {
+      console.error('Frame update failed:', e);
+    }
+  
+    requestAnimationFrame(updateDisplay);
+  }      
+  requestAnimationFrame(updateDisplay);
+}
+
+
 
 // Event listener functions
 function onVisibilityChange() {
@@ -781,6 +797,85 @@ window.addEventListener('pageshow', function (event) {
     window.location.reload();
   }
 });
+
+function displayInnerThoughts() {
+  let lastProphecyIndex = -1;
+  let elements = [];
+  for (const id of uniqueElementIds) {
+    elements.push(...document.querySelectorAll("." + id));
+  }
+
+  elements.forEach((element, index) => {
+    if (!element.hasAttribute('data-has-listeners')) {
+      element.setAttribute('data-has-listeners', 'true');
+
+      ++eventhandlercount;
+      element.addEventListener('mouseover', () => {
+        if (element.innerHTML === '$') {
+          return;
+        }
+
+        isRunning = false;
+        let prophecyIndex = 0;
+
+        const validElements = elements
+          .map(el => {
+            const rect = el.getBoundingClientRect();
+            return {
+              element: el,
+              top: rect.top,
+              left: rect.left,
+            };
+          })
+          .filter(item => {
+            const el = item.element;
+            return el.innerHTML !== '$' &&
+              !el.hasAttribute('data-static') &&
+              !el.parentElement.classList.contains('voidling-world') &&
+              !el.parentElement.classList.contains('voidling-world2');
+          })
+          .sort((a, b) => {
+            if (a.top === b.top) {
+              return a.left - b.left;
+            }
+            return a.top - b.top;
+          });
+
+        const prophecyTexts = [
+          prophecies1, prophecies2, prophecies3, prophecies4, prophecies5,
+          prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11
+        ];
+        let randomIndex;
+        do {
+          randomIndex = Math.floor(Math.random() * prophecyTexts.length);
+        } while (randomIndex === lastProphecyIndex && prophecyTexts.length > 1);
+        lastProphecyIndex = randomIndex;
+        let prophecies = prophecyTexts[randomIndex];
+
+        validElements.forEach(item => {
+          const el = item.element;
+          el.style.color = "#c7bbe0";
+          el.style.cursor = "pointer";
+          el.innerHTML = prophecies.charAt(prophecyIndex % prophecies.length);
+          prophecyIndex++;
+          el.classList.add('hovered');
+        });
+      });
+
+      ++eventhandlercount;
+      element.addEventListener('mouseout', () => {
+        if (element.innerHTML !== '$') {
+          isRunning = true;
+          requestAnimationFrame(updateDisplay);
+        }
+
+        elements.forEach(el => {
+          el.classList.remove('hovered');
+        });
+      });
+    }
+  });
+}
 
 
 function loadVoidlingScript() {
