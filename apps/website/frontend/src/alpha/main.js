@@ -572,11 +572,11 @@ function initVoidlingConfig() {
             newBuffer.set(Module.HEAPU8.subarray(bufferPtr, bufferPtr + bufferSize));
             */
       
-            const lastFrame = frameBuffer.get(0);
+            //const lastFrame = frameBuffer.get(0);
             //console.log("xxx")
             //console.log(frameBuffer);
            // if (!lastFrame || !buffersEqual(newBuffer, lastFrame)) {
-              frameBuffer.push(bufferPtr);
+              //frameBuffer.push(bufferPtr);
       
               setWorldDimensions(dims.width, Math.floor(bufferPtr.length / dims.width));
 
