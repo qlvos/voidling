@@ -1,4 +1,4 @@
-import { connectWebSocket } from "./chaindata.js"; 
+import { connectWebSocket } from "./chaindata.js";
 import { voidlingConfigSerene } from "./voidling-config-serene.js";
 import { voidlingConfigAgitated } from "./voidling-config-agitated.js";
 import { voidlingConfigCautious } from "./voidling-config-cautious.js";
@@ -7,11 +7,13 @@ import { voidlingConfigExcited } from "./voidling-config-excited.js";
 import { voidlingConfigVanilla } from "./voidling-config-mob.js";
 import { prophecies1, prophecies2, prophecies3, prophecies4, prophecies5, prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11 } from "../prophecies.js";
 import OptimizedBufferPool from './optimizedbufferpool.js';
-import { initializeTrigCache, animationFrame, initVoidlingWithConfig, setDeformFreq, setDeformPhase, setCurrentTime, setTargetX, setTargetY, setMovementX, setMovementY, setRotX, setRotY, setRotZ, getHorizontalPersistenceTimer, getStuckCounter, getBehaviorTimer, getCurrentBehavior, getCurrentTime, getLastTargetX, 
-  getLastTargetY, getRotationSpeed, getTargetRotX, getTargetRotY, getTargetRotZ, getRotX, getRotY, 
-  getRotZ, getTargetX, getTargetY, getMovementX, getMovementY, setDimensions, getDeformComplexity, 
-  getDeformFreq, cleanup, getBuffer, getBufferSize, getDeformPhase, 
-  setCurrentBehavior} from "./voidlingdrawer.js";
+import {
+  initializeTrigCache, animationFrame, initVoidlingWithConfig, setDeformFreq, setDeformPhase, setCurrentTime, setTargetX, setTargetY, setMovementX, setMovementY, setRotX, setRotY, setRotZ, getHorizontalPersistenceTimer, getStuckCounter, getBehaviorTimer, getCurrentBehavior, getCurrentTime, getLastTargetX,
+  getLastTargetY, getRotationSpeed, getTargetRotX, getTargetRotY, getTargetRotZ, getRotX, getRotY,
+  getRotZ, getTargetX, getTargetY, getMovementX, getMovementY, setDimensions, getDeformComplexity,
+  getDeformFreq, cleanup, getBuffer, getBufferSize, getDeformPhase,
+  setCurrentBehavior
+} from "./voidlingdrawer.js";
 
 let eventhandlercount = 0;
 
@@ -116,11 +118,13 @@ function manageMouseOver(box) {
 
 ++eventhandlercount;
 
+/*
 document.addEventListener('mousemove', (event) => {
-    manageMouseOver(document.getElementById(assetBoxId)) ||
+  manageMouseOver(document.getElementById(assetBoxId)) ||
     manageMouseOver(document.getElementById(watchlistBoxId)) ||
     manageMouseOver(document.getElementById(tradeLogId))
 });
+*/
 
 
 // Circular buffer for frame management
@@ -192,9 +196,9 @@ let originalColors = new Map();
 const elementIds = Object.values(colorMap);
 let uniqueElementIds = new Set(elementIds);
 
-for(const rule of stylesheet.rules) {
+for (const rule of stylesheet.rules) {
   styleSheetClasses.set(rule.selectorText, rule);
-  if(uniqueElementIds.has(rule.selectorText.substring(1))) {
+  if (uniqueElementIds.has(rule.selectorText.substring(1))) {
     originalColors.set(rule.selectorText, rule)
   }
 }
@@ -206,7 +210,7 @@ function bufferToHTML(buffer, width) {
     const row = Math.floor(i / width);
     const col = i % width;
     let char = buffer[i];
-    if(char == 0 || char =='0') {
+    if (char == 0 || char == '0') {
       let i = 1;
       //console.log("zero !")
 
@@ -215,24 +219,24 @@ function bufferToHTML(buffer, width) {
     let isBorder = row === 0 || row === (height - 1) || col === 0 || col === width - 1;
     const colorClass = colorMap[char];
 
-   // if(!colorClass) {
-   //   console.log(buffer)
-   //   console.log("undefined! " + char)
-   // }
+    // if(!colorClass) {
+    //   console.log(buffer)
+    //   console.log("undefined! " + char)
+    // }
 
-    if(!isBorder) {
+    if (!isBorder) {
       html += colorClass ?
-      `<span onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>` : char;
+        `<span onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>` : char;
     } else {
       //console.log("no border:[" + char + "]")
-      html += 
-      `<span style="visibility:hidden" onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>`;      
+      html +=
+        `<span style="visibility:hidden" onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>`;
     }
 
     if ((i + 1) % width === 0) html += '\n';
   }
 
-  if(html[0] == 0) {
+  if (html[0] == 0) {
     console.log("html 0 !")
   }
 
@@ -244,7 +248,7 @@ function buffersEqual(a, b) {
     return false
   };
   for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) { 
+    if (a[i] !== b[i]) {
       return false
     };
   }
@@ -360,7 +364,7 @@ function checkMemoryUsage() {
     // Count all DOM elements
     let allElements = document.getElementsByTagName('*');
     let count = allElements.length;
-    
+
     console.log(`Memory usage: JS Heap ${jsHeapSize.toFixed(2)}MB / Total Heap ${totalHeapSize.toFixed(2)}MB, DOM count: ${count}`);
 
     if (jsHeapSize > MEMORY_THRESHOLD_MB) {
@@ -378,17 +382,17 @@ export function forceCleanup() {
     // Clear frame buffer and reset state
     frameBuffer.clear();
 
-      const state = preserveVoidlingState(); // Save the current voidling state
-      cleanup();
+    const state = preserveVoidlingState(); // Save the current voidling state
+    cleanup();
 
-      if (moduleInitialized) {
-        clearDeformHistory(); // Reset deform history
-        resetDimensions();    // Recalculate and apply dimensions
-      }
+    if (moduleInitialized) {
+      clearDeformHistory(); // Reset deform history
+      resetDimensions();    // Recalculate and apply dimensions
+    }
 
-      initVoidlingConfig();       // Reinitialize configuration
-      restoreVoidlingState(state); // Restore the saved voidling state
-    
+    initVoidlingConfig();       // Reinitialize configuration
+    restoreVoidlingState(state); // Restore the saved voidling state
+
 
     // Clean up buffer pools
     bufferPool.cleanup();
@@ -413,6 +417,7 @@ export function forceCleanup() {
 
 function onResize() {
   location.reload();
+  return;
   const dims = calculateDimensions();
   console.log(dims)
   setDimensions(dims.width, dims.height);
@@ -434,7 +439,7 @@ function onResize() {
       }
       const dims = calculateDimensions();
       setDimensions(dims.width, dims.height);
-      
+
     } catch (e) {
       console.error('Resize handling failed:', e);
     }
@@ -504,121 +509,121 @@ function initVoidlingConfig() {
 }
 
 
-  function onRuntimeInitialized () {
-    try {
-      outputElement = document.getElementById('output');
-      if (!outputElement) throw new Error('Output element not found');
+function onRuntimeInitialized() {
+  try {
+    outputElement = document.getElementById('output');
+    if (!outputElement) throw new Error('Output element not found');
 
-      initializeTrigCache();
+    initializeTrigCache();
 
-      const initializeVoidling = async () => {
-        initVoidlingConfig();
-      
-        const dims = calculateDimensions();
-        setDimensions(dims.width, dims.height);
-      
-        // Animation logic, moved globally for proper reuse
-        window.updateDisplay = function (timestamp) {
-          if (!isRunning) return;
-          if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
-            requestAnimationFrame(updateDisplay);
-            return;
-          }
-      
-          const now = Date.now();
-          if (now - lastMemoryCheck > MEMORY_CHECK_INTERVAL) {
-            checkMemoryUsage();
-            lastMemoryCheck = now;
-          }
-      
-          lastFrameTime = timestamp;
-      
-          if (frameCounter % CLEANUP_INTERVAL === 0) {
-            forceCleanup();
-            if (typeof window.gc === 'function') {
-              try {
-                window.gc();
-              } catch (e) {
-                //console.log('Manual GC not available');
-              }
+    const initializeVoidling = async () => {
+      initVoidlingConfig();
+
+      const dims = calculateDimensions();
+      setDimensions(dims.width, dims.height);
+
+      // Animation logic, moved globally for proper reuse
+      window.updateDisplay = function (timestamp) {
+        if (!isRunning) return;
+        if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
+          requestAnimationFrame(updateDisplay);
+          return;
+        }
+
+        const now = Date.now();
+        if (now - lastMemoryCheck > MEMORY_CHECK_INTERVAL) {
+          checkMemoryUsage();
+          lastMemoryCheck = now;
+        }
+
+        lastFrameTime = timestamp;
+
+        if (frameCounter % CLEANUP_INTERVAL === 0) {
+          forceCleanup();
+          if (typeof window.gc === 'function') {
+            try {
+              window.gc();
+            } catch (e) {
+              //console.log('Manual GC not available');
             }
           }
-      
-          try {
-            animationFrame();
-            const bufferPtr = getBuffer();
-      
-           // if (!lastFrame /*|| !buffersEqual(bufferPtr, lastFrame)*/) {
-      
-              setWorldDimensions(dims.width, Math.floor(bufferPtr.length / dims.width));
+        }
 
-              lastFrame = bufferPtr;
-              const html = bufferToHTML(bufferPtr, dims.width);
+        try {
+          animationFrame();
+          const bufferPtr = getBuffer();
 
-              if (outputElement.innerHTML !== html) {
-                outputElement.innerHTML = html;
-      
-                let offsetTop = window.isMobile ? PORTFOLIO_OFFSET_TOP_MOBILE : PORTFOLIO_OFFSET_TOP;
-                let offsetLeft = window.isMobile ? PORTFOLIO_OFFSET_LEFT_MOBILE : PORTFOLIO_OFFSET_LEFT;
-      
-                document.getElementById('portfoliobox').style.top = `${outputElement.offsetTop * offsetTop * 1.4}px`;
-                document.getElementById('portfoliobox').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
-      
-                document.getElementById('voidlingbox').style.bottom = `${outputElement.offsetTop * offsetTop * 1.2}px`;
-                document.getElementById('voidlingbox').style.width = `${outputElement.offsetWidth * 0.95}px`;
-                const outerRect = outputElement.getBoundingClientRect();
-                document.getElementById('voidlingbox').style.left = `${outerRect.left}px`;
-      
-                document.getElementById('aboutpage').style.top = `${outputElement.offsetTop}px`;
-                document.getElementById('aboutpage').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
-                document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
-      
-                if (!started) {
-                  setPosition(outerRect.x, outerRect.y);
-                  started = true;
-                }
-      
-                let watchBrain = true;
-                if (watchBrain) {
-                  displayInnerThoughts();
-                }
-              }
+          // if (!lastFrame /*|| !buffersEqual(bufferPtr, lastFrame)*/) {
+
+          setWorldDimensions(dims.width, Math.floor(bufferPtr.length / dims.width));
+
+          lastFrame = bufferPtr;
+          const html = bufferToHTML(bufferPtr, dims.width);
+
+          if (outputElement.innerHTML !== html) {
+            outputElement.innerHTML = html;
+
+            let offsetTop = window.isMobile ? PORTFOLIO_OFFSET_TOP_MOBILE : PORTFOLIO_OFFSET_TOP;
+            let offsetLeft = window.isMobile ? PORTFOLIO_OFFSET_LEFT_MOBILE : PORTFOLIO_OFFSET_LEFT;
+
+            document.getElementById('portfoliobox').style.top = `${outputElement.offsetTop * offsetTop * 1.4}px`;
+            document.getElementById('portfoliobox').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
+
+            document.getElementById('voidlingbox').style.bottom = `${outputElement.offsetTop * offsetTop * 1.2}px`;
+            document.getElementById('voidlingbox').style.width = `${outputElement.offsetWidth * 0.95}px`;
+            const outerRect = outputElement.getBoundingClientRect();
+            document.getElementById('voidlingbox').style.left = `${outerRect.left}px`;
+
+            document.getElementById('aboutpage').style.top = `${outputElement.offsetTop}px`;
+            document.getElementById('aboutpage').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
+            document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
+
+            if (!started) {
+              setPosition(outerRect.x, outerRect.y);
+              started = true;
+            }
+
+            let watchBrain = true;
+            if (watchBrain) {
+              displayInnerThoughts();
+            }
+          }
           //  } else {
           //    console.log("reuse frame!")
           //  }
-      
-            frameCounter++;
-            if (frameCounter % BUFFER_POOL_CLEANUP_INTERVAL === 0) {
-              bufferPool.cleanup();
-            }
-          } catch (e) {
-            console.error('Frame update failed:', e);
+
+          frameCounter++;
+          if (frameCounter % BUFFER_POOL_CLEANUP_INTERVAL === 0) {
+            bufferPool.cleanup();
           }
-      
-          requestAnimationFrame(updateDisplay);
-        };
-      
-        requestAnimationFrame(updateDisplay); // Start animation loop
+        } catch (e) {
+          console.error('Frame update failed:', e);
+        }
+
+        requestAnimationFrame(updateDisplay);
       };
-      
-      let a = initializeVoidling().catch(e => {
-        //console.error('Initialization failed:', e);
-        outputElement.innerHTML = 'Failed to initialize voidling. Please refresh the page.';
-        console.log(e);
-      }).then(() => {
-        //console.log("yooo")
-        //console.log(worldHeight)
-        //console.log(worldWidth)
-      });
 
-    } catch (e) {
-      console.log(e)
-      console.error('Setup failed:', e);
+      requestAnimationFrame(updateDisplay); // Start animation loop
+    };
+
+    let a = initializeVoidling().catch(e => {
+      //console.error('Initialization failed:', e);
       outputElement.innerHTML = 'Failed to initialize voidling. Please refresh the page.';
-    }
-    moduleInitialized = true;
+      console.log(e);
+    }).then(() => {
+      //console.log("yooo")
+      //console.log(worldHeight)
+      //console.log(worldWidth)
+    });
 
+  } catch (e) {
+    console.log(e)
+    console.error('Setup failed:', e);
+    outputElement.innerHTML = 'Failed to initialize voidling. Please refresh the page.';
   }
+  moduleInitialized = true;
+
+}
 
 
 function clearDeformHistory() {
@@ -628,7 +633,7 @@ function clearDeformHistory() {
 
   for (let i = 0; i < complexity; i++) {
     const currentPhase = getDeformPhase(i);
-    
+
     const currentFreq = getDeformFreq(i);
 
     if (Math.abs(currentPhase) > 0.001) {
@@ -645,48 +650,48 @@ function clearDeformHistory() {
 export function startAnimation() {
   function updateDisplay(timestamp) {
     if (!isRunning) return;
-  
+
     if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
       return;
     }
-  
+
     const now = Date.now();
     if (now - lastMemoryCheck > MEMORY_CHECK_INTERVAL) {
       checkMemoryUsage(); // Check and log memory usage
       lastMemoryCheck = now;
     }
-  
+
     lastFrameTime = timestamp;
-  
+
     try {
 
       animationFrame();
       const bufferPtr = getBuffer();
       const bufferSize = getBufferSize();
-  
+
       if (!bufferPtr || bufferSize <= 0) {
         console.error("Buffer pointer or size is invalid.");
         return;
       }
-    
+
 
       //if (!lastFrame || true /*|| !buffersEqual(bufferPtr, lastFrame)*/) {
-        const dims = calculateDimensions();
-        const worldHeight = Math.floor(bufferPtr.length / dims.width);
-        setWorldDimensions(dims.width, worldHeight);
-  
-        if (outputElement) {
-          const html = bufferToHTML(bufferPtr, dims.width);
-          if (outputElement.innerHTML !== html) {
-            lastFrame = bufferPtr;
-            outputElement.innerHTML = html;
-          }
+      const dims = calculateDimensions();
+      const worldHeight = Math.floor(bufferPtr.length / dims.width);
+      setWorldDimensions(dims.width, worldHeight);
+
+      if (outputElement) {
+        const html = bufferToHTML(bufferPtr, dims.width);
+        if (outputElement.innerHTML !== html) {
+          lastFrame = bufferPtr;
+          outputElement.innerHTML = html;
         }
-    //  } else {
-    //    console.log("reusing last frame!")
-        //bufferPool.return(newBuffer);
-    //  }
-  
+      }
+      //  } else {
+      //    console.log("reusing last frame!")
+      //bufferPool.return(newBuffer);
+      //  }
+
       frameCounter++;
       if (frameCounter % BUFFER_POOL_CLEANUP_INTERVAL === 0) {
         bufferPool.cleanup();
@@ -728,7 +733,7 @@ window.addEventListener('pagehide', function () {
   isRunning = false;
 
   cleanup();
-  
+
   frameBuffer.clear();
   bufferPool.cleanup();
   outputElement = null;
@@ -759,6 +764,7 @@ function displayInnerThoughts() {
       element.setAttribute('data-has-listeners', 'true');
 
       ++eventhandlercount;
+      /*
       element.addEventListener('mouseover', () => {
         if (element.innerHTML === '$') {
           return;
@@ -821,7 +827,7 @@ function displayInnerThoughts() {
         elements.forEach(el => {
           el.classList.remove('hovered');
         });
-      });
+      });*/
     }
   });
 }
