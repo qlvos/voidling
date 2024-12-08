@@ -11,6 +11,7 @@ module.exports = function(grunt) {
           'build/main.js': ['./src/main.js'],
           'build/chaindata.js': ['src/chaindata.js'],
           'build/voidling.js': ['src/voidling.js'],
+          'build/plothelpers.js': ['src/plothelpers.js'],
           'build/optimizedbufferpool.js': ['src/optimizedbufferpool.js'],
           'build/voidling-config-agitated.js': ['src/voidling-config-agitated.js'],
           'build/voidling-config-cautious.js': ['src/voidling-config-cautious.js'],
