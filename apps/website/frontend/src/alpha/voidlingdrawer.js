@@ -2,10 +2,10 @@
 let g_width = 190;
 let g_height = 61;
 const PI = 3.14159265;
-let g_min_x_move = 50;
-let g_max_x_move = 150;
-let g_min_y_move = 27;
-let g_max_y_move = 41;
+let g_min_x_move = window.isMobile ? 10 : 50;
+let g_max_x_move = window.isMobile ? 80 : 150;
+let g_min_y_move = window.isMobile ? 37 : 27;
+let g_max_y_move = window.isMobile ? 71 : 41;
 
 class VoidlingConfig {
   constructor() {
@@ -70,8 +70,8 @@ const CACHE_SIZE = 628;
 let cachedSin = new Array(CACHE_SIZE);
 let cachedCos = new Array(CACHE_SIZE);
 let borderProximityCounter = 0;
-const BORDER_PROXIMITY_THRESHOLD = 1.0;
-const MAX_BORDER_FRAMES = 200;
+const BORDER_PROXIMITY_THRESHOLD = window.isMobile ? 0.5 : 1.0;
+const MAX_BORDER_FRAMES = window.isMobile ? 120 : 200;
 let squishCounter = 0;
 
 // Linear interpolation
@@ -170,6 +170,18 @@ function enforceObjectBounds(x, y, radius, width, height) {
   }
 }
 
+function cleanupDeformHistory() {
+  if (deformHistory) {
+    for (let i = 0; i < MAX_HISTORY_LENGTH; i++) {
+      if (deformHistory[i]) {
+        deformHistory[i] = null;
+      }
+    }
+    deformHistory = null;
+  }
+  currentHistoryIndex = 0;
+}
+
 function cleanupBuffers() {
   if (buffer) {
     buffer = null;
@@ -190,15 +202,11 @@ function cleanupBuffers() {
     targetDeformFreqs = null;
   }
 
-  for (let i = 0; i < MAX_HISTORY_LENGTH; i++) {
-    if (deformHistory[i]) {
-      deformHistory[i] = null;
-    }
-  }
+  // Just call cleanupDeformHistory() - remove the redundant loop
+  cleanupDeformHistory();
 }
 
 function allocateBuffers() {
-  console.log("allocateBuffers!")
   cleanupBuffers(); // This now properly cleans everything and nulls all pointers
 
   buffer = new Array(g_width * g_height);
@@ -394,13 +402,38 @@ function forceBorderRecovery() {
 }
 
 export function setDimensions(width, height) {
+  // Don't clone the entire history, just keep references we need
+  const oldComplexity = config.deformComplexity;
+  const oldHistoryData = [];
+  
+  if (deformHistory) {
+    for (let i = 0; i < MAX_HISTORY_LENGTH; i++) {
+      if (deformHistory[i]) {
+        oldHistoryData[i] = new Float32Array(deformHistory[i]);
+      }
+    }
+  }
+  
+  cleanupBuffers();
+  
   g_width = width;
   g_height = height;
   g_max_x_move = g_width - 40;
-  g_min_y_move = g_height / 2 - 7;
-  g_max_y_move = g_height / 2 + 7;
+  g_min_y_move = g_height / 2 - (window.isMobile ? 20 : 7);
+  g_max_y_move = g_height / 2 + (window.isMobile ? 20 : 7);
 
-  allocateBuffers();
+  buffer = new Array(g_width * g_height);
+  zBuffer = new Array(g_width * g_height);
+  
+  if (oldComplexity > 0) {
+    deformHistory = new Array(MAX_HISTORY_LENGTH).fill(null);
+    for (let i = 0; i < MAX_HISTORY_LENGTH; i++) {
+      if (oldHistoryData[i]) {
+        deformHistory[i] = new Float32Array(oldComplexity);
+        deformHistory[i].set(oldHistoryData[i]);
+      }
+    }
+  }
 
   movementX = g_width / 2;
   movementY = g_height / 2;
@@ -717,14 +750,32 @@ function updateMovementTargets() {
       break;
 
     case "BEHAVIOR_TRAVERSE":
-      if (distance(movementX, movementY, targetX, targetY) < 2.0) {
-        targetX = Math.random() * g_width;
-        targetY = Math.random() * g_height;
+      if(window.isMobile) {
+        if (distance(movementX, movementY, targetX, targetY) < 1.0) {
+          targetX = Math.random() * g_width;
+          // Force more dramatic vertical movement
+          const currentThird = (movementY / g_height) * 3;  // Determine which third we're in
+          if (currentThird < 1) {  // If in top third
+            targetY = g_height * (0.6 + (Math.random() * 40 / 80.0));  // Move to bottom half
+          } else if (currentThird > 2) {  // If in bottom third
+            targetY = g_height * (Math.random() * 40 / 80.0);  // Move to top half
+          } else {  // If in middle
+            targetY = (Math.random() < 0.5) ? 
+                      g_height * (Math.random() * 30 / 80.0) :  // Top portion
+                      g_height * (0.7 + (Math.random() * 30 / 80.0));  // Bottom portion
+          }
+        }
+      } else {
+        if (distance(movementX, movementY, targetX, targetY) < 2.0) {
+          targetX = Math.random() * g_width;
+          targetY = Math.random() * g_height;
+        }
       }
+
       break;
 
     case "BEHAVIOR_SPIRAL":
-      if (distance(movementX, movementY, targetX, targetY) < 2.5) {
+      if (distance(movementX, movementY, targetX, targetY) < (window.isMobile ? 1.5 : 2.5)) {
         const angleIndex = Math.floor(Math.random() * CACHE_SIZE);
         const radius = 20.0 + Math.random() * 20;
         targetX = g_width / 2 + cachedCos[angleIndex] * radius;
@@ -795,15 +846,30 @@ export function animationFrame() {
   if (behaviorTimer >= config.behaviorChangeTime) {
     behaviorTimer = 0;
     const r = Math.floor(Math.random() * 10);
-    if (r < 3) {
-      currentBehavior = "BEHAVIOR_TRAVERSE";
-    } else if (r < 6) {
-      currentBehavior = "BEHAVIOR_BOUNCE";
-    } else if (r < 8) {
-      currentBehavior = "BEHAVIOR_EXPLORE";
+
+    if(window.isMobile) {
+      if (r < 6) {           
+        currentBehavior = "BEHAVIOR_TRAVERSE";
+      } else if (r < 7) {   
+          currentBehavior = "BEHAVIOR_BOUNCE";
+      } else if (r < 9) {   
+          currentBehavior = "BEHAVIOR_EXPLORE";   
+      } else {               
+          currentBehavior = "BEHAVIOR_SPIRAL";
+      }
     } else {
-      currentBehavior = "BEHAVIOR_SPIRAL";
+      if (r < 3) {
+        currentBehavior = "BEHAVIOR_TRAVERSE";
+      } else if (r < 6) {
+        currentBehavior = "BEHAVIOR_BOUNCE";
+      } else if (r < 8) {
+        currentBehavior = "BEHAVIOR_EXPLORE";
+      } else {
+        currentBehavior = "BEHAVIOR_SPIRAL";
+      }
     }
+
+
     stuckCounter = 0;
     updateMovementTargets();
     updateRotationTargets();
@@ -818,7 +884,7 @@ export function animationFrame() {
   updateMovementTargets();
   updateRotationTargets();
   
-  movementX = lerp(movementX, targetX, config.moveSpeed * config.xBias * 0.3);
+  movementX = lerp(movementX, targetX, config.moveSpeed * config.xBias * (window.isMobile ? 0.7 : 0.3));
   movementY = lerp(movementY, targetY, config.moveSpeed * config.yBias);
   enforceObjectBounds(movementX, movementY, config.baseRadius, g_width, g_height);
   
@@ -883,15 +949,28 @@ export function animationFrame() {
   
   if (stuckCounter > 100) {
     const stuck_r = Math.floor(Math.random() * 10);
-    if (stuck_r < 3) {
-      currentBehavior = "BEHAVIOR_TRAVERSE";
-    } else if (stuck_r < 6) {
-      currentBehavior = "BEHAVIOR_SPIRAL";
-    } else if (stuck_r < 7) {
-      currentBehavior = "BEHAVIOR_BOUNCE";
+    if(window.isMobile) {
+      if (stuck_r < 5) {
+        currentBehavior = "BEHAVIOR_TRAVERSE";
+      } else if (stuck_r < 7) {
+          currentBehavior = "BEHAVIOR_SPIRAL";
+      } else if (stuck_r < 9) {
+          currentBehavior = "BEHAVIOR_BOUNCE";
+      } else {
+          currentBehavior = "BEHAVIOR_EXPLORE";
+      }
     } else {
-      currentBehavior = "BEHAVIOR_EXPLORE";
+      if (stuck_r < 3) {
+        currentBehavior = "BEHAVIOR_TRAVERSE";
+      } else if (stuck_r < 6) {
+        currentBehavior = "BEHAVIOR_SPIRAL";
+      } else if (stuck_r < 7) {
+        currentBehavior = "BEHAVIOR_BOUNCE";
+      } else {
+        currentBehavior = "BEHAVIOR_EXPLORE";
+      }
     }
+
     stuckCounter = 0;
   }
 
@@ -995,9 +1074,20 @@ export function animationFrame() {
   
   if (frameCounter % 1000 === 0) {
     periodicCleanupDeformBuffers();
+    
+    // More efficient deform history cleanup
+    if (deformHistory) {
+      const existingData = deformHistory.map(arr => arr ? new Float32Array(arr) : null);
+      cleanupDeformHistory();
+      deformHistory = new Array(MAX_HISTORY_LENGTH).fill(null);
+      for (let i = 0; i < MAX_HISTORY_LENGTH; i++) {
+        if (existingData[i]) {
+          deformHistory[i] = existingData[i];
+        }
+      }
+    }
   }
   
-  frameCounter++;
   currentTime += config.timeSpeed;
 
 }
@@ -1010,9 +1100,4 @@ export function getBuffer() {
     }
     return buffer;
 }
-
-
-
-
-
 

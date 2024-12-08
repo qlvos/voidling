@@ -57,6 +57,7 @@ checkMobile();
 //console.log('Initial mobile state:', window.isMobile);
 
 let emotion = null;
+let lastFrame = null;
 export const assetBoxId = "assetbox";
 export const tradeLogId = "tradelogbox";
 export const watchlistBoxId = "watchlistbox";
@@ -74,7 +75,7 @@ const FRAME_HISTORY_SIZE = 48;
 const CLEANUP_INTERVAL = 200;
 const MEMORY_THRESHOLD_MB = 200;
 const MAX_POOL_SIZE = 6;
-const MEMORY_CHECK_INTERVAL = 1000;
+const MEMORY_CHECK_INTERVAL = 2000;
 const BUFFER_POOL_CLEANUP_INTERVAL = 100;  // Clean pool every N frames
 
 // Color mapping
@@ -190,7 +191,6 @@ const styleSheetClasses = new Map();
 let originalColors = new Map();
 const elementIds = Object.values(colorMap);
 let uniqueElementIds = new Set(elementIds);
-console.log(uniqueElementIds)
 
 for(const rule of stylesheet.rules) {
   styleSheetClasses.set(rule.selectorText, rule);
@@ -241,16 +241,13 @@ function bufferToHTML(buffer, width) {
 
 function buffersEqual(a, b) {
   if (!a || !b || a.length !== b.length) {
-    console.log("not equal 1!")
     return false
   };
   for (let i = 0; i < a.length; i++) {
     if (a[i] !== b[i]) { 
-      console.log("not equal 2!")
       return false
     };
   }
-  console.log("equal!")
   return true;
 }
 
@@ -282,7 +279,6 @@ function calculateDimensions() {
 function resetDimensions() {
   const dims = calculateDimensions();
   setDimensions(dims.width, dims.height);
-  console.log("Dimensions reset to:", dims);
 }
 
 
@@ -358,30 +354,20 @@ function restoreVoidlingState(state) {
 }
 
 function checkMemoryUsage() {
-  return;
   if (performance.memory) {
     const jsHeapSize = performance.memory.usedJSHeapSize / (1024 * 1024);
     const totalHeapSize = performance.memory.totalJSHeapSize / (1024 * 1024);
-    console.log(`Memory usage: JS Heap ${jsHeapSize.toFixed(2)}MB / Total Heap ${totalHeapSize.toFixed(2)}MB`);
+    // Count all DOM elements
+    let allElements = document.getElementsByTagName('*');
+    let count = allElements.length;
+    
+    console.log(`Memory usage: JS Heap ${jsHeapSize.toFixed(2)}MB / Total Heap ${totalHeapSize.toFixed(2)}MB, DOM count: ${count}`);
 
     if (jsHeapSize > MEMORY_THRESHOLD_MB) {
       console.warn(`High memory usage: ${jsHeapSize.toFixed(2)}MB`);
-      //forceCleanup();
+      forceCleanup();
     }
   }
-
-
-    
-    const bufferSize = getBufferSize();
-    console.log(`Buffer size: ${(bufferSize / (1024 * 1024)).toFixed(2)}MB`);
-
-    if (bufferSize > MEMORY_THRESHOLD_MB * 1024 * 1024) {
-      console.warn(`Excessive memory usage: ${bufferSize} bytes`);
-      //forceCleanup();
-    }
-  
-
-  console.log("Memory check complete.");
 }
 
 
@@ -416,7 +402,7 @@ export function forceCleanup() {
     frameCounter = 0;
     lastFrameTime = 0;
 
-    console.log('forceCleanup: All buffers cleared, WebAssembly state reset.');
+    console.log('forceCleanup: All buffers cleared');
 
     // Restart the animation loop
     startAnimation();
@@ -529,7 +515,6 @@ function initVoidlingConfig() {
         initVoidlingConfig();
       
         const dims = calculateDimensions();
-        console.log(dims);
         setDimensions(dims.width, dims.height);
       
         // Animation logic, moved globally for proper reuse
@@ -549,11 +534,9 @@ function initVoidlingConfig() {
           lastFrameTime = timestamp;
       
           if (frameCounter % CLEANUP_INTERVAL === 0) {
-            console.log("forceCleanup!")
             forceCleanup();
             if (typeof window.gc === 'function') {
               try {
-                console.log("window.gc!")
                 window.gc();
               } catch (e) {
                 //console.log('Manual GC not available');
@@ -564,31 +547,15 @@ function initVoidlingConfig() {
           try {
             animationFrame();
             const bufferPtr = getBuffer();
-            const bufferSize = getBufferSize();
       
-            
-      /*
-            const newBuffer = bufferPool.get(bufferSize);
-            newBuffer.set(Module.HEAPU8.subarray(bufferPtr, bufferPtr + bufferSize));
-            */
-      
-            //const lastFrame = frameBuffer.get(0);
-            //console.log("xxx")
-            //console.log(frameBuffer);
-           // if (!lastFrame || !buffersEqual(newBuffer, lastFrame)) {
-              //frameBuffer.push(bufferPtr);
+           // if (!lastFrame /*|| !buffersEqual(bufferPtr, lastFrame)*/) {
       
               setWorldDimensions(dims.width, Math.floor(bufferPtr.length / dims.width));
 
-              if(bufferPtr[0] == 0) {
-                //console.log("ffs!")
-              }
+              lastFrame = bufferPtr;
               const html = bufferToHTML(bufferPtr, dims.width);
 
               if (outputElement.innerHTML !== html) {
-                if(html[0] == 0) {
-                  console.log("zero !")
-                }
                 outputElement.innerHTML = html;
       
                 let offsetTop = window.isMobile ? PORTFOLIO_OFFSET_TOP_MOBILE : PORTFOLIO_OFFSET_TOP;
@@ -616,13 +583,12 @@ function initVoidlingConfig() {
                   displayInnerThoughts();
                 }
               }
-           // } else {
-           //   bufferPool.return(newBuffer);
-           // }
+          //  } else {
+          //    console.log("reuse frame!")
+          //  }
       
             frameCounter++;
             if (frameCounter % BUFFER_POOL_CLEANUP_INTERVAL === 0) {
-              console.log("XEAYIII")
               bufferPool.cleanup();
             }
           } catch (e) {
@@ -677,13 +643,10 @@ function clearDeformHistory() {
 
 
 export function startAnimation() {
-  console.log("start!")
   function updateDisplay(timestamp) {
     if (!isRunning) return;
   
     if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
-      // should this not rather NOT call requestAnimationFrame here !?
-      console.log("HEyyy")
       return;
     }
   
@@ -699,11 +662,6 @@ export function startAnimation() {
 
       animationFrame();
       const bufferPtr = getBuffer();
-
-      if(bufferPtr[0] == 0) {
-        console.log("ffs z0")
-      }
-
       const bufferSize = getBufferSize();
   
       if (!bufferPtr || bufferSize <= 0) {
@@ -711,35 +669,23 @@ export function startAnimation() {
         return;
       }
     
-//      const newBuffer = bufferPool.get(bufferSize);
-//      newBuffer.splice(0, bufferSize, ...bufferPtr);
-  
-      const lastFrame = frameBuffer.length > 0 ? frameBuffer.get(0) : null;
-  
-     // if (!lastFrame || !buffersEqual(newBuffer, lastFrame)) {
-//        frameBuffer.push(newBuffer);
-  
+
+      //if (!lastFrame || true /*|| !buffersEqual(bufferPtr, lastFrame)*/) {
         const dims = calculateDimensions();
         const worldHeight = Math.floor(bufferPtr.length / dims.width);
         setWorldDimensions(dims.width, worldHeight);
   
         if (outputElement) {
-          if(bufferPtr[0] == 0) {
-            console.log("wtf?")
-          }
-
           const html = bufferToHTML(bufferPtr, dims.width);
-          //console.log(html)
           if (outputElement.innerHTML !== html) {
-            if(html[0] == 0) {
-              console.log("zero !")
-            }
+            lastFrame = bufferPtr;
             outputElement.innerHTML = html;
           }
         }
-     // } else {
-     //   bufferPool.return(newBuffer);
-     // }
+    //  } else {
+    //    console.log("reusing last frame!")
+        //bufferPool.return(newBuffer);
+    //  }
   
       frameCounter++;
       if (frameCounter % BUFFER_POOL_CLEANUP_INTERVAL === 0) {
