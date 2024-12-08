@@ -50,7 +50,7 @@ let currentTime = 0;
 let config = new VoidlingConfig();
 let rotX = 0, rotY = 0, rotZ = 0;
 let targetRotX = 0, targetRotY = 0, targetRotZ = 0;
-let rotationSpeed;
+let rotationSpeed = 0;
 let movementX;
 let movementY;
 let targetX;
@@ -198,6 +198,7 @@ function cleanupBuffers() {
 }
 
 function allocateBuffers() {
+  console.log("allocateBuffers!")
   cleanupBuffers(); // This now properly cleans everything and nulls all pointers
 
   buffer = new Array(g_width * g_height);
@@ -278,6 +279,7 @@ export function initVoidlingWithConfig(
   yBias,
   maxHorizontalPersistence
 ) {
+
   if (isInitialized) {
     cleanupBuffers();
   }
@@ -776,7 +778,7 @@ export function animationFrame() {
     }
   }
 
-  buffer.fill(' ');
+  buffer.fill('\u0020');
   zBuffer.fill(-1000.0);
 
   for (let x = 0; x < g_width; x++) {
@@ -784,7 +786,6 @@ export function animationFrame() {
     buffer[x + (g_height - 1) * g_width] = '$';
   }
 
-  //console.log(buffer)
   for (let y = 0; y < g_height; y++) {
     buffer[y * g_width] = '$';
     buffer[g_width - 1 + y * g_width] = '$';
@@ -980,15 +981,9 @@ export function animationFrame() {
           illumination *= interiorBrightness;
           illumination *= depthFactor;
   
-          console.log(zBuffer)
-          console.log(px)
-          console.log(py)
-          console.log(g_width)
-          console.log(px + py * g_width)
           if (z > zBuffer[px + py * g_width]) {
             zBuffer[px + py * g_width] = z;
             const chars = ".,-~:;=!*#@$";
-            console.log("XXXXXXXXXXXXXXXXXXXXXX")
             let charIndex = Math.floor(illumination * 11);
             charIndex = charIndex < 0 ? 0 : (charIndex > 10 ? 10 : charIndex);
             buffer[px + py * g_width] = chars[charIndex];
@@ -1004,11 +999,15 @@ export function animationFrame() {
   
   frameCounter++;
   currentTime += config.timeSpeed;
+
 }
 
 
 
 export function getBuffer() {
+    if(buffer[0] == 0) {
+      console.log("HEheheheHEheh")
+    }
     return buffer;
 }
 

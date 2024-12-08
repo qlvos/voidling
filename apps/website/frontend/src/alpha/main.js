@@ -179,7 +179,6 @@ let frameCounter = 0;
 let started = false;
 let lastFrameTime = 0;
 let outputElement;
-let bufferArray = new Array(0);
 let resizeTimeout;
 let isRunning = true; // Flag to control animation frames
 
@@ -207,9 +206,19 @@ function bufferToHTML(buffer, width) {
     const row = Math.floor(i / width);
     const col = i % width;
     let char = buffer[i];
+    if(char == 0 || char =='0') {
+      let i = 1;
+      //console.log("zero !")
+
+    }
     const height = Math.floor(buffer.length / width);
     let isBorder = row === 0 || row === (height - 1) || col === 0 || col === width - 1;
     const colorClass = colorMap[char];
+
+   // if(!colorClass) {
+   //   console.log(buffer)
+   //   console.log("undefined! " + char)
+   // }
 
     if(!isBorder) {
       html += colorClass ?
@@ -222,6 +231,11 @@ function bufferToHTML(buffer, width) {
 
     if ((i + 1) % width === 0) html += '\n';
   }
+
+  if(html[0] == 0) {
+    console.log("html 0 !")
+  }
+
   return html;
 }
 
@@ -323,9 +337,6 @@ function restoreVoidlingState(state) {
   setTargetX(state.position.targetX);
   setTargetY(state.position.targetY);
 
-
-  console.log("yoo")
-  console.log(state.rotation.rotX);
   setRotX(state.rotation.rotX);
   setRotY(state.rotation.rotY);
   setRotZ(state.rotation.rotZ);
@@ -347,6 +358,7 @@ function restoreVoidlingState(state) {
 }
 
 function checkMemoryUsage() {
+  return;
   if (performance.memory) {
     const jsHeapSize = performance.memory.usedJSHeapSize / (1024 * 1024);
     const totalHeapSize = performance.memory.totalJSHeapSize / (1024 * 1024);
@@ -354,7 +366,7 @@ function checkMemoryUsage() {
 
     if (jsHeapSize > MEMORY_THRESHOLD_MB) {
       console.warn(`High memory usage: ${jsHeapSize.toFixed(2)}MB`);
-      forceCleanup();
+      //forceCleanup();
     }
   }
 
@@ -365,7 +377,7 @@ function checkMemoryUsage() {
 
     if (bufferSize > MEMORY_THRESHOLD_MB * 1024 * 1024) {
       console.warn(`Excessive memory usage: ${bufferSize} bytes`);
-      forceCleanup();
+      //forceCleanup();
     }
   
 
@@ -379,11 +391,6 @@ export function forceCleanup() {
 
     // Clear frame buffer and reset state
     frameBuffer.clear();
-
-    if (bufferArray && bufferArray.length > 0) {
-      bufferArray.fill(0);
-      bufferArray = null; // Explicitly release memory
-    }
 
       const state = preserveVoidlingState(); // Save the current voidling state
       cleanup();
@@ -406,7 +413,6 @@ export function forceCleanup() {
     }
 
     // Reset other global variables
-    bufferArray = null; // Explicitly nullify buffer array
     frameCounter = 0;
     lastFrameTime = 0;
 
@@ -457,6 +463,7 @@ document.addEventListener('DOMContentLoaded', function () {
   checkMobile();
   updateVoidlingSize();
   connectWebSocket();
+  onRuntimeInitialized();
 });
 
 function initVoidlingConfig() {
@@ -510,8 +517,8 @@ function initVoidlingConfig() {
 
 }
 
-export var Module = {
-  onRuntimeInitialized: function () {
+
+  function onRuntimeInitialized () {
     try {
       outputElement = document.getElementById('output');
       if (!outputElement) throw new Error('Output element not found');
@@ -542,9 +549,11 @@ export var Module = {
           lastFrameTime = timestamp;
       
           if (frameCounter % CLEANUP_INTERVAL === 0) {
+            console.log("forceCleanup!")
             forceCleanup();
             if (typeof window.gc === 'function') {
               try {
+                console.log("window.gc!")
                 window.gc();
               } catch (e) {
                 //console.log('Manual GC not available');
@@ -553,22 +562,10 @@ export var Module = {
           }
       
           try {
-            animationFrame();     
+            animationFrame();
             const bufferPtr = getBuffer();
-            //console.log(bufferPtr);
-            console.log("yo!")
-            console.log(bufferPtr[0])
             const bufferSize = getBufferSize();
       
-            if(bufferArray) {
-              if (bufferArray.length !== bufferSize) {
-                //bufferArray = new Uint8Array(Module.HEAPU8.buffer, bufferPtr, bufferSize);
-                bufferArray = new Array(bufferSize);
-              } else {
-                //bufferArray.set(Module.HEAPU8.subarray(bufferPtr, bufferPtr + bufferSize));
-                bufferArray = bufferPtr;
-              }
-            }
             
       /*
             const newBuffer = bufferPool.get(bufferSize);
@@ -576,20 +573,22 @@ export var Module = {
             */
       
             const lastFrame = frameBuffer.get(0);
-            console.log("xxx")
-            console.log(frameBuffer);
+            //console.log("xxx")
+            //console.log(frameBuffer);
            // if (!lastFrame || !buffersEqual(newBuffer, lastFrame)) {
               frameBuffer.push(bufferPtr);
       
               setWorldDimensions(dims.width, Math.floor(bufferPtr.length / dims.width));
 
-              //console.log("html!")
-              //console.log(bufferPtr)
-              console.log("yo2!")
-              console.log(bufferPtr[0])
+              if(bufferPtr[0] == 0) {
+                //console.log("ffs!")
+              }
               const html = bufferToHTML(bufferPtr, dims.width);
 
               if (outputElement.innerHTML !== html) {
+                if(html[0] == 0) {
+                  console.log("zero !")
+                }
                 outputElement.innerHTML = html;
       
                 let offsetTop = window.isMobile ? PORTFOLIO_OFFSET_TOP_MOBILE : PORTFOLIO_OFFSET_TOP;
@@ -623,6 +622,7 @@ export var Module = {
       
             frameCounter++;
             if (frameCounter % BUFFER_POOL_CLEANUP_INTERVAL === 0) {
+              console.log("XEAYIII")
               bufferPool.cleanup();
             }
           } catch (e) {
@@ -653,7 +653,7 @@ export var Module = {
     moduleInitialized = true;
 
   }
-};
+
 
 function clearDeformHistory() {
   const complexity = getDeformComplexity();
@@ -683,6 +683,7 @@ export function startAnimation() {
   
     if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
       // should this not rather NOT call requestAnimationFrame here !?
+      console.log("HEyyy")
       return;
     }
   
@@ -697,39 +698,42 @@ export function startAnimation() {
     try {
 
       animationFrame();
-  
       const bufferPtr = getBuffer();
+
+      if(bufferPtr[0] == 0) {
+        console.log("ffs z0")
+      }
+
       const bufferSize = getBufferSize();
   
       if (!bufferPtr || bufferSize <= 0) {
         console.error("Buffer pointer or size is invalid.");
         return;
       }
-  
-      if (!bufferArray || bufferArray.byteLength !== bufferSize) {
-        console.log("Initializing or resizing bufferArray to size:", bufferSize);
-        bufferArray = new Uint8Array(Module.HEAPU8.buffer, bufferPtr, bufferSize);
-      } else {
-        bufferArray.set(Module.HEAPU8.subarray(bufferPtr, bufferPtr + bufferSize));
-      }
-  
-      const newBuffer = bufferPool.get(bufferSize);
-      newBuffer.splice(0, bufferSize, ...bufferPtr);
-      //newBuffer.set(Module.HEAPU8.subarray(bufferPtr, bufferPtr + bufferSize));
+    
+//      const newBuffer = bufferPool.get(bufferSize);
+//      newBuffer.splice(0, bufferSize, ...bufferPtr);
   
       const lastFrame = frameBuffer.length > 0 ? frameBuffer.get(0) : null;
   
      // if (!lastFrame || !buffersEqual(newBuffer, lastFrame)) {
-        frameBuffer.push(newBuffer);
+//        frameBuffer.push(newBuffer);
   
         const dims = calculateDimensions();
-        const worldHeight = Math.floor(newBuffer.length / dims.width);
+        const worldHeight = Math.floor(bufferPtr.length / dims.width);
         setWorldDimensions(dims.width, worldHeight);
   
         if (outputElement) {
-          const html = bufferToHTML(newBuffer, dims.width);
+          if(bufferPtr[0] == 0) {
+            console.log("wtf?")
+          }
+
+          const html = bufferToHTML(bufferPtr, dims.width);
           //console.log(html)
           if (outputElement.innerHTML !== html) {
+            if(html[0] == 0) {
+              console.log("zero !")
+            }
             outputElement.innerHTML = html;
           }
         }
@@ -744,9 +748,8 @@ export function startAnimation() {
     } catch (e) {
       console.error('Frame update failed:', e);
     }
-  
     requestAnimationFrame(updateDisplay);
-  }      
+  }
   requestAnimationFrame(updateDisplay);
 }
 
@@ -782,7 +785,6 @@ window.addEventListener('pagehide', function () {
   
   frameBuffer.clear();
   bufferPool.cleanup();
-  bufferArray = null;
   outputElement = null;
 
   document.removeEventListener('visibilitychange', onVisibilityChange);
@@ -877,14 +879,3 @@ function displayInnerThoughts() {
     }
   });
 }
-
-
-function loadVoidlingScript() {
-  console.log("load voidling script!!!")
-  const voidlingScript = document.createElement('script');
-  voidlingScript.src = window.isMobile ? 'voidling-mob.js' : 'voidling.js';
-  voidlingScript.type="module";
-  document.body.appendChild(voidlingScript);
-}
-
-loadVoidlingScript();
