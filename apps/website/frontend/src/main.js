@@ -412,7 +412,7 @@ export function forceCleanup() {
 }
 
 function onResize() {
-  //location.reload();
+  location.reload();
   const dims = calculateDimensions();
   console.log(dims)
   setDimensions(dims.width, dims.height);

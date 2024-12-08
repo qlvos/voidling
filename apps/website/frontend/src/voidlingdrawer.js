@@ -216,7 +216,7 @@ function allocateBuffers() {
   if (config.deformComplexity > 0) {
     deformHistory = new Array(MAX_HISTORY_LENGTH).fill(null);
     for (let i = 0; i < MAX_HISTORY_LENGTH; i++) {
-      deformHistory[i] = new Array(config.deformComplexity);
+      deformHistory[i] = new Float32Array(config.deformComplexity);
       if (!deformHistory[i]) {
         console.error(`Failed to allocate memory for deformHistory[${i}]`);
         cleanupBuffers();
@@ -402,9 +402,6 @@ function forceBorderRecovery() {
 }
 
 export function setDimensions(width, height) {
-  let tempState = null;
-  try {
-    
   // Don't clone the entire history, just keep references we need
   const oldComplexity = config.deformComplexity;
   const oldHistoryData = [];
@@ -449,10 +446,6 @@ export function setDimensions(width, height) {
     console.error("Failed to reallocate buffers for new dimensions");
     cleanupBuffers();
     return;
-    }
-  } finally {
-    // Always clean up the temporary state
-    tempState = null;
   }
 }
 
@@ -513,6 +506,11 @@ function setDeformComplexity(value) {
   if (value !== config.deformComplexity) {
     const oldComplexity = config.deformComplexity;
 
+    // Signal state preservation to JavaScript before cleanup
+    if (typeof window.preserveVoidlingState === 'function') {
+      window._tempVoidlingState = window.preserveVoidlingState();
+    }
+
     config.deformComplexity = value;
     cleanupBuffers(); // Ensure complete cleanup
     allocateBuffers();
@@ -527,6 +525,12 @@ function setDeformComplexity(value) {
       // Signal allocation failure
       console.error('Failed to allocate memory for new deform complexity');
       return;
+    }
+
+    // Restore state after successful reallocation
+    if (window._tempVoidlingState && typeof window.restoreVoidlingState === 'function') {
+      window.restoreVoidlingState(window._tempVoidlingState);
+      window._tempVoidlingState = null;
     }
   }
 }
@@ -1073,7 +1077,7 @@ export function animationFrame() {
     
     // More efficient deform history cleanup
     if (deformHistory) {
-      const existingData = deformHistory.map(arr => arr ? new Array(arr) : null);
+      const existingData = deformHistory.map(arr => arr ? new Float32Array(arr) : null);
       cleanupDeformHistory();
       deformHistory = new Array(MAX_HISTORY_LENGTH).fill(null);
       for (let i = 0; i < MAX_HISTORY_LENGTH; i++) {
@@ -1096,4 +1100,3 @@ export function getBuffer() {
     }
     return buffer;
 }
-
