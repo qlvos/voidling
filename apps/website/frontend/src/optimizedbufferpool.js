@@ -18,7 +18,7 @@ export default class OptimizedBufferPool {
       return pool.pop();
     }
 
-    return new Uint8Array(size);
+    return new Array(size);
   }
 
   return(buffer) {

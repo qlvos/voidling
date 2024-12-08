@@ -10,7 +10,8 @@ module.exports = function(grunt) {
         files : {
           'build/main.js': ['./src/main.js'],
           'build/chaindata.js': ['src/chaindata.js'],
-          'build/voidling.js': ['src/voidling.js'],
+          'build/voidlingdrawer.js': ['src/voidlingdrawer.js'],
+          'build/prophecies.js': ['src/prophecies.js'],
           'build/plothelpers.js': ['src/plothelpers.js'],
           'build/optimizedbufferpool.js': ['src/optimizedbufferpool.js'],
           'build/voidling-config-agitated.js': ['src/voidling-config-agitated.js'],
@@ -19,7 +20,6 @@ module.exports = function(grunt) {
           'build/voidling-config-excited.js': ['src/voidling-config-excited.js'],
           'build/voidling-config-serene.js': ['src/voidling-config-serene.js'],
           'build/voidling-config-mob.js': ['src/voidling-config-mob.js'],
-          'build/voidling-mob.js': ['src/voidling-mob.js'],
         }
       }
     }

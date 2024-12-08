@@ -63,19 +63,24 @@
     }
 
     #aboutpage {
-      position:absolute;
-      visibility:hidden;
+      position: absolute;
+      visibility: hidden;
       white-space: pre;
-      color:white;
+      color: white;
       font-size: var(--voidling-font-size, 12px);
       line-height: 1;
       z-index: 999;
       background-color: transparent;
-      white-space: pre-wrap; /* CSS3 */ 
-      white-space: -moz-pre-wrap; /* Mozilla */ 
-      white-space: -pre-wrap; /* Opera 4-6 */ 
-      white-space: -o-pre-wrap; /* Opera 7 */ 
-      word-wrap: break-word; /* IE */
+      white-space: pre-wrap;
+      /* CSS3 */
+      white-space: -moz-pre-wrap;
+      /* Mozilla */
+      white-space: -pre-wrap;
+      /* Opera 4-6 */
+      white-space: -o-pre-wrap;
+      /* Opera 7 */
+      word-wrap: break-word;
+      /* IE */
     }
 
     .c57 {
@@ -204,12 +209,13 @@
 
     #voidlingscontainer {
       display: flex;
-      flex-wrap: wrap; /* Allow wrapping */
+      flex-wrap: wrap;
+      /* Allow wrapping */
     }
 
     .voidlingmember {
-      visibility:hidden;
-      flex: 1; 
+      visibility: hidden;
+      flex: 1;
       padding: 10px;
     }
   </style>
@@ -220,83 +226,75 @@
   <div class="container">
     <pre id="borderbox" class="borderboxclass"></pre>
 
-        <div id="aboutpage">
-          <div>
- This is the world of the voidlings!
+    <div id="aboutpage">
+      <div>
+        This is the world of the voidlings!
+      </div>
+      <div>
+
+        <div id="voidlingscontainer">
+          <div class="voidlingmember">
+            +++++++++++ VOIDLING ++++++++++++
+            +                               +
+            +                               +
+            +                               +
+            +                               +
+            +                               +
+            +                               +
+            + character: The Voidling       +
+            + token: VOID                   +
+            + contract: fdasf89s8f8as9f     +
+            + circ supply: 999,999,999      +
+            +                               +
+            +++++++++++++++++++++++++++++++++
           </div>
-          <div>
-            
-<div id="voidlingscontainer">
-  <div class="voidlingmember">
-    +++++++++++ VOIDLING ++++++++++++
-    +                               +
-    +                               +
-    +                               +
-    +                               +
-    +                               +
-    +                               +
-    + character:   The Voidling     +
-    + token:       VOID             +
-    + contract:    fdasf89s8f8as9f  +
-    + circ supply: 999,999,999      +
-    +                               +
-    +++++++++++++++++++++++++++++++++
-   </div>
-   <div class="voidlingmember">
-    ++++++++ REAPER'S GAMBIT ++++++++
-    +                               +
-    +             /| 0              +
-    +              |\|/             +
-    +              | |              +
-    +              |/ \             +
-    +                               +
-    + character:   The Reaper       +
-    + token:       RG               +
-    + contract:    fdasf89s8f8as9f  +
-    + circ supply: 637,234,701      +
-    +                               +
-    +++++++++++++++++++++++++++++++++
-   </div>
-
-</div>
-
- 
-            
-
-
-
-
+          <div class="voidlingmember">
+            ++++++++ REAPER'S GAMBIT ++++++++
+            +                               +
+            +           /| 0                +
+            +            |\|/               +
+            +            | |                +
+            +            |/ \               +
+            +                               +
+            + character: The Reaper         +
+            + token: RG                     +
+            + contract: fdasf89s8f8as9f     +
+            + circ supply: 637,234,701      +
+            +                               +
+            +++++++++++++++++++++++++++++++++
           </div>
-  
-          
-        
+
         </div>
-        <span id="outputwrapper">
-        <pre id="output"></pre>
-        <div id="portfoliobox" class="voidling-world">
-          <div>
-            <span class="portfolioheader">VOIDLING PORTFOLIO</span>
-            <span id="assetbox" class="assetboxclass"></span>
-            <span class="portfolioheader">VOIDLING TRADES</span>
-            <span id="tradelogbox" class="assetboxclass"></span>
-            <span class="portfolioheader">VOID INDEX</span>
-            <span id="watchlistbox" class="assetboxclass">
-            </span>
 
-          </div>
+      </div>
+
+    </div>
+    <span id="outputwrapper">
+      <pre id="output"></pre>
+      <div id="portfoliobox" class="voidling-world">
+        <div>
+          <span class="portfolioheader">VOIDLING PORTFOLIO</span>
+          <span id="assetbox" class="assetboxclass"></span>
+          <span class="portfolioheader">VOIDLING TRADES</span>
+          <span id="tradelogbox" class="assetboxclass"></span>
+          <span class="portfolioheader">VOID INDEX</span>
+          <span id="watchlistbox" class="assetboxclass">
+          </span>
+
         </div>
-        <div id="voidlingbox" class="voidling-world2">
-          <div>
-            <pre>
+      </div>
+      <div id="voidlingbox" class="voidling-world2">
+        <div>
+          <pre>
                 <div class="stateheader">VOIDLING STATE</div>
                 <span id="voidlingemotion"></span>
 
                 <div class="stateheader">VOIDLING COMMENT</div>
                 <span id="voidlingcomment"></span>
               </pre>
-          </div>
         </div>
-      </span>
+      </div>
+    </span>
   </div>
 
   <script src="plothelpers.js"></script>

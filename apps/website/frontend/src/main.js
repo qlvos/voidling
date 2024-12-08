@@ -7,6 +7,11 @@ import { voidlingConfigExcited } from "./voidling-config-excited.js";
 import { voidlingConfigVanilla } from "./voidling-config-mob.js";
 import { prophecies1, prophecies2, prophecies3, prophecies4, prophecies5, prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11 } from "../prophecies.js";
 import OptimizedBufferPool from './optimizedbufferpool.js';
+import { initializeTrigCache, animationFrame, initVoidlingWithConfig, setDeformFreq, setDeformPhase, setCurrentTime, setTargetX, setTargetY, setMovementX, setMovementY, setRotX, setRotY, setRotZ, getHorizontalPersistenceTimer, getStuckCounter, getBehaviorTimer, getCurrentBehavior, getCurrentTime, getLastTargetX, 
+  getLastTargetY, getRotationSpeed, getTargetRotX, getTargetRotY, getTargetRotZ, getRotX, getRotY, 
+  getRotZ, getTargetX, getTargetY, getMovementX, getMovementY, setDimensions, getDeformComplexity, 
+  getDeformFreq, cleanup, getBuffer, getBufferSize, getDeformPhase, 
+  setCurrentBehavior} from "./voidlingdrawer.js";
 
 let eventhandlercount = 0;
 
@@ -52,6 +57,7 @@ checkMobile();
 //console.log('Initial mobile state:', window.isMobile);
 
 let emotion = null;
+let lastFrame = null;
 export const assetBoxId = "assetbox";
 export const tradeLogId = "tradelogbox";
 export const watchlistBoxId = "watchlistbox";
@@ -69,7 +75,7 @@ const FRAME_HISTORY_SIZE = 48;
 const CLEANUP_INTERVAL = 200;
 const MEMORY_THRESHOLD_MB = 200;
 const MAX_POOL_SIZE = 6;
-const MEMORY_CHECK_INTERVAL = 1000;
+const MEMORY_CHECK_INTERVAL = 2000;
 const BUFFER_POOL_CLEANUP_INTERVAL = 100;  // Clean pool every N frames
 
 // Color mapping
@@ -174,7 +180,6 @@ let frameCounter = 0;
 let started = false;
 let lastFrameTime = 0;
 let outputElement;
-let bufferArray = new Uint8Array(0);
 let resizeTimeout;
 let isRunning = true; // Flag to control animation frames
 
@@ -186,7 +191,6 @@ const styleSheetClasses = new Map();
 let originalColors = new Map();
 const elementIds = Object.values(colorMap);
 let uniqueElementIds = new Set(elementIds);
-console.log(uniqueElementIds)
 
 for(const rule of stylesheet.rules) {
   styleSheetClasses.set(rule.selectorText, rule);
@@ -201,31 +205,48 @@ function bufferToHTML(buffer, width) {
   for (let i = 0; i < buffer.length; i++) {
     const row = Math.floor(i / width);
     const col = i % width;
-    let char = String.fromCharCode(buffer[i]);
+    let char = buffer[i];
+    if(char == 0 || char =='0') {
+      let i = 1;
+      //console.log("zero !")
 
+    }
     const height = Math.floor(buffer.length / width);
-
-
     let isBorder = row === 0 || row === (height - 1) || col === 0 || col === width - 1;
     const colorClass = colorMap[char];
+
+   // if(!colorClass) {
+   //   console.log(buffer)
+   //   console.log("undefined! " + char)
+   // }
 
     if(!isBorder) {
       html += colorClass ?
       `<span onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>` : char;
     } else {
+      //console.log("no border:[" + char + "]")
       html += 
       `<span style="visibility:hidden" onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>`;      
     }
 
     if ((i + 1) % width === 0) html += '\n';
   }
+
+  if(html[0] == 0) {
+    console.log("html 0 !")
+  }
+
   return html;
 }
 
 function buffersEqual(a, b) {
-  if (!a || !b || a.length !== b.length) return false;
+  if (!a || !b || a.length !== b.length) {
+    return false
+  };
   for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
+    if (a[i] !== b[i]) { 
+      return false
+    };
   }
   return true;
 }
@@ -256,79 +277,77 @@ function calculateDimensions() {
 }
 
 function resetDimensions() {
-  if (!Module || !Module._set_dimensions) return;
-
   const dims = calculateDimensions();
-  Module._set_dimensions(dims.width, dims.height);
-  console.log("Dimensions reset to:", dims);
+  setDimensions(dims.width, dims.height);
 }
 
 
 function preserveVoidlingState() {
   // Function body unchanged
-  const complexity = Module._get_deform_complexity();
+  const complexity = getDeformComplexity()
   const deformPhases = [];
   const deformFreqs = [];
 
   for (let i = 0; i < complexity; i++) {
-    deformPhases.push(Module.ccall('get_deform_phase', 'number', ['number'], [i]));
-    deformFreqs.push(Module.ccall('get_deform_freq', 'number', ['number'], [i]));
+    deformPhases.push(getDeformPhase(i));
+    deformFreqs.push(getDeformFreq(i));
   }
 
   return {
     position: {
-      movementX: Module.ccall('get_movement_x', 'number', [], []),
-      movementY: Module.ccall('get_movement_y', 'number', [], []),
-      targetX: Module.ccall('get_target_x', 'number', [], []),
-      targetY: Module.ccall('get_target_y', 'number', [], []),
-      lastTargetX: Module.ccall('get_last_target_x', 'number', [], []),
-      lastTargetY: Module.ccall('get_last_target_y', 'number', [], [])
+      movementX: getMovementX(),
+      movementY: getMovementY(),
+      targetX: getTargetX(),
+      targetY: getTargetY(),
+      lastTargetX: getLastTargetX(),
+      lastTargetY: getLastTargetY()
     },
     rotation: {
-      rotX: Module.ccall('get_rot_x', 'number', [], []),
-      rotY: Module.ccall('get_rot_y', 'number', [], []),
-      rotZ: Module.ccall('get_rot_z', 'number', [], []),
-      targetRotX: Module.ccall('get_target_rot_x', 'number', [], []),
-      targetRotY: Module.ccall('get_target_rot_y', 'number', [], []),
-      targetRotZ: Module.ccall('get_target_rot_z', 'number', [], []),
-      rotationSpeed: Module.ccall('get_rotation_speed', 'number', [], [])
+      rotX: getRotX(),
+      rotY: getRotY(),
+      rotZ: getRotZ(),
+      targetRotX: getTargetRotX(),
+      targetRotY: getTargetRotY(),
+      targetRotZ: getTargetRotZ(),
+      rotationSpeed: getRotationSpeed()
     },
     behavior: {
-      current: Module.ccall('get_current_behavior', 'number', [], []),
-      timer: Module.ccall('get_behavior_timer', 'number', [], []),
-      stuckCounter: Module.ccall('get_stuck_counter', 'number', [], []),
-      horizontalPersistenceTimer: Module.ccall('get_horizontal_persistence_timer', 'number', [], [])
+      current: getCurrentBehavior(),
+      timer: getBehaviorTimer(),
+      stuckCounter: getStuckCounter(),
+      horizontalPersistenceTimer: getHorizontalPersistenceTimer()
     },
     deformation: {
       complexity: complexity,
       phases: deformPhases,
       frequencies: deformFreqs
     },
-    time: Module.ccall('get_current_time', 'number', [], [])
+    time: getCurrentTime()
   };
 }
 
 function restoreVoidlingState(state) {
   // Function body unchanged
-  Module.ccall('set_movement_x', null, ['number'], [state.position.movementX]);
-  Module.ccall('set_movement_y', null, ['number'], [state.position.movementY]);
-  Module.ccall('set_target_x', null, ['number'], [state.position.targetX]);
-  Module.ccall('set_target_y', null, ['number'], [state.position.targetY]);
+  setMovementX(state.position.movementX);
+  setMovementY(state.position.movementY);
+  setTargetX(state.position.targetX);
+  setTargetY(state.position.targetY);
 
-  Module.ccall('set_rot_x', null, ['number'], [state.rotation.rotX]);
-  Module.ccall('set_rot_y', null, ['number'], [state.rotation.rotY]);
-  Module.ccall('set_rot_z', null, ['number'], [state.rotation.rotZ]);
+  setRotX(state.rotation.rotX);
+  setRotY(state.rotation.rotY);
+  setRotZ(state.rotation.rotZ);
 
-  Module.ccall('set_current_behavior', null, ['number'], [state.behavior.current]);
-  Module.ccall('set_current_time', null, ['number'], [state.time]);
+  setCurrentBehavior(state.behavior.current)
+  setCurrentTime(state.time);
+
 
   if (state.deformation) {
     for (let i = 0; i < state.deformation.complexity; i++) {
       if (i < state.deformation.phases.length) {
-        Module.ccall('set_deform_phase', null, ['number', 'number'], [i, state.deformation.phases[i]]);
+        setDeformPhase(i, state.deformation.phases[i]);
       }
       if (i < state.deformation.frequencies.length) {
-        Module.ccall('set_deform_freq', null, ['number', 'number'], [i, state.deformation.frequencies[i]]);
+        setDeformFreq(i, state.deformation.frequencies[i]);
       }
     }
   }
@@ -338,25 +357,17 @@ function checkMemoryUsage() {
   if (performance.memory) {
     const jsHeapSize = performance.memory.usedJSHeapSize / (1024 * 1024);
     const totalHeapSize = performance.memory.totalJSHeapSize / (1024 * 1024);
-    console.log(`Memory usage: JS Heap ${jsHeapSize.toFixed(2)}MB / Total Heap ${totalHeapSize.toFixed(2)}MB`);
+    // Count all DOM elements
+    let allElements = document.getElementsByTagName('*');
+    let count = allElements.length;
+    
+    console.log(`Memory usage: JS Heap ${jsHeapSize.toFixed(2)}MB / Total Heap ${totalHeapSize.toFixed(2)}MB, DOM count: ${count}`);
 
     if (jsHeapSize > MEMORY_THRESHOLD_MB) {
       console.warn(`High memory usage: ${jsHeapSize.toFixed(2)}MB`);
       forceCleanup();
     }
   }
-
-  if (Module && Module._getBufferSize) {
-    const bufferSize = Module._getBufferSize();
-    console.log(`WASM buffer size: ${(bufferSize / (1024 * 1024)).toFixed(2)}MB`);
-
-    if (bufferSize > MEMORY_THRESHOLD_MB * 1024 * 1024) {
-      console.warn(`Excessive WASM memory usage: ${bufferSize} bytes`);
-      forceCleanup();
-    }
-  }
-
-  console.log("Memory check complete.");
 }
 
 
@@ -367,15 +378,8 @@ export function forceCleanup() {
     // Clear frame buffer and reset state
     frameBuffer.clear();
 
-    if (bufferArray && bufferArray.length > 0) {
-      bufferArray.fill(0);
-      bufferArray = null; // Explicitly release memory
-    }
-
-    // Clean up the WebAssembly module
-    if (Module && Module._cleanup) {
       const state = preserveVoidlingState(); // Save the current voidling state
-      Module._cleanup(); // Perform WASM-specific cleanup
+      cleanup();
 
       if (moduleInitialized) {
         clearDeformHistory(); // Reset deform history
@@ -384,7 +388,7 @@ export function forceCleanup() {
 
       initVoidlingConfig();       // Reinitialize configuration
       restoreVoidlingState(state); // Restore the saved voidling state
-    }
+    
 
     // Clean up buffer pools
     bufferPool.cleanup();
@@ -395,11 +399,10 @@ export function forceCleanup() {
     }
 
     // Reset other global variables
-    bufferArray = null; // Explicitly nullify buffer array
     frameCounter = 0;
     lastFrameTime = 0;
 
-    console.log('forceCleanup: All buffers cleared, WebAssembly state reset.');
+    console.log('forceCleanup: All buffers cleared');
 
     // Restart the animation loop
     startAnimation();
@@ -409,10 +412,10 @@ export function forceCleanup() {
 }
 
 function onResize() {
-  location.reload();
+  //location.reload();
   const dims = calculateDimensions();
   console.log(dims)
-  Module._set_dimensions(dims.width, dims.height);
+  setDimensions(dims.width, dims.height);
   started = false;
   if (resizeTimeout) {
     cancelAnimationFrame(resizeTimeout);
@@ -430,9 +433,8 @@ function onResize() {
         forceCleanup();
       }
       const dims = calculateDimensions();
-      if (Module && Module._set_dimensions) {
-        Module._set_dimensions(dims.width, dims.height);
-      }
+      setDimensions(dims.width, dims.height);
+      
     } catch (e) {
       console.error('Resize handling failed:', e);
     }
@@ -447,6 +449,7 @@ document.addEventListener('DOMContentLoaded', function () {
   checkMobile();
   updateVoidlingSize();
   connectWebSocket();
+  onRuntimeInitialized();
 });
 
 function initVoidlingConfig() {
@@ -467,7 +470,7 @@ function initVoidlingConfig() {
     cfg = voidlingConfigVanilla;
   }
 
-  Module._initVoidlingWithConfig(
+  initVoidlingWithConfig(
     cfg.baseRadius,
     cfg.aspectRatio,
     cfg.moveSpeed,
@@ -500,20 +503,19 @@ function initVoidlingConfig() {
 
 }
 
-export var Module = {
-  onRuntimeInitialized: function () {
+
+  function onRuntimeInitialized () {
     try {
       outputElement = document.getElementById('output');
       if (!outputElement) throw new Error('Output element not found');
 
-      Module._initialize_trig_cache();
+      initializeTrigCache();
 
       const initializeVoidling = async () => {
         initVoidlingConfig();
       
         const dims = calculateDimensions();
-        console.log(dims);
-        Module._set_dimensions(dims.width, dims.height);
+        setDimensions(dims.width, dims.height);
       
         // Animation logic, moved globally for proper reuse
         window.updateDisplay = function (timestamp) {
@@ -543,29 +545,16 @@ export var Module = {
           }
       
           try {
-            Module._animationFrame();
+            animationFrame();
+            const bufferPtr = getBuffer();
       
-            const bufferPtr = Module._getBuffer();
-            const bufferSize = Module._getBufferSize();
+           // if (!lastFrame /*|| !buffersEqual(bufferPtr, lastFrame)*/) {
       
-            if(bufferArray) {
-              if (bufferArray.length !== bufferSize) {
-                bufferArray = new Uint8Array(Module.HEAPU8.buffer, bufferPtr, bufferSize);
-              } else {
-                bufferArray.set(Module.HEAPU8.subarray(bufferPtr, bufferPtr + bufferSize));
-              }
-            }
-      
-            const newBuffer = bufferPool.get(bufferSize);
-            newBuffer.set(Module.HEAPU8.subarray(bufferPtr, bufferPtr + bufferSize));
-      
-            const lastFrame = frameBuffer.get(0);
-            if (!lastFrame || !buffersEqual(newBuffer, lastFrame)) {
-              frameBuffer.push(newBuffer);
-      
-              setWorldDimensions(dims.width, Math.floor(newBuffer.length / dims.width));
-      
-              const html = bufferToHTML(newBuffer, dims.width);
+              setWorldDimensions(dims.width, Math.floor(bufferPtr.length / dims.width));
+
+              lastFrame = bufferPtr;
+              const html = bufferToHTML(bufferPtr, dims.width);
+
               if (outputElement.innerHTML !== html) {
                 outputElement.innerHTML = html;
       
@@ -594,9 +583,9 @@ export var Module = {
                   displayInnerThoughts();
                 }
               }
-            } else {
-              bufferPool.return(newBuffer);
-            }
+          //  } else {
+          //    console.log("reuse frame!")
+          //  }
       
             frameCounter++;
             if (frameCounter % BUFFER_POOL_CLEANUP_INTERVAL === 0) {
@@ -627,41 +616,26 @@ export var Module = {
       console.error('Setup failed:', e);
       outputElement.innerHTML = 'Failed to initialize voidling. Please refresh the page.';
     }
-
-    Module._cleanup = Module.cwrap('cleanup', null, []);
-    Module._initVoidlingWithConfig = Module.cwrap('initVoidlingWithConfig', null, [
-      'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number',
-      'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number',
-      'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number',
-      'number', 'number', 'number'
-    ]);
-    Module._set_dimensions = Module.cwrap('set_dimensions', null, ['number', 'number']);
-    Module._animationFrame = Module.cwrap('animationFrame', null, []);
-    Module._getBuffer = Module.cwrap('getBuffer', 'number', []);
-    Module._getBufferSize = Module.cwrap('getBufferSize', 'number', []);
-    Module._initialize_trig_cache = Module.cwrap('initialize_trig_cache', null, []);
-    Module._get_deform_complexity = Module.cwrap('get_deform_complexity', 'number', []);
-
     moduleInitialized = true;
 
   }
-};
+
 
 function clearDeformHistory() {
-  if (!Module || !Module.ccall) return;
+  const complexity = getDeformComplexity();
 
-  const complexity = Module._get_deform_complexity();
   if (complexity <= 0) return;
 
   for (let i = 0; i < complexity; i++) {
-    const currentPhase = Module.ccall('get_deform_phase', 'number', ['number'], [i]);
-    const currentFreq = Module.ccall('get_deform_freq', 'number', ['number'], [i]);
+    const currentPhase = getDeformPhase(i);
+    
+    const currentFreq = getDeformFreq(i);
 
     if (Math.abs(currentPhase) > 0.001) {
-      Module.ccall('set_deform_phase', null, ['number', 'number'], [i, 0.0]);
+      setDeformPhase(i, 0.0);
     }
     if (Math.abs(currentFreq - 1.0) > 0.001) {
-      Module.ccall('set_deform_freq', null, ['number', 'number'], [i, 1.0]);
+      setDeformFreq(i, 1.0);
     }
   }
   console.log("Deform history cleared.");
@@ -669,12 +643,10 @@ function clearDeformHistory() {
 
 
 export function startAnimation() {
-  console.log("start!")
   function updateDisplay(timestamp) {
     if (!isRunning) return;
   
     if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
-      // should this not rather NOT call requestAnimationFrame here !?
       return;
     }
   
@@ -687,50 +659,33 @@ export function startAnimation() {
     lastFrameTime = timestamp;
   
     try {
-      if (!Module || !Module._animationFrame || !Module._getBuffer || !Module._getBufferSize) {
-        console.error("Module or essential methods are not available.");
-        return;
-      }
-  
-      Module._animationFrame();
-  
-      const bufferPtr = Module._getBuffer();
-      //console.log(bufferPtr)
-      const bufferSize = Module._getBufferSize();
+
+      animationFrame();
+      const bufferPtr = getBuffer();
+      const bufferSize = getBufferSize();
   
       if (!bufferPtr || bufferSize <= 0) {
         console.error("Buffer pointer or size is invalid.");
         return;
       }
-  
-      if (!bufferArray || bufferArray.byteLength !== bufferSize) {
-        console.log("Initializing or resizing bufferArray to size:", bufferSize);
-        bufferArray = new Uint8Array(Module.HEAPU8.buffer, bufferPtr, bufferSize);
-      } else {
-        bufferArray.set(Module.HEAPU8.subarray(bufferPtr, bufferPtr + bufferSize));
-      }
-  
-      const newBuffer = bufferPool.get(bufferSize);
-      newBuffer.set(Module.HEAPU8.subarray(bufferPtr, bufferPtr + bufferSize));
-  
-      const lastFrame = frameBuffer.length > 0 ? frameBuffer.get(0) : null;
-  
-      if (!lastFrame || !buffersEqual(newBuffer, lastFrame)) {
-        frameBuffer.push(newBuffer);
-  
+    
+
+      //if (!lastFrame || true /*|| !buffersEqual(bufferPtr, lastFrame)*/) {
         const dims = calculateDimensions();
-        const worldHeight = Math.floor(newBuffer.length / dims.width);
+        const worldHeight = Math.floor(bufferPtr.length / dims.width);
         setWorldDimensions(dims.width, worldHeight);
   
         if (outputElement) {
-          const html = bufferToHTML(newBuffer, dims.width);
+          const html = bufferToHTML(bufferPtr, dims.width);
           if (outputElement.innerHTML !== html) {
+            lastFrame = bufferPtr;
             outputElement.innerHTML = html;
           }
         }
-      } else {
-        bufferPool.return(newBuffer);
-      }
+    //  } else {
+    //    console.log("reusing last frame!")
+        //bufferPool.return(newBuffer);
+    //  }
   
       frameCounter++;
       if (frameCounter % BUFFER_POOL_CLEANUP_INTERVAL === 0) {
@@ -739,9 +694,8 @@ export function startAnimation() {
     } catch (e) {
       console.error('Frame update failed:', e);
     }
-  
     requestAnimationFrame(updateDisplay);
-  }      
+  }
   requestAnimationFrame(updateDisplay);
 }
 
@@ -773,15 +727,10 @@ function onError(e) {
 window.addEventListener('pagehide', function () {
   isRunning = false;
 
-  if (Module) {
-    if (Module._cleanup) {
-      Module._cleanup();
-    }
-    Module = null;
-  }
+  cleanup();
+  
   frameBuffer.clear();
   bufferPool.cleanup();
-  bufferArray = null;
   outputElement = null;
 
   document.removeEventListener('visibilitychange', onVisibilityChange);
@@ -876,14 +825,3 @@ function displayInnerThoughts() {
     }
   });
 }
-
-
-function loadVoidlingScript() {
-  console.log("load voidling script!!!")
-  const voidlingScript = document.createElement('script');
-  voidlingScript.src = window.isMobile ? 'voidling-mob.js' : 'voidling.js';
-  voidlingScript.type="module";
-  document.body.appendChild(voidlingScript);
-}
-
-loadVoidlingScript();
