@@ -1095,8 +1095,5 @@ export function animationFrame() {
 
 
 export function getBuffer() {
-    if(buffer[0] == 0) {
-      console.log("HEheheheHEheh")
-    }
-    return buffer;
+    return buffer.slice();
 }

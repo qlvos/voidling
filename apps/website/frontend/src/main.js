@@ -22,7 +22,6 @@ let lastMobileState = window.isMobile;
 
 let moduleInitialized = false;
 
-
 export function getModuleInitialized() {
   return moduleInitialized;
 }
@@ -210,19 +209,10 @@ function bufferToHTML(buffer, width) {
     const row = Math.floor(i / width);
     const col = i % width;
     let char = buffer[i];
-    if (char == 0 || char == '0') {
-      let i = 1;
-      //console.log("zero !")
 
-    }
     const height = Math.floor(buffer.length / width);
     let isBorder = row === 0 || row === (height - 1) || col === 0 || col === width - 1;
     const colorClass = colorMap[char];
-
-    // if(!colorClass) {
-    //   console.log(buffer)
-    //   console.log("undefined! " + char)
-    // }
 
     if (!isBorder) {
       html += colorClass ?
@@ -236,23 +226,7 @@ function bufferToHTML(buffer, width) {
     if ((i + 1) % width === 0) html += '\n';
   }
 
-  if (html[0] == 0) {
-    console.log("html 0 !")
-  }
-
   return html;
-}
-
-function buffersEqual(a, b) {
-  if (!a || !b || a.length !== b.length) {
-    return false
-  };
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) {
-      return false
-    };
-  }
-  return true;
 }
 
 function calculateDimensions() {
@@ -284,7 +258,6 @@ function resetDimensions() {
   const dims = calculateDimensions();
   setDimensions(dims.width, dims.height);
 }
-
 
 function preserveVoidlingState() {
   // Function body unchanged
@@ -343,7 +316,6 @@ function restoreVoidlingState(state) {
 
   setCurrentBehavior(state.behavior.current)
   setCurrentTime(state.time);
-
 
   if (state.deformation) {
     for (let i = 0; i < state.deformation.complexity; i++) {
@@ -523,12 +495,18 @@ function onRuntimeInitialized() {
       setDimensions(dims.width, dims.height);
 
       // Animation logic, moved globally for proper reuse
-      window.updateDisplay = function (timestamp) {
+      let updateDisplay = function (timestamp) {
         if (!isRunning) return;
         if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
           requestAnimationFrame(updateDisplay);
           return;
         }
+
+        //if(frameCounter % 2 == 0) {
+        //  ++frameCounter
+        //  requestAnimationFrame(updateDisplay);
+        //  return;
+        //}
 
         const now = Date.now();
         if (now - lastMemoryCheck > MEMORY_CHECK_INTERVAL) {
@@ -606,7 +584,7 @@ function onRuntimeInitialized() {
       requestAnimationFrame(updateDisplay); // Start animation loop
     };
 
-    let a = initializeVoidling().catch(e => {
+    initializeVoidling().catch(e => {
       //console.error('Initialization failed:', e);
       outputElement.innerHTML = 'Failed to initialize voidling. Please refresh the page.';
       console.log(e);
