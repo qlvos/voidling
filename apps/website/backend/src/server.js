@@ -51,17 +51,23 @@ setInterval(async () => { cachedChainData = await getPortfolioStats(); }, SLOW_C
 
 // Listen for messages from the SSE endpoint
 eventSource.onmessage = async function (event) {
-  let catEvent = JSON.parse(event.data);
-  if (catEvent.event == "pepito") {
-    logger.info('New cat event received:', event.data);
-    catEvent.time = Date.now();
-    await addCatEvent(catEvent.type, catEvent.img, catEvent.time);
+  try {
+    let catEvent = JSON.parse(event.data);
+    if (catEvent.event == "pepito") {
+      logger.info('New cat event received:', event.data);
+      catEvent.time = Date.now();
+      await addCatEvent(catEvent.type, catEvent.img, catEvent.time);
+    }
+  } catch (err) {
+    console.log(err);
+    logger.error("Error on cat event fetching " + err);
   }
 };
 
 // Listen for errors
 eventSource.onerror = function (error) {
-  console.error('Error occurred:', error);
+  console.log(error)
+  console.error('Error occurred on event source:', error);
 };
 
 // Optional: Listen for specific event types

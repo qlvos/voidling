@@ -18,50 +18,56 @@ const connection = new Connection('https://api.mainnet-beta.solana.com');
 const walletAddress = '5KjM3kBNii6kuNaRWr8f74PguuQ44qpxS1RKw2YKERSM';
 
 async function fetchTokenBalances(walletAddress) {
-  const publicKey = new PublicKey(walletAddress);
-
-  const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, { programId: TOKEN_PROGRAM_ID });
-
-  const tokenBalances = tokenAccounts.value.map(accountInfo => {
-    const tokenAmount = accountInfo.account.data.parsed.info.tokenAmount.uiAmount;
-    const tokenMint = accountInfo.account.data.parsed.info.mint;
-    return { tokenMint, tokenAmount };
-  });
-
-  let assetData = [];
-  let counter = 0;
-  for (const asset of tokenBalances) {
-    ++counter;
-    if (counter > 3) {
-      //continue;
-    }
-    let url = `${TOKEN_PRICE_URL}/${asset.tokenMint}/price`;
-    logger.info("calling " + url);
-    try {
-      let res = await getJSON(url, null, { 'x-api-key': config.DEXTOOLS_API_KEY });
-      if (res && res.statusCode && res.statusCode == 200 && res.data) {
-
-        let tokenDetails = await getTokenDetails(asset.tokenMint);
-
-        let tokenData = res.data;
-        assetData.push({
-          token: tokenDetails,
-          address: asset.tokenMint,
-          tokenUsd: tokenData.price,
-          holdingsToken: asset.tokenAmount,
-          holdingsUsdValue: tokenData.price * asset.tokenAmount,
-          priceChange5m: tokenData.variation5m != null ? tokenData.variation5m : 0,
-          priceChange6h: tokenData.variation6h != null ? tokenData.variation6h : 0,
-          priceChange24h: tokenData.variation24h != null ? tokenData.variation24h : 0
-        });
+  try {
+    const publicKey = new PublicKey(walletAddress);
+    logger.info("getting wallet information")
+    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, { programId: TOKEN_PROGRAM_ID });
+  
+    const tokenBalances = tokenAccounts.value.map(accountInfo => {
+      const tokenAmount = accountInfo.account.data.parsed.info.tokenAmount.uiAmount;
+      const tokenMint = accountInfo.account.data.parsed.info.mint;
+      return { tokenMint, tokenAmount };
+    });
+  
+    let assetData = [];
+    let counter = 0;
+    for (const asset of tokenBalances) {
+      ++counter;
+      if (counter > 3) {
+        //continue;
       }
-    } catch (err) {
-      logger.warn("Error trying to get dextools information: " + err);
+      let url = `${TOKEN_PRICE_URL}/${asset.tokenMint}/price`;
+      logger.info("calling " + url);
+      try {
+        let res = await getJSON(url, null, { 'x-api-key': config.DEXTOOLS_API_KEY });
+        if (res && res.statusCode && res.statusCode == 200 && res.data) {
+  
+          let tokenDetails = await getTokenDetails(asset.tokenMint);
+  
+          let tokenData = res.data;
+          assetData.push({
+            token: tokenDetails,
+            address: asset.tokenMint,
+            tokenUsd: tokenData.price,
+            holdingsToken: asset.tokenAmount,
+            holdingsUsdValue: tokenData.price * asset.tokenAmount,
+            priceChange5m: tokenData.variation5m != null ? tokenData.variation5m : 0,
+            priceChange6h: tokenData.variation6h != null ? tokenData.variation6h : 0,
+            priceChange24h: tokenData.variation24h != null ? tokenData.variation24h : 0
+          });
+        }
+      } catch (err) {
+        logger.warn("Error trying to get dextools information: " + err);
+      }
+      await new Promise(resolve => setTimeout(resolve, API_CALL_WAIT));
     }
-    await new Promise(resolve => setTimeout(resolve, API_CALL_WAIT));
-  }
+  
+    return assetData;
 
-  return assetData;
+  } catch (err) {
+    console.log(err)
+    console.log("error fetching token balances")
+  }
 }
 
 const VARIATION_MIN = -100;
