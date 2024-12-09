@@ -143,13 +143,12 @@ function bufferToHTML(buffer, width) {
   let html = '';
   for (let i = 0; i < buffer.length; i++) {
     let char = buffer[i];
-    const colorClass = colorMap[char];
-    html += colorClass ? `<span id="${i}" class="${colorClass}">${char}</span>` : char;
-    //html += colorClass ? `<span onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>` : char;
+    let colorClass = colorMap[char];
+    html += colorClass ? `<span onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>` : char;
     if ((i + 1) % width === 0) html += '\n';
   }
   return html;
-}
+}    
 
 function calculateDimensions() {
   try {
@@ -424,8 +423,8 @@ function updateDisplay(timestamp) {
     const bufferPtr = getBuffer();
     setWorldDimensions(dims.width, Math.floor(bufferPtr.length / dims.width));
 
-    const html = bufferToHTML(bufferPtr, dims.width);
 
+    const html = bufferToHTML(bufferPtr, dims.width);
     outputElement.innerHTML = html;
 
     if(!isDisplayInitialized) {
@@ -562,7 +561,7 @@ function displayInnerThoughts() {
       element.setAttribute('data-has-listeners', 'true');
 
       ++eventhandlercount;
-      /*
+      
       element.addEventListener('mouseover', () => {
         if (element.innerHTML === '$') {
           return;
@@ -625,7 +624,7 @@ function displayInnerThoughts() {
         elements.forEach(el => {
           el.classList.remove('hovered');
         });
-      });*/
+      });
     }
   });
 }
