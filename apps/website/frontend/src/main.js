@@ -144,7 +144,8 @@ function bufferToHTML(buffer, width) {
   for (let i = 0; i < buffer.length; i++) {
     let char = buffer[i];
     const colorClass = colorMap[char];
-    html += colorClass ? `<span onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>` : char;
+    html += colorClass ? `<span id="${i}" class="${colorClass}">${char}</span>` : char;
+    //html += colorClass ? `<span onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>` : char;
     if ((i + 1) % width === 0) html += '\n';
   }
   return html;
