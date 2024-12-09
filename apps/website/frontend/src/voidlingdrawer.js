@@ -1092,8 +1092,6 @@ export function animationFrame() {
 
 }
 
-
-
 export function getBuffer() {
     return buffer.slice();
 }

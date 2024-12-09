@@ -6,7 +6,6 @@ import { voidlingConfigCurious } from "./voidling-config-curious.js";
 import { voidlingConfigExcited } from "./voidling-config-excited.js";
 import { voidlingConfigVanilla } from "./voidling-config-mob.js";
 import { prophecies1, prophecies2, prophecies3, prophecies4, prophecies5, prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11 } from "../prophecies.js";
-import OptimizedBufferPool from './optimizedbufferpool.js';
 import {
   initializeTrigCache, animationFrame, initVoidlingWithConfig, setDeformFreq, setDeformPhase, setCurrentTime, setTargetX, setTargetY, setMovementX, setMovementY, setRotX, setRotY, setRotZ, getHorizontalPersistenceTimer, getStuckCounter, getBehaviorTimer, getCurrentBehavior, getCurrentTime, getLastTargetX,
   getLastTargetY, getRotationSpeed, getTargetRotX, getTargetRotY, getTargetRotZ, getRotX, getRotY,
@@ -49,16 +48,12 @@ function updateVoidlingSize() {
   document.documentElement.style.setProperty('--voidling-header-font-size',
     window.isMobile ? '32px' : '12px'
   );
-
 }
 
 updateVoidlingSize();
-
 checkMobile();
-//console.log('Initial mobile state:', window.isMobile);
 
 let emotion = null;
-let lastFrame = null;
 export const assetBoxId = "assetbox";
 export const tradeLogId = "tradelogbox";
 export const watchlistBoxId = "watchlistbox";
@@ -66,18 +61,14 @@ export const watchlistBoxId = "watchlistbox";
 // portfolio box offset compared to the voidling square
 const PORTFOLIO_OFFSET_TOP = 1.4;
 const PORTFOLIO_OFFSET_LEFT = 1.35;
-
 const PORTFOLIO_OFFSET_TOP_MOBILE = 1.6;
 const PORTFOLIO_OFFSET_LEFT_MOBILE = 1.5;
 
 // Configuration constants
 const FRAME_INTERVAL = 48;
-const FRAME_HISTORY_SIZE = 48;
 const CLEANUP_INTERVAL = 200;
 const MEMORY_THRESHOLD_MB = 200;
-const MAX_POOL_SIZE = 6;
 const MEMORY_CHECK_INTERVAL = 2000;
-const BUFFER_POOL_CLEANUP_INTERVAL = 100;  // Clean pool every N frames
 
 // Color mapping
 const colorMap = {
@@ -126,69 +117,15 @@ document.addEventListener('mousemove', (event) => {
 */
 
 
-// Circular buffer for frame management
-class CircularFrameBuffer {
-  constructor(maxSize) {
-    this.maxSize = maxSize;
-    this.buffer = new Array(maxSize);
-    this.head = 0;
-    this.tail = 0;
-    this.size = 0;
-  }
-
-  get length() {
-    return this.size; // Use the `size` property for the length
-  }
-
-  push(frame) {
-    if (this.size === this.maxSize) {
-      if (this.buffer[this.tail]) {
-        bufferPool.return(this.buffer[this.tail]); // Return old buffer to the pool
-      }
-      this.tail = (this.tail + 1) % this.maxSize;
-      this.size--;
-    }
-
-    this.buffer[this.head] = frame;
-    this.head = (this.head + 1) % this.maxSize;
-    this.size++;
-  }
-
-  get(index) {
-    if (index >= this.size) return null;
-    return this.buffer[(this.tail + index) % this.maxSize];
-  }
-
-  clear() {
-    while (this.size > 0) {
-      if (this.buffer[this.tail]) {
-        this.buffer[this.tail].fill(0); // Zero out
-        bufferPool.return(this.buffer[this.tail]); // Return to pool
-      }
-      this.buffer[this.tail] = null; // Remove reference
-      this.tail = (this.tail + 1) % this.maxSize;
-      this.size--;
-    }
-    this.buffer.fill(null); // Clear all
-    this.head = 0;
-    this.tail = 0;
-    console.log("FrameBuffer cleared.");
-  }
-}
 
 // Global variables
 let lastMemoryCheck = 0;
 let isTabVisible = true;
 let frameCounter = 0;
-let started = false;
+let isDisplayInitialized = false;
 let lastFrameTime = 0;
-let outputElement;
 let resizeTimeout;
 let isRunning = true; // Flag to control animation frames
-
-const frameBuffer = new CircularFrameBuffer(FRAME_HISTORY_SIZE);
-const bufferPool = new OptimizedBufferPool(MAX_POOL_SIZE);
-
 const stylesheet = document.styleSheets[0];
 const styleSheetClasses = new Map();
 let originalColors = new Map();
@@ -213,7 +150,7 @@ function bufferToHTML(buffer, width) {
     const height = Math.floor(buffer.length / width);
     let isBorder = row === 0 || row === (height - 1) || col === 0 || col === width - 1;
     const colorClass = colorMap[char];
-
+/*
     if (!isBorder) {
       html += colorClass ?
         `<span onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>` : char;
@@ -222,6 +159,8 @@ function bufferToHTML(buffer, width) {
       html +=
         `<span style="visibility:hidden" onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>`;
     }
+*/
+    html+=char;
 
     if ((i + 1) % width === 0) html += '\n';
   }
@@ -233,13 +172,10 @@ function calculateDimensions() {
   try {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-
     const charWidth = window.isMobile ? 14 : 7;
     const charHeight = window.isMobile ? 24 : 12;
     const paddingPercent = 0.1;
-
     const paddingMultiplier = window.isMobile ? 0.4 : 1.15;
-
     const maxWidth = Math.floor((vw * (1 - paddingPercent * 1.15)) / charWidth);
     const maxHeight = Math.floor((vh * (1 - paddingPercent * paddingMultiplier)) / charHeight);
 
@@ -249,7 +185,6 @@ function calculateDimensions() {
     };
 
   } catch (e) {
-    //console.error('Dimension calculation failed:', e);
     return { width: 190, height: 61 };
   }
 }
@@ -351,9 +286,6 @@ export function forceCleanup() {
   try {
     console.log('forceCleanup: Starting cleanup process...');
 
-    // Clear frame buffer and reset state
-    frameBuffer.clear();
-
     const state = preserveVoidlingState(); // Save the current voidling state
     cleanup();
 
@@ -364,24 +296,13 @@ export function forceCleanup() {
 
     initVoidlingConfig();       // Reinitialize configuration
     restoreVoidlingState(state); // Restore the saved voidling state
-
-
-    // Clean up buffer pools
-    bufferPool.cleanup();
-
     // Clear output element content if it exists
-    if (outputElement) {
-      outputElement.innerHTML = '';
-    }
-
+    document.getElementById('output').innerHTML = '';
     // Reset other global variables
     frameCounter = 0;
     lastFrameTime = 0;
-
     console.log('forceCleanup: All buffers cleared');
 
-    // Restart the animation loop
-    startAnimation();
   } catch (e) {
     console.error('forceCleanup: An error occurred during cleanup:', e);
   }
@@ -393,7 +314,6 @@ function onResize() {
   const dims = calculateDimensions();
   console.log(dims)
   setDimensions(dims.width, dims.height);
-  started = false;
   if (resizeTimeout) {
     cancelAnimationFrame(resizeTimeout);
   }
@@ -480,124 +400,102 @@ function initVoidlingConfig() {
 
 }
 
+const dims = calculateDimensions();
+setDimensions(dims.width, dims.height);
+
+function updateDisplay(timestamp) {
+  let outputElement = document.getElementById('output');
+  if (!isRunning) return;
+  if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
+    requestAnimationFrame(updateDisplay);
+    return;
+  }
+
+  //if(frameCounter % 2 == 0) {
+  //  ++frameCounter
+  //  requestAnimationFrame(updateDisplay);
+  //  return;
+  //}
+
+  const now = Date.now();
+  if (now - lastMemoryCheck > MEMORY_CHECK_INTERVAL) {
+    checkMemoryUsage();
+    lastMemoryCheck = now;
+  }
+
+  lastFrameTime = timestamp;
+
+  if (frameCounter % CLEANUP_INTERVAL === 0) {
+    forceCleanup();
+    if (typeof window.gc === 'function') {
+      try {
+        window.gc();
+      } catch (e) {
+        //console.log('Manual GC not available');
+      }
+    }
+  }
+
+  try {
+    animationFrame();
+    const bufferPtr = getBuffer();
+    setWorldDimensions(dims.width, Math.floor(bufferPtr.length / dims.width));
+
+    const html = bufferToHTML(bufferPtr, dims.width);
+
+    outputElement.innerHTML = html;
+
+    if(!isDisplayInitialized) {
+      let offsetTop = window.isMobile ? PORTFOLIO_OFFSET_TOP_MOBILE : PORTFOLIO_OFFSET_TOP;
+      let offsetLeft = window.isMobile ? PORTFOLIO_OFFSET_LEFT_MOBILE : PORTFOLIO_OFFSET_LEFT;
+  
+      document.getElementById('portfoliobox').style.top = `${outputElement.offsetTop * offsetTop * 1.4}px`;
+      document.getElementById('portfoliobox').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
+  
+      document.getElementById('voidlingbox').style.bottom = `${outputElement.offsetTop * offsetTop * 1.2}px`;
+      document.getElementById('voidlingbox').style.width = `${outputElement.offsetWidth * 0.95}px`;
+      const outerRect = outputElement.getBoundingClientRect();
+      document.getElementById('voidlingbox').style.left = `${outerRect.left}px`;
+  
+      document.getElementById('aboutpage').style.top = `${outputElement.offsetTop}px`;
+      document.getElementById('aboutpage').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
+      document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
+      setPosition(outerRect.x, outerRect.y);
+      isDisplayInitialized = true;
+    }
+
+      let watchBrain = true;
+      if (watchBrain) {
+        displayInnerThoughts();
+      }
+    
+    //  } else {
+    //    console.log("reuse frame!")
+    //  }
+
+    frameCounter++;
+
+  } catch (e) {
+    console.error('Frame update failed:', e);
+  }
+
+  requestAnimationFrame(updateDisplay);
+};
+
 
 function onRuntimeInitialized() {
   try {
-    outputElement = document.getElementById('output');
-    if (!outputElement) throw new Error('Output element not found');
-
     initializeTrigCache();
+    initVoidlingConfig();
 
-    const initializeVoidling = async () => {
-      initVoidlingConfig();
+    // Animation logic, moved globally for proper reuse
+    requestAnimationFrame(updateDisplay); // Start animation loop
 
-      const dims = calculateDimensions();
-      setDimensions(dims.width, dims.height);
-
-      // Animation logic, moved globally for proper reuse
-      let updateDisplay = function (timestamp) {
-        if (!isRunning) return;
-        if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
-          requestAnimationFrame(updateDisplay);
-          return;
-        }
-
-        //if(frameCounter % 2 == 0) {
-        //  ++frameCounter
-        //  requestAnimationFrame(updateDisplay);
-        //  return;
-        //}
-
-        const now = Date.now();
-        if (now - lastMemoryCheck > MEMORY_CHECK_INTERVAL) {
-          checkMemoryUsage();
-          lastMemoryCheck = now;
-        }
-
-        lastFrameTime = timestamp;
-
-        if (frameCounter % CLEANUP_INTERVAL === 0) {
-          forceCleanup();
-          if (typeof window.gc === 'function') {
-            try {
-              window.gc();
-            } catch (e) {
-              //console.log('Manual GC not available');
-            }
-          }
-        }
-
-        try {
-          animationFrame();
-          const bufferPtr = getBuffer();
-
-          // if (!lastFrame /*|| !buffersEqual(bufferPtr, lastFrame)*/) {
-
-          setWorldDimensions(dims.width, Math.floor(bufferPtr.length / dims.width));
-
-          lastFrame = bufferPtr;
-          const html = bufferToHTML(bufferPtr, dims.width);
-
-          if (outputElement.innerHTML !== html) {
-            outputElement.innerHTML = html;
-
-            let offsetTop = window.isMobile ? PORTFOLIO_OFFSET_TOP_MOBILE : PORTFOLIO_OFFSET_TOP;
-            let offsetLeft = window.isMobile ? PORTFOLIO_OFFSET_LEFT_MOBILE : PORTFOLIO_OFFSET_LEFT;
-
-            document.getElementById('portfoliobox').style.top = `${outputElement.offsetTop * offsetTop * 1.4}px`;
-            document.getElementById('portfoliobox').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
-
-            document.getElementById('voidlingbox').style.bottom = `${outputElement.offsetTop * offsetTop * 1.2}px`;
-            document.getElementById('voidlingbox').style.width = `${outputElement.offsetWidth * 0.95}px`;
-            const outerRect = outputElement.getBoundingClientRect();
-            document.getElementById('voidlingbox').style.left = `${outerRect.left}px`;
-
-            document.getElementById('aboutpage').style.top = `${outputElement.offsetTop}px`;
-            document.getElementById('aboutpage').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
-            document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
-
-            if (!started) {
-              setPosition(outerRect.x, outerRect.y);
-              started = true;
-            }
-
-            let watchBrain = true;
-            if (watchBrain) {
-              displayInnerThoughts();
-            }
-          }
-          //  } else {
-          //    console.log("reuse frame!")
-          //  }
-
-          frameCounter++;
-          if (frameCounter % BUFFER_POOL_CLEANUP_INTERVAL === 0) {
-            bufferPool.cleanup();
-          }
-        } catch (e) {
-          console.error('Frame update failed:', e);
-        }
-
-        requestAnimationFrame(updateDisplay);
-      };
-
-      requestAnimationFrame(updateDisplay); // Start animation loop
-    };
-
-    initializeVoidling().catch(e => {
-      //console.error('Initialization failed:', e);
-      outputElement.innerHTML = 'Failed to initialize voidling. Please refresh the page.';
-      console.log(e);
-    }).then(() => {
-      //console.log("yooo")
-      //console.log(worldHeight)
-      //console.log(worldWidth)
-    });
 
   } catch (e) {
     console.log(e)
     console.error('Setup failed:', e);
-    outputElement.innerHTML = 'Failed to initialize voidling. Please refresh the page.';
+    document.getElementById('output').innerHTML = 'Failed to initialize voidling. Please refresh the page.';
   }
   moduleInitialized = true;
 
@@ -625,65 +523,6 @@ function clearDeformHistory() {
 }
 
 
-export function startAnimation() {
-  function updateDisplay(timestamp) {
-    if (!isRunning) return;
-
-    if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
-      return;
-    }
-
-    const now = Date.now();
-    if (now - lastMemoryCheck > MEMORY_CHECK_INTERVAL) {
-      checkMemoryUsage(); // Check and log memory usage
-      lastMemoryCheck = now;
-    }
-
-    lastFrameTime = timestamp;
-
-    try {
-
-      animationFrame();
-      const bufferPtr = getBuffer();
-      const bufferSize = getBufferSize();
-
-      if (!bufferPtr || bufferSize <= 0) {
-        console.error("Buffer pointer or size is invalid.");
-        return;
-      }
-
-
-      //if (!lastFrame || true /*|| !buffersEqual(bufferPtr, lastFrame)*/) {
-      const dims = calculateDimensions();
-      const worldHeight = Math.floor(bufferPtr.length / dims.width);
-      setWorldDimensions(dims.width, worldHeight);
-
-      if (outputElement) {
-        const html = bufferToHTML(bufferPtr, dims.width);
-        if (outputElement.innerHTML !== html) {
-          lastFrame = bufferPtr;
-          outputElement.innerHTML = html;
-        }
-      }
-      //  } else {
-      //    console.log("reusing last frame!")
-      //bufferPool.return(newBuffer);
-      //  }
-
-      frameCounter++;
-      if (frameCounter % BUFFER_POOL_CLEANUP_INTERVAL === 0) {
-        bufferPool.cleanup();
-      }
-    } catch (e) {
-      console.error('Frame update failed:', e);
-    }
-    requestAnimationFrame(updateDisplay);
-  }
-  requestAnimationFrame(updateDisplay);
-}
-
-
-
 // Event listener functions
 function onVisibilityChange() {
   isTabVisible = !document.hidden;
@@ -701,9 +540,8 @@ document.addEventListener('visibilitychange', onVisibilityChange);
 function onError(e) {
   if (e.message.includes('wasm')) {
     //console.error('WASM loading failed:', e);
-    if (outputElement) {
-      outputElement.innerHTML = 'Failed to initialize voidling. Please refresh the page.';
-    }
+    document.getElementById('output').innerHTML = 'Failed to initialize voidling. Please refresh the page.';
+
   }
 }
 ++eventhandlercount;
@@ -711,10 +549,9 @@ window.addEventListener('pagehide', function () {
   isRunning = false;
 
   cleanup();
+  //bufferPool.cleanup();
 
-  frameBuffer.clear();
-  bufferPool.cleanup();
-  outputElement = null;
+  //outputElement = null;
 
   document.removeEventListener('visibilitychange', onVisibilityChange);
   window.removeEventListener('resize', onResize);
