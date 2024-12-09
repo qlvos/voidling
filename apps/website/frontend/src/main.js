@@ -141,30 +141,12 @@ for (const rule of stylesheet.rules) {
 
 function bufferToHTML(buffer, width) {
   let html = '';
-
   for (let i = 0; i < buffer.length; i++) {
-    const row = Math.floor(i / width);
-    const col = i % width;
     let char = buffer[i];
-
-    const height = Math.floor(buffer.length / width);
-    let isBorder = row === 0 || row === (height - 1) || col === 0 || col === width - 1;
     const colorClass = colorMap[char];
-/*
-    if (!isBorder) {
-      html += colorClass ?
-        `<span onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>` : char;
-    } else {
-      //console.log("no border:[" + char + "]")
-      html +=
-        `<span style="visibility:hidden" onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>`;
-    }
-*/
-    html+=char;
-
+    html += colorClass ? `<span onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>` : char;
     if ((i + 1) % width === 0) html += '\n';
   }
-
   return html;
 }
 

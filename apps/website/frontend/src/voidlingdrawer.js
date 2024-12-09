@@ -832,15 +832,6 @@ export function animationFrame() {
   buffer.fill('\u0020');
   zBuffer.fill(-1000.0);
 
-  for (let x = 0; x < g_width; x++) {
-    buffer[x] = '$';
-    buffer[x + (g_height - 1) * g_width] = '$';
-  }
-
-  for (let y = 0; y < g_height; y++) {
-    buffer[y * g_width] = '$';
-    buffer[g_width - 1 + y * g_width] = '$';
-  }
 
   behaviorTimer++;
   if (behaviorTimer >= config.behaviorChangeTime) {
