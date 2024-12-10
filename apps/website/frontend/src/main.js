@@ -35,6 +35,8 @@ function checkMobile() {
   if(window.isMobile) {
     document.getElementById("cvas").style.width='90vw';
     document.getElementById("outputwrapper").style.width='90vw';
+    document.getElementById("cvas").style.height='90vh';
+    document.getElementById("outputwrapper").style.height='90vh';
   }
 
   if (lastMobileState !== window.isMobile) {
