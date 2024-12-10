@@ -31,6 +31,12 @@ export function setModuleInitialized(value) {
 
 function checkMobile() {
   window.isMobile = window.innerWidth <= 999;
+
+  if(window.isMobile) {
+    document.getElementById("cvas").style.width='90vw';
+    document.getElementById("outputwrapper").style.width='90vw';
+  }
+
   if (lastMobileState !== window.isMobile) {
     lastMobileState = window.isMobile;
     return true;
@@ -108,16 +114,6 @@ function manageMouseOver(box) {
 
 ++eventhandlercount;
 
-/*
-document.addEventListener('mousemove', (event) => {
-  manageMouseOver(document.getElementById(assetBoxId)) ||
-    manageMouseOver(document.getElementById(watchlistBoxId)) ||
-    manageMouseOver(document.getElementById(tradeLogId))
-});
-*/
-
-
-
 // Global variables
 let lastMemoryCheck = 0;
 let isTabVisible = true;
@@ -161,23 +157,11 @@ function calculateDimensions() {
     let ww = wrapper.offsetWidth;
 
     let cv = getCharacterDimensions();
-    const charWidth = cv.width * widthPadding;
-    const charHeight = wc.height * heightPadding;
 
     return {
       width: Math.ceil(ww / (cv.width * widthPadding)),
       height: Math.ceil(wh / (cv.height * heightPadding))
     }
-
-    const paddingPercent = 0.1;
-    const paddingMultiplier = window.isMobile ? 0.4 : 1.15;
-    const maxWidth = Math.floor((vw * (1 - paddingPercent * 1.15)) / charWidth);
-    const maxHeight = Math.floor((vh * (1 - paddingPercent * paddingMultiplier)) / charHeight);
-
-    return {
-      width: Math.max(50, Math.min(maxWidth, window.isMobile ? 200 : 400)),
-      height: Math.max(10, Math.min(maxHeight, window.isMobile ? 100 : 200))
-    };
 
   } catch (e) {
     return { width: 190, height: 61 };
