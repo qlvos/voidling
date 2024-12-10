@@ -451,6 +451,17 @@ function updateDisplay(timestamp) {
 
     let cvs = document.getElementById('cvas');
     let context = cvs.getContext('2d');
+
+    // Get device pixel ratio
+    const dpr = window.devicePixelRatio || 1;
+
+    // Set actual canvas dimensions accounting for device pixel ratio
+    cvs.width = cvs.offsetWidth * dpr;
+    cvs.height = cvs.offsetHeight * dpr;
+
+    // Scale context based on device pixel ratio
+    context.scale(dpr, dpr);
+
     context.clearRect(0, 0, cvs.offsetWidth, cvs.offsetHeight);
     const font = window.isMobile ? '24px monospace' : '12px monospace';
 
@@ -473,7 +484,7 @@ function updateDisplay(timestamp) {
       let c = colors.get(bufferPtr[i])
       context.fillStyle = c;
       if (bufferPtr[i] != ' ') {
-        if(!leftMostChar) {
+        if (!leftMostChar) {
           leftMostChar = (currentX * cv.width);
         }
         lastChar = (currentX * cv.width);
@@ -482,12 +493,12 @@ function updateDisplay(timestamp) {
       currentX++;
 
       if ((i + 1) % dims.width === 0) {
-        if(leftMostChar) {
-          rectangles.push({startx:leftMostChar, endx: lastChar, starty: currentY, endy: currentY+lineHeight})
+        if (leftMostChar) {
+          rectangles.push({ startx: leftMostChar, endx: lastChar, starty: currentY, endy: currentY + lineHeight })
           leftMostChar = null;
           lastChar = null;
         }
-        
+
         currentY += lineHeight;
         currentX = 0;
       }
@@ -521,31 +532,29 @@ function updateDisplay(timestamp) {
       setPosition(outerRect.x, outerRect.y);
 
 
-          const canvas = document.getElementById('cvas');
-          const rect = canvas.getBoundingClientRect();
-          // Handle mouse move event
-          canvas.addEventListener('mousemove', (event) => {
-            
-            const mouseX = event.clientX - rect.left;
-            const mouseY = event.clientY - rect.top;
-      
-            let mOver = false;
-            for(const rectangle of rectangles) {
-              if (isMouseOverRect(mouseX, mouseY, rectangle)) {
-                mOver = true;
-                break;
-              }
-            }
-            if(mOver) {
-              console.log("over!")
-              displayInnerThoughtsv2();
-              mouseOverVoidling = true;
-            } else {
-              console.log("no longer over !")
-              mouseOverVoidling = false;
-            }
-            
-          });
+      const canvas = document.getElementById('cvas');
+      const rect = canvas.getBoundingClientRect();
+      // Handle mouse move event
+      canvas.addEventListener('mousemove', (event) => {
+
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+
+        let mOver = false;
+        for (const rectangle of rectangles) {
+          if (isMouseOverRect(mouseX, mouseY, rectangle)) {
+            mOver = true;
+            break;
+          }
+        }
+        if (mOver) {
+          displayInnerThoughtsv2();
+          mouseOverVoidling = true;
+        } else {
+          mouseOverVoidling = false;
+        }
+
+      });
 
       isDisplayInitialized = true;
     }
@@ -568,11 +577,11 @@ function updateDisplay(timestamp) {
   requestAnimationFrame(updateDisplay);
 };
 
-function isMouseOverRect(mouseX, mouseY, rect) { 
+function isMouseOverRect(mouseX, mouseY, rect) {
   let yMargin = 1;
   let xCondition = mouseX > rect.startx && mouseX < rect.endx;
-  let yCondition = mouseY > (rect.starty - yMargin) && mouseY < (rect.endy + yMargin); 
-  return xCondition && yCondition  
+  let yCondition = mouseY > (rect.starty - yMargin) && mouseY < (rect.endy + yMargin);
+  return xCondition && yCondition
 }
 
 
@@ -664,12 +673,22 @@ function displayInnerThoughtsv2() {
   lastProphecyIndex = randomIndex;
   let prophecies = prophecyTexts[randomIndex];
 
-
   let cvs = document.getElementById('cvas');
   let context = cvs.getContext('2d');
+
+  // Get device pixel ratio
+  const dpr = window.devicePixelRatio || 1;
+
+  // Set actual canvas dimensions accounting for device pixel ratio
+  cvs.width = cvs.offsetWidth * dpr;
+  cvs.height = cvs.offsetHeight * dpr;
+
+  // Scale context based on device pixel ratio
+  context.scale(dpr, dpr);
+
   context.clearRect(0, 0, cvs.offsetWidth, cvs.offsetHeight);
   const font = window.isMobile ? '24px monospace' : '12px monospace';
-  
+
   // Set the font
   context.font = font;
   context.textAlign = 'center'
@@ -679,21 +698,21 @@ function displayInnerThoughtsv2() {
   let cv = getCharacterDimensions();
 
   let prophecyIndex = 0;
-  for(const rectangle of rectangles) {
+  for (const rectangle of rectangles) {
 
-    let w = rectangle.endx-rectangle.startx;
-    let numchars = Math.ceil(w/cv.width);
-    for(let i=0; i<numchars; i++) {
-      if(prophecyIndex >= prophecies.length-1) {
+    let w = rectangle.endx - rectangle.startx;
+    let numchars = Math.ceil(w / cv.width);
+    for (let i = 0; i < numchars; i++) {
+      if (prophecyIndex >= prophecies.length - 1) {
         prophecyIndex = 0;
       }
-      let x = (rectangle.startx + (i*cv.width));
+      let x = (rectangle.startx + (i * cv.width));
       context.fillStyle = "white";
       context.fillText(prophecies[prophecyIndex], x, rectangle.starty);
       ++prophecyIndex;
-    }    
+    }
   }
-   
+
 }
 
 function displayInnerThoughts() {
