@@ -92,8 +92,8 @@ function borderClick(msg) {
     aboutClicked ? document.getElementById("outputwrapper").style.opacity = "25%" : document.getElementById("outputwrapper").style.opacity = "100%";
     aboutClicked ? document.getElementById("portfoliobox").style.visibility = "hidden" : document.getElementById("portfoliobox").style.visibility = "visible";
     aboutClicked ? document.getElementById("voidlingbox").style.visibility = "hidden" : document.getElementById("voidlingbox").style.visibility = "visible";
-    
     aboutClicked ? document.getElementById("aboutpage").style.visibility = "visible" : document.getElementById("aboutpage").style.visibility = "hidden";
+    aboutClicked ? document.getElementById("voidlingscontainer").style.visibility = "visible" : document.getElementById("voidlingscontainer").style.visibility = "hidden";
 
     console.log("aboutClicked is now " + aboutClicked)
     // set visibility to some other div to TRUE !
@@ -138,6 +138,9 @@ function drawBorders() {
   document.getElementById("borderbox").style.left = `${worldX-oneCharacter.width}px`;
   document.getElementById("borderbox").style.top = `${worldY-oneCharacter.height}px`;
 
+  console.log("---")
+  console.log(worldWidth)
+  console.log(worldHeight)
   let width = worldWidth+columnsToAdd;
   let height = worldHeight+rowsToAdd;
   let numCharacters = (height)*(width);
@@ -147,6 +150,8 @@ function drawBorders() {
   let contextBoxColor;
 
   initStringPositions(width, height);
+
+  console.log("a" + numCharacters)
 
   for(let i=0; i<numCharacters; i++) {
     let className;
@@ -242,10 +247,6 @@ function setPosition(x, y) {
 }
 
 function setWorldDimensions(width, height) {
-  if(worldWidth != width && worldHeight != height) {
-    //console.log("Init!")
-    //console.log(width)
-  }
   worldWidth = width;
   worldHeight = height;
 }

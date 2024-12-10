@@ -71,6 +71,15 @@ const MEMORY_THRESHOLD_MB = 200;
 const MEMORY_CHECK_INTERVAL = 2000;
 
 // Color mapping
+
+/*
+      --c57-color: #5f00ff;
+      --c99-color: #875fff;
+      --c105-color: #8787ff;
+      --c166-color: #d75f00;
+      --c208-color: #ff8700;
+      --c141-color: #af87ff;
+*/
 const colorMap = {
   '.': 'c57', ',': 'c57', '-': 'c99',
   '~': 'c99', ':': 'c99', ';': 'c105',
@@ -148,14 +157,27 @@ function bufferToHTML(buffer, width) {
     if ((i + 1) % width === 0) html += '\n';
   }
   return html;
-}    
+}
+
+let widthPadding = 1.2;
+let heightPadding = 1.2;
 
 function calculateDimensions() {
   try {
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const charWidth = window.isMobile ? 14 : 7;
-    const charHeight = window.isMobile ? 24 : 12;
+
+    let wrapper = document.getElementById('outputwrapper');
+    let wh = wrapper.offsetHeight;
+    let ww = wrapper.offsetWidth;
+
+    let cv = getCharacterDimensions();
+    const charWidth = cv.width * widthPadding;
+    const charHeight = wc.height * heightPadding;
+
+    return {
+      width: Math.ceil(ww / (cv.width * widthPadding)),
+      height: Math.ceil(wh / (cv.height * heightPadding))
+    }
+
     const paddingPercent = 0.1;
     const paddingMultiplier = window.isMobile ? 0.4 : 1.15;
     const maxWidth = Math.floor((vw * (1 - paddingPercent * 1.15)) / charWidth);
@@ -279,7 +301,6 @@ export function forceCleanup() {
     initVoidlingConfig();       // Reinitialize configuration
     restoreVoidlingState(state); // Restore the saved voidling state
     // Clear output element content if it exists
-    //document.getElementById('output').innerHTML = '';
     // Reset other global variables
     frameCounter = 0;
     lastFrameTime = 0;
@@ -388,25 +409,46 @@ setDimensions(dims.width, dims.height);
 let plotted = false;
 let cacheSpans = new Map();
 
-let colors=new Map();
+let colors = new Map();
 
+/*
+      --c57-color: #5f00ff;
+      --c99-color: #875fff;
+      --c105-color: #8787ff;
+      --c166-color: #d75f00;
+      --c208-color: #ff8700;
+      --c141-color: #af87ff;
+*/
+/*const colorMap = {
+  '.': 'c57', ',': 'c57', '-': 'c99',
+  '~': 'c99', ':': 'c99', ';': 'c105',
+  '=': 'c105', '!': 'c105', '*': 'c105',
+  '#': 'c166', '@': 'c208', '$': 'c141'
+};
+*/
 // .,-~:;=!*#@$
-colors.set(".", "red");
-colors.set("~", "blue");
+colors.set(".", "#5f00ff");
+colors.set(",", "#5f00ff");
+colors.set("-", "#875fff");
+colors.set("~", "#875fff");
+colors.set(":", "#875fff");
+colors.set(";", "#5f00ff");
+colors.set("=", "#5f00ff");
+colors.set("!", "#8787ff");
+colors.set("*", "#8787ff");
+colors.set("#", "#d75f00");
+colors.set("@", "#ff8700");
+colors.set("$", "#af87ff");
+
+let boxTop = null;
+let boxLeft = null;
 
 function updateDisplay(timestamp) {
-  let outputElement = document.getElementById('output');
   if (!isRunning) return;
   if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
     requestAnimationFrame(updateDisplay);
     return;
   }
-
-  //if(frameCounter % 2 == 0) {
-  //  ++frameCounter
-  //  requestAnimationFrame(updateDisplay);
-  //  return;
-  //}
 
   const now = Date.now();
   if (now - lastMemoryCheck > MEMORY_CHECK_INTERVAL) {
@@ -430,82 +472,84 @@ function updateDisplay(timestamp) {
   try {
     animationFrame();
     const bufferPtr = getBuffer();
-    setWorldDimensions(dims.width, Math.floor(bufferPtr.length / dims.width));
+    let dims = calculateDimensions();
 
+    let cvs = document.getElementById('cvas');
+    let context = cvs.getContext('2d');
+    context.clearRect(0, 0, cvs.offsetWidth, cvs.offsetHeight);
+    const font = window.isMobile ? '24px monospace' : '12px monospace';
 
-      let cvs = document.getElementById('cvas');
-      let context = cvs.getContext('2d');
-      let cv = getCharacterDimensions();
-      let w = 1590;
-      let h = 890
-      context.clearRect(0, 0, w, h);
-      cvs.width = w;
-      cvs.height = h;
-      context.fillStyle = 'red';
-      let line = '';
-      let lineHeight = cv.height * 1.2;
-      let yStart = 90;
-      let currentY=yStart;
-      let startX=50;
-      let currentX=0;
-      for (let i = 0; i < bufferPtr.length; i++) {
-        //line += bufferPtr[i];
-        let c = colors.get(bufferPtr[i])
-        if(c) {
-          context.fillStyle = c;
-        }
-        context.fillText(bufferPtr[i], 50+(currentX*cv.width), currentY);
-        context.fillStyle = 'red';
-        currentX++;
-        if ((i + 1) % dims.width === 0) {
-          //context.fillText(line, 50, currentY);
-          //line='';
-          currentY+=lineHeight;
-          currentX=0;
-        }
+    // Set the font
+    context.font = font;
+    context.textAlign = 'center'
+    cvs.width = cvs.offsetWidth;
+    cvs.height = cvs.offsetHeight;
+    let cv = getCharacterDimensions();
+
+    let lineHeight = cv.height;
+    let currentY = 0;
+    let currentX = 0;
+    for (let i = 0; i < bufferPtr.length; i++) {
+      let c = colors.get(bufferPtr[i])
+      context.fillStyle = c;
+      if (bufferPtr[i] != ' ') {
+        context.fillText(bufferPtr[i], (currentX * cv.width), currentY);
       }
-      
-      
-      //context.fillText(str,50, 90);
-    
+      currentX++;
+
+      if ((i + 1) % dims.width === 0) {
+        currentY+=lineHeight;
+        currentX=0;
+      }
+    }
+
+
+    //context.fillText(str,50, 90);
+
 
     //const html = bufferToHTML(bufferPtr, dims.width);
     //outputElement.innerHTML = html;
 
-    if(!isDisplayInitialized) {
+    if (!isDisplayInitialized) {
       let offsetTop = window.isMobile ? PORTFOLIO_OFFSET_TOP_MOBILE : PORTFOLIO_OFFSET_TOP;
       let offsetLeft = window.isMobile ? PORTFOLIO_OFFSET_LEFT_MOBILE : PORTFOLIO_OFFSET_LEFT;
+
+      
+
+       let outputElement = document.getElementById('outputwrapper');
+      //outputElement.style.width = `${wh.width}px`;
+      //outputElement.style.height = `${wh.height}px`;
+      /*
+          document.getElementById('portfoliobox').style.top = `${outputElement.offsetTop * offsetTop * 1.4}px`;
+          document.getElementById('portfoliobox').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
+      
+          document.getElementById('voidlingbox').style.bottom = `${outputElement.offsetTop * offsetTop * 1.2}px`;
+          document.getElementById('voidlingbox').style.width = `${outputElement.offsetWidth * 0.95}px`;
+          
+          document.getElementById('voidlingbox').style.left = `${outerRect.left}px`;
+        */
+          const outerRect = outputElement.getBoundingClientRect();
+          document.getElementById('aboutpage').style.top = `${outputElement.offsetTop}px`;
+          document.getElementById('aboutpage').style.left = `${outputElement.offsetLeft}px`;
+          document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
   
-      document.getElementById('portfoliobox').style.top = `${outputElement.offsetTop * offsetTop * 1.4}px`;
-      document.getElementById('portfoliobox').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
-  
-      document.getElementById('voidlingbox').style.bottom = `${outputElement.offsetTop * offsetTop * 1.2}px`;
-      document.getElementById('voidlingbox').style.width = `${outputElement.offsetWidth * 0.95}px`;
-      const outerRect = outputElement.getBoundingClientRect();
-      document.getElementById('voidlingbox').style.left = `${outerRect.left}px`;
-  
-      document.getElementById('aboutpage').style.top = `${outputElement.offsetTop}px`;
-      document.getElementById('aboutpage').style.left = `${outputElement.offsetLeft}px`;
-      document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
 
 
-      let cvas = document.getElementById('cvas');
-      document.getElementById('cvas').width = 1500;
-      document.getElementById('cvas').height = 890;//outputElement.offsetHeight;
-      const font = window.isMobile ? '24px monospace' : '12px monospace';
-      const context = cvas.getContext('2d');   
-      // Set the font
-      context.font = font;
 
+      let d = getCharacterDimensions();
+      let w = Math.floor(outputElement.offsetWidth / d.width);
+      let h = Math.floor(outputElement.offsetHeight / (d.height*1.20))
+      setWorldDimensions(w, h);
       setPosition(outerRect.x, outerRect.y);
+
       isDisplayInitialized = true;
     }
 
-      let watchBrain = true;
-      if (watchBrain) {
-        displayInnerThoughts();
-      }
-    
+    let watchBrain = true;
+    if (watchBrain) {
+      displayInnerThoughts();
+    }
+
     //  } else {
     //    console.log("reuse frame!")
     //  }
@@ -532,7 +576,6 @@ function onRuntimeInitialized() {
   } catch (e) {
     console.log(e)
     console.error('Setup failed:', e);
-    document.getElementById('output').innerHTML = 'Failed to initialize voidling. Please refresh the page.';
   }
   moduleInitialized = true;
 
@@ -574,13 +617,8 @@ function onVisibilityChange() {
 ++eventhandlercount;
 document.addEventListener('visibilitychange', onVisibilityChange);
 
-function onError(e) {
-  if (e.message.includes('wasm')) {
-    //console.error('WASM loading failed:', e);
-    document.getElementById('output').innerHTML = 'Failed to initialize voidling. Please refresh the page.';
+function onError(e) { }
 
-  }
-}
 ++eventhandlercount;
 window.addEventListener('pagehide', function () {
   isRunning = false;
@@ -616,7 +654,7 @@ function displayInnerThoughts() {
       element.setAttribute('data-has-listeners', 'true');
 
       ++eventhandlercount;
-      
+
       element.addEventListener('mouseover', () => {
         if (element.innerHTML === '$') {
           return;
