@@ -71,15 +71,6 @@ const MEMORY_THRESHOLD_MB = 200;
 const MEMORY_CHECK_INTERVAL = 2000;
 
 // Color mapping
-
-/*
-      --c57-color: #5f00ff;
-      --c99-color: #875fff;
-      --c105-color: #8787ff;
-      --c166-color: #d75f00;
-      --c208-color: #ff8700;
-      --c141-color: #af87ff;
-*/
 const colorMap = {
   '.': 'c57', ',': 'c57', '-': 'c99',
   '~': 'c99', ':': 'c99', ';': 'c105',
@@ -406,27 +397,8 @@ function initVoidlingConfig() {
 const dims = calculateDimensions();
 setDimensions(dims.width, dims.height);
 
-let plotted = false;
-let cacheSpans = new Map();
-
 let colors = new Map();
 
-/*
-      --c57-color: #5f00ff;
-      --c99-color: #875fff;
-      --c105-color: #8787ff;
-      --c166-color: #d75f00;
-      --c208-color: #ff8700;
-      --c141-color: #af87ff;
-*/
-/*const colorMap = {
-  '.': 'c57', ',': 'c57', '-': 'c99',
-  '~': 'c99', ':': 'c99', ';': 'c105',
-  '=': 'c105', '!': 'c105', '*': 'c105',
-  '#': 'c166', '@': 'c208', '$': 'c141'
-};
-*/
-// .,-~:;=!*#@$
 colors.set(".", "#5f00ff");
 colors.set(",", "#5f00ff");
 colors.set("-", "#875fff");
@@ -443,9 +415,12 @@ colors.set("$", "#af87ff");
 let boxTop = null;
 let boxLeft = null;
 
+let rectangles = [];
+let mouseOverVoidling = false;
+
 function updateDisplay(timestamp) {
   if (!isRunning) return;
-  if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL) {
+  if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL || mouseOverVoidling) {
     requestAnimationFrame(updateDisplay);
     return;
   }
@@ -489,34 +464,40 @@ function updateDisplay(timestamp) {
     let lineHeight = cv.height;
     let currentY = 0;
     let currentX = 0;
+    rectangles = [];
+
+    let startRectX = 0;
+    let leftMostChar;
+    let lastChar;
     for (let i = 0; i < bufferPtr.length; i++) {
       let c = colors.get(bufferPtr[i])
       context.fillStyle = c;
       if (bufferPtr[i] != ' ') {
+        if(!leftMostChar) {
+          leftMostChar = (currentX * cv.width);
+        }
+        lastChar = (currentX * cv.width);
         context.fillText(bufferPtr[i], (currentX * cv.width), currentY);
       }
       currentX++;
 
       if ((i + 1) % dims.width === 0) {
-        currentY+=lineHeight;
-        currentX=0;
+        if(leftMostChar) {
+          rectangles.push({startx:leftMostChar, endx: lastChar, starty: currentY, endy: currentY+lineHeight})
+          leftMostChar = null;
+          lastChar = null;
+        }
+        
+        currentY += lineHeight;
+        currentX = 0;
       }
     }
-
-
-    //context.fillText(str,50, 90);
-
-
-    //const html = bufferToHTML(bufferPtr, dims.width);
-    //outputElement.innerHTML = html;
 
     if (!isDisplayInitialized) {
       let offsetTop = window.isMobile ? PORTFOLIO_OFFSET_TOP_MOBILE : PORTFOLIO_OFFSET_TOP;
       let offsetLeft = window.isMobile ? PORTFOLIO_OFFSET_LEFT_MOBILE : PORTFOLIO_OFFSET_LEFT;
 
-      
-
-       let outputElement = document.getElementById('outputwrapper');
+      let outputElement = document.getElementById('outputwrapper');
       //outputElement.style.width = `${wh.width}px`;
       //outputElement.style.height = `${wh.height}px`;
       /*
@@ -528,19 +509,43 @@ function updateDisplay(timestamp) {
           
           document.getElementById('voidlingbox').style.left = `${outerRect.left}px`;
         */
-          const outerRect = outputElement.getBoundingClientRect();
-          document.getElementById('aboutpage').style.top = `${outputElement.offsetTop}px`;
-          document.getElementById('aboutpage').style.left = `${outputElement.offsetLeft}px`;
-          document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
-  
-
-
+      const outerRect = outputElement.getBoundingClientRect();
+      document.getElementById('aboutpage').style.top = `${outputElement.offsetTop}px`;
+      document.getElementById('aboutpage').style.left = `${outputElement.offsetLeft}px`;
+      document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
 
       let d = getCharacterDimensions();
       let w = Math.floor(outputElement.offsetWidth / d.width);
-      let h = Math.floor(outputElement.offsetHeight / (d.height*1.20))
+      let h = Math.floor(outputElement.offsetHeight / (d.height * 1.20))
       setWorldDimensions(w, h);
       setPosition(outerRect.x, outerRect.y);
+
+
+          const canvas = document.getElementById('cvas');
+          const rect = canvas.getBoundingClientRect();
+          // Handle mouse move event
+          canvas.addEventListener('mousemove', (event) => {
+            
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+      
+            let mOver = false;
+            for(const rectangle of rectangles) {
+              if (isMouseOverRect(mouseX, mouseY, rectangle)) {
+                mOver = true;
+                break;
+              }
+            }
+            if(mOver) {
+              console.log("over!")
+              displayInnerThoughtsv2();
+              mouseOverVoidling = true;
+            } else {
+              console.log("no longer over !")
+              mouseOverVoidling = false;
+            }
+            
+          });
 
       isDisplayInitialized = true;
     }
@@ -562,6 +567,13 @@ function updateDisplay(timestamp) {
 
   requestAnimationFrame(updateDisplay);
 };
+
+function isMouseOverRect(mouseX, mouseY, rect) { 
+  let yMargin = 1;
+  let xCondition = mouseX > rect.startx && mouseX < rect.endx;
+  let yCondition = mouseY > (rect.starty - yMargin) && mouseY < (rect.endy + yMargin); 
+  return xCondition && yCondition  
+}
 
 
 function onRuntimeInitialized() {
@@ -624,9 +636,6 @@ window.addEventListener('pagehide', function () {
   isRunning = false;
 
   cleanup();
-  //bufferPool.cleanup();
-
-  //outputElement = null;
 
   document.removeEventListener('visibilitychange', onVisibilityChange);
   window.removeEventListener('resize', onResize);
@@ -641,6 +650,51 @@ window.addEventListener('pageshow', function (event) {
     window.location.reload();
   }
 });
+
+function displayInnerThoughtsv2() {
+  let lastProphecyIndex = -1;
+  const prophecyTexts = [
+    prophecies1, prophecies2, prophecies3, prophecies4, prophecies5,
+    prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11
+  ];
+  let randomIndex;
+  do {
+    randomIndex = Math.floor(Math.random() * prophecyTexts.length);
+  } while (randomIndex === lastProphecyIndex && prophecyTexts.length > 1);
+  lastProphecyIndex = randomIndex;
+  let prophecies = prophecyTexts[randomIndex];
+
+
+  let cvs = document.getElementById('cvas');
+  let context = cvs.getContext('2d');
+  context.clearRect(0, 0, cvs.offsetWidth, cvs.offsetHeight);
+  const font = window.isMobile ? '24px monospace' : '12px monospace';
+  
+  // Set the font
+  context.font = font;
+  context.textAlign = 'center'
+  cvs.width = cvs.offsetWidth;
+  cvs.height = cvs.offsetHeight;
+
+  let cv = getCharacterDimensions();
+
+  let prophecyIndex = 0;
+  for(const rectangle of rectangles) {
+
+    let w = rectangle.endx-rectangle.startx;
+    let numchars = Math.ceil(w/cv.width);
+    for(let i=0; i<numchars; i++) {
+      if(prophecyIndex >= prophecies.length-1) {
+        prophecyIndex = 0;
+      }
+      let x = (rectangle.startx + (i*cv.width));
+      context.fillStyle = "white";
+      context.fillText(prophecies[prophecyIndex], x, rectangle.starty);
+      ++prophecyIndex;
+    }    
+  }
+   
+}
 
 function displayInnerThoughts() {
   let lastProphecyIndex = -1;
