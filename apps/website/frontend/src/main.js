@@ -290,33 +290,7 @@ export function forceCleanup() {
 
 function onResize() {
   location.reload();
-  return;
-  const dims = calculateDimensions();
-  console.log(dims)
-  setDimensions(dims.width, dims.height);
-  if (resizeTimeout) {
-    cancelAnimationFrame(resizeTimeout);
-  }
-
-  resizeTimeout = requestAnimationFrame(() => {
-    try {
-      const wasMobile = window.isMobile;
-      checkMobile();
-      console.log('Resize detected, window width:', window.innerWidth);
-
-      if (wasMobile !== window.isMobile) {
-        console.log('Mobile state changed:', window.isMobile);
-        updateVoidlingSize();
-        forceCleanup();
-      }
-      const dims = calculateDimensions();
-      setDimensions(dims.width, dims.height);
-
-    } catch (e) {
-      console.error('Resize handling failed:', e);
-    }
-  });
-}
+} 
 
 ++eventhandlercount;
 window.addEventListener('resize', onResize);

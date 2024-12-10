@@ -137,10 +137,6 @@ function drawBorders() {
   let borderBox = document.getElementById("borderbox");
   document.getElementById("borderbox").style.left = `${worldX-oneCharacter.width}px`;
   document.getElementById("borderbox").style.top = `${worldY-oneCharacter.height}px`;
-
-  console.log("---")
-  console.log(worldWidth)
-  console.log(worldHeight)
   let width = worldWidth+columnsToAdd;
   let height = worldHeight+rowsToAdd;
   let numCharacters = (height)*(width);
@@ -150,8 +146,6 @@ function drawBorders() {
   let contextBoxColor;
 
   initStringPositions(width, height);
-
-  console.log("a" + numCharacters)
 
   for(let i=0; i<numCharacters; i++) {
     let className;
@@ -165,8 +159,6 @@ function drawBorders() {
     }
 
     let clickType;
-
-    let hidden = false;
 
     if(col == 0 || row == 0 || row == height-1 || col == width-1) {
       str = '$';
@@ -252,7 +244,6 @@ function setWorldDimensions(width, height) {
 }
 
 function clickLink(type) {
-  console.log(type)
 }
 
 function getCharacterDimensions() {
