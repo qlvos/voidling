@@ -5,7 +5,7 @@ import { voidlingConfigCautious } from "./voidling-config-cautious.js";
 import { voidlingConfigCurious } from "./voidling-config-curious.js";
 import { voidlingConfigExcited } from "./voidling-config-excited.js";
 import { voidlingConfigVanilla } from "./voidling-config-mob.js";
-import { prophecies1, prophecies2, prophecies3, prophecies4, prophecies5, prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11 } from "../prophecies.js";
+import { prophecies1, prophecies2, prophecies3, prophecies4, prophecies5, prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11 } from "./prophecies.js";
 import {
   initializeTrigCache, animationFrame, initVoidlingWithConfig, setDeformFreq, setDeformPhase, setCurrentTime, setTargetX, setTargetY, setMovementX, setMovementY, setRotX, setRotY, setRotZ, getHorizontalPersistenceTimer, getStuckCounter, getBehaviorTimer, getCurrentBehavior, getCurrentTime, getLastTargetX,
   getLastTargetY, getRotationSpeed, getTargetRotX, getTargetRotY, getTargetRotZ, getRotX, getRotY,
@@ -137,35 +137,30 @@ for (const rule of stylesheet.rules) {
   }
 }
 
-function bufferToHTML(buffer, width) {
-  let html = '';
-  for (let i = 0; i < buffer.length; i++) {
-    let char = buffer[i];
-    let colorClass = colorMap[char];
-    html += colorClass ? `<span onmouseover="mouseOverCharacter(${i})" id="${i}" class="${colorClass}">${char}</span>` : char;
-    if ((i + 1) % width === 0) html += '\n';
-  }
-  return html;
-}
-
-let widthPadding = 1.2;
-let heightPadding = 1.2;
-
 function calculateDimensions() {
   try {
-
     let wrapper = document.getElementById('outputwrapper');
     let wh = wrapper.offsetHeight;
     let ww = wrapper.offsetWidth;
-
     let cv = getCharacterDimensions();
-
+    
+    // Calculate exact dimensions
+    
+    const exactWidth = ww / (cv.width);
+    const exactHeight = wh / (cv.height);
+    
+    // Round down to ensure full characters
+    const width = Math.floor(exactWidth);
+    const height = Math.floor(exactHeight);
+    
     return {
-      width: Math.ceil(ww / (cv.width * widthPadding)),
-      height: Math.ceil(wh / (cv.height * heightPadding))
+      width: width,
+      height: height,
+      charWidth: cv.width,
+      charHeight: cv.height
     }
-
   } catch (e) {
+    console.error('Error calculating dimensions:', e);
     return { width: 190, height: 61 };
   }
 }
@@ -289,8 +284,21 @@ export function forceCleanup() {
 }
 
 function onResize() {
-  location.reload();
-} 
+  const dims = calculateDimensions(); // Recalculate world dimensions
+  setDimensions(dims.width, dims.height);
+  drawBorders(); // Re-align the border dynamically
+}
+
+window.addEventListener('resize', onResize);
+
+// Initial setup
+document.addEventListener('DOMContentLoaded', () => {
+  const dims = calculateDimensions();
+  setDimensions(dims.width, dims.height);
+  setWorldDimensions(dims.width, dims.height);
+
+  //drawBorders();
+});
 
 ++eventhandlercount;
 window.addEventListener('resize', onResize);
@@ -416,7 +424,7 @@ function updateDisplay(timestamp) {
     const dpr = window.devicePixelRatio || 1;
 
     // Set actual canvas dimensions accounting for device pixel ratio
-    cvs.width = cvs.offsetWidth * dpr;
+    cvs.width = 10 + cvs.offsetWidth * dpr;
     cvs.height = cvs.offsetHeight * dpr;
 
     // Scale context based on device pixel ratio
@@ -428,13 +436,11 @@ function updateDisplay(timestamp) {
     // Set the font
     context.font = font;
     context.textAlign = 'center'
-    cvs.width = cvs.offsetWidth;
-    cvs.height = cvs.offsetHeight;
     let cv = getCharacterDimensions();
 
     let lineHeight = cv.height;
-    let currentY = 0;
-    let currentX = 0;
+    let currentY = lineHeight;
+    let currentX = 1;
     rectangles = [];
 
     let startRectX = 0;
@@ -444,10 +450,11 @@ function updateDisplay(timestamp) {
       let c = colors.get(bufferPtr[i])
       context.fillStyle = c;
       if (bufferPtr[i] != ' ') {
-        if (!leftMostChar) {
+        if (!leftMostChar && bufferPtr[i] != '$') {
           leftMostChar = (currentX * cv.width);
         }
         lastChar = (currentX * cv.width);
+        // Keep the original positioning for consistency with rectangle tracking
         context.fillText(bufferPtr[i], (currentX * cv.width), currentY);
       }
       currentX++;
@@ -460,8 +467,16 @@ function updateDisplay(timestamp) {
         }
 
         currentY += lineHeight;
-        currentX = 0;
+        currentX = 1;
       }
+    }
+
+    function setWorldDimensions(width, height) {
+      worldWidth = width;
+      worldHeight = height;
+      console.log('World dimensions set to:', width, height);
+      console.log('Canvas size:', document.getElementById('cvas').offsetWidth, document.getElementById('cvas').offsetHeight);
+      console.log('Character dimensions:', getCharacterDimensions());
     }
 
     if (!isDisplayInitialized) {
@@ -485,18 +500,17 @@ function updateDisplay(timestamp) {
       document.getElementById('aboutpage').style.left = `${outputElement.offsetLeft}px`;
       document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
 
-      let d = getCharacterDimensions();
-      let w = Math.floor(outputElement.offsetWidth / d.width);
-      let h = Math.floor(outputElement.offsetHeight / (d.height * 1.20))
-      setWorldDimensions(w, h);
+      const dims = calculateDimensions();
+      setWorldDimensions(dims.width, dims.height);
       setPosition(outerRect.x, outerRect.y);
 
 
       const canvas = document.getElementById('cvas');
       const rect = canvas.getBoundingClientRect();
-      // Handle mouse move event
+      let lastMouseX = null;
+      let lastMouseY = null;
+      
       canvas.addEventListener('mousemove', (event) => {
-
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
 
@@ -507,22 +521,35 @@ function updateDisplay(timestamp) {
             break;
           }
         }
+        
         if (mOver) {
-          displayInnerThoughtsv2();
+          // If this is initial hover or any mouse movement
+          if (!mouseOverVoidling || 
+              lastMouseX === null || lastMouseY === null ||  // Initial hover
+              mouseX !== lastMouseX || mouseY !== lastMouseY) { // Any movement
+            displayInnerThoughtsv2();
+          }
           mouseOverVoidling = true;
+          lastMouseX = mouseX;
+          lastMouseY = mouseY;
         } else {
-          mouseOverVoidling = false;
+          if (mouseOverVoidling) { // Only if we were previously over the voidling
+            mouseOverVoidling = false;
+            lastMouseX = null;
+            lastMouseY = null;
+            isRunning = true;  // Ensure animation is running
+            requestAnimationFrame(updateDisplay); // Restart normal animation
+          }
         }
-
       });
 
       isDisplayInitialized = true;
     }
 
-    let watchBrain = true;
-    if (watchBrain) {
-      displayInnerThoughts();
-    }
+    //let watchBrain = true;
+    //if (watchBrain) {
+    //  displayInnerThoughts();
+    //}
 
     //  } else {
     //    console.log("reuse frame!")
@@ -621,15 +648,17 @@ window.addEventListener('pageshow', function (event) {
 });
 
 function displayInnerThoughtsv2() {
+  // Run one frame of animation when called
+  animationFrame();
+  const bufferPtr = getBuffer();
+
   let lastProphecyIndex = -1;
   const prophecyTexts = [
     prophecies1, prophecies2, prophecies3, prophecies4, prophecies5,
     prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11
   ];
-  let randomIndex;
-  do {
-    randomIndex = Math.floor(Math.random() * prophecyTexts.length);
-  } while (randomIndex === lastProphecyIndex && prophecyTexts.length > 1);
+  
+  let randomIndex = Math.floor(Math.random() * prophecyTexts.length);
   lastProphecyIndex = randomIndex;
   let prophecies = prophecyTexts[randomIndex];
 
@@ -638,41 +667,62 @@ function displayInnerThoughtsv2() {
 
   // Get device pixel ratio
   const dpr = window.devicePixelRatio || 1;
-
-  // Set actual canvas dimensions accounting for device pixel ratio
   cvs.width = cvs.offsetWidth * dpr;
   cvs.height = cvs.offsetHeight * dpr;
-
-  // Scale context based on device pixel ratio
   context.scale(dpr, dpr);
 
   context.clearRect(0, 0, cvs.offsetWidth, cvs.offsetHeight);
-  const font = window.isMobile ? '24px monospace' : '12px monospace';
+  const fontSize = window.isMobile ? 24 : 12;
+  const font = `${fontSize}px monospace`;
 
-  // Set the font
   context.font = font;
-  context.textAlign = 'center'
-  cvs.width = cvs.offsetWidth;
-  cvs.height = cvs.offsetHeight;
-
+  context.textAlign = 'left';
   let cv = getCharacterDimensions();
 
+  // Reset rectangles array since animation has updated
+  rectangles = [];
+  let currentY = 0;
+  let currentX = 0;
+  let leftMostChar;
+  let lastChar;
+  let dims = calculateDimensions();
+
+  // First pass: calculate new rectangles from updated animation frame
+  for (let i = 0; i < bufferPtr.length; i++) {
+    if (bufferPtr[i] != ' ') {
+      if (!leftMostChar && bufferPtr[i] != '$') {
+        leftMostChar = (currentX * cv.width);
+      }
+      lastChar = (currentX * cv.width);
+    }
+    currentX++;
+
+    if ((i + 1) % dims.width === 0) {
+      if (leftMostChar) {
+        rectangles.push({ startx: leftMostChar, endx: lastChar, starty: currentY, endy: currentY + cv.height })
+        leftMostChar = null;
+        lastChar = null;
+      }
+      currentY += cv.height;
+      currentX = 0;
+    }
+  }
+
+  // Second pass: draw prophecies over the new rectangles
   let prophecyIndex = 0;
   for (const rectangle of rectangles) {
-
     let w = rectangle.endx - rectangle.startx;
     let numchars = Math.ceil(w / cv.width);
     for (let i = 0; i < numchars; i++) {
       if (prophecyIndex >= prophecies.length - 1) {
         prophecyIndex = 0;
       }
-      let x = (rectangle.startx + (i * cv.width));
-      context.fillStyle = "white";
-      context.fillText(prophecies[prophecyIndex], x, rectangle.starty);
+      let x = rectangle.startx + (i * cv.width);
+      context.fillStyle = "#c7bbe0";
+      context.fillText(prophecies[prophecyIndex], x, rectangle.starty + (cv.height / 2));
       ++prophecyIndex;
     }
   }
-
 }
 
 function displayInnerThoughts() {

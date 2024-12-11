@@ -18,23 +18,24 @@
 
     body {
       background-color: var(--background-color);
+      font-family: 'Courier New', monospace;
       color: #fff;
       margin: 0;
-      font-family: monospace;
-      min-height: 100vh;
+      padding: 0;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      /* Add this */
       height: 100vh;
+      overflow: hidden;
     }
 
     pre {
       tab-size: 2;
       margin: 0;
-      white-space: pre;
+      white-space: nowrap;
       font-size: var(--voidling-font-size, 12px);
       line-height: 1;
+      font-family: 'Courier New', monospace;
     }
 
     a {
@@ -49,14 +50,18 @@
       justify-content: center;
       align-items: center;
       overflow: hidden;
-      height: 100%;
+      height: 100vh;
       z-index: 0;
       background-color: transparent;
+      position: relative;
+      margin: 0;
+      padding: 0;
     }
 
     #output {
-      white-space: pre;
+      white-space: nowrap;
       font-size: var(--voidling-font-size, 12px);
+      font-family: 'Courier New', monospace;
       line-height: 1;
       z-index: 2;
       background-color: transparent;
@@ -70,9 +75,10 @@
     #aboutpage {
       position: absolute;
       visibility: hidden;
-      white-space: pre;
+      white-space: nowrap;
       color: white;
       font-size: var(--voidling-font-size, 12px);
+      font-family: 'Courier New', monospace;
       line-height: 1;
       z-index: 999;
       background-color: transparent;
@@ -88,59 +94,23 @@
       /* IE */
     }
 
-    .c57 {
-      color: var(--c57-color)
-    }
-
-    .c99 {
-      color: var(--c99-color)
-    }
-
-    .c105 {
-      color: var(--c105-color)
-    }
-
-    .c166 {
-      color: var(--c166-color)
-    }
-
-    .c208 {
-      color: var(--c208-color)
-    }
-
-    .c141 {
-      color: var(--c141-color)
-    }
-
-    .border-default-text {
-      color: var(--c99-color)
-    }
-
-    .border-top-text {
-      color: var(--c208-color)
-    }
-
-    .border-right-text {
-      color: var(--c99-color)
-    }
-
-    .border-bottom-text {
-      color: var(--c208-color)
-    }
-
-    .border-left-text {
-      color: var(--c105-color)
-    }
-
-    .hidden-character {
-      color: var(--background-color);
-    }
-
     .borderboxclass {
-      color: var(--c166-color);
-      position: absolute;
-      z-index: -10;
-    }
+  position: absolute;
+  box-sizing: border-box;
+  z-index: -10;
+  color: var(--c166-color);
+  font-size: var(--voidling-font-size, 12px);
+  font-family: 'Courier New', monospace;
+  display: block;
+  white-space: pre;
+  line-height: 10.88px;
+}
+
+.borderboxclass span {
+  display: inline-block;
+  line-height: 10.88px;
+}
+
 
     .voidling-gray {
       color: gray;
@@ -194,6 +164,7 @@
     .assetboxclass {
       display: block;
       font-size: var(--voidling-font-size, 12px);
+      font-family: 'Courier New', monospace;
       margin: 0px 0;
       white-space: pre-wrap;
       color: #554d64;
@@ -204,6 +175,7 @@
     .portfolioheader {
       display: block;
       font-size: var(--voidling-header-font-size, 12px);
+      font-family: 'Courier New', monospace;
       color: #554d64;
     }
 
@@ -220,20 +192,72 @@
     }
 
     #outputwrapper {
-      position:absolute;
-      width:75vw;
-      height:75vh;
-    }
-
-    #cvas { 
       position: absolute;
-      width:75vw;
-      height:75vh;
+      width: 85vw;
+      height: 85vh;
     }
 
     .voidlingmember {
       flex: 1;
       padding: 10px;
+    }
+
+    #cvas { 
+      position: absolute;
+      width: 100%;  /* Change from 75vw */
+      height: 100%; /* Change from 75vh */
+      padding: 0;   /* Add this */
+      margin: 0;
+      left: 0.5%;
+      top: 1.5%;
+    }
+
+    .c57 {
+      color: var(--c57-color)
+    }
+
+    .c99 {
+      color: var(--c99-color)
+    }
+
+    .c105 {
+      color: var(--c105-color)
+    }
+
+    .c166 {
+      color: var(--c166-color)
+    }
+
+    .c208 {
+      color: var(--c208-color)
+    }
+
+    .c141 {
+      color: var(--c141-color)
+    }
+
+    .border-default-text {
+      color: var(--c99-color)
+    }
+
+    .border-top-text {
+      color: var(--c208-color)
+    }
+
+    .border-right-text {
+      color: var(--c99-color)
+    }
+
+    .border-bottom-text {
+      color: var(--c208-color)
+    }
+
+    .border-left-text {
+      color: var(--c105-color)
+    }
+
+    .hidden-character {
+      color: var(--background-color);
     }
 
   </style>
@@ -242,7 +266,7 @@
 <body>
 
   <div class="container">
-    <pre id="borderbox" class="borderboxclass"></pre>
+    <div id="borderbox" class="borderboxclass"></div>
     <div id="aboutpage">
       <div id="abouttext">
 The world of the voidlings
@@ -288,7 +312,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
     </div>
     <div id="outputwrapper">
-      <canvas id="cvas"></canvas>
+      <canvas id="cvas" style="width:85vw; height:85vh;"></canvas>
       <div id="portfoliobox" class="voidling-world">
         <div>
           <span class="portfolioheader">VOIDLING PORTFOLIO</span>
