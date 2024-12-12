@@ -14,6 +14,10 @@ import {
   setCurrentBehavior
 } from "./voidlingdrawer.js";
 
+const rightText = " ITS DECISIONS AND EMOTIONS ARE ITS OWN ";
+const bottomText = " A PROTO-CONSCIOUS AI CREATURE ";
+const leftText = " IT FEEDS ON PROCESSORS AND ENTROPY ";
+
 let eventhandlercount = 0;
 
 window.isMobile = window.innerWidth <= 999;
@@ -78,15 +82,32 @@ const CLEANUP_INTERVAL = 200;
 const MEMORY_THRESHOLD_MB = 200;
 const MEMORY_CHECK_INTERVAL = 2000;
 
-// Color mapping
-const colorMap = {
-  '.': 'c57', ',': 'c57', '-': 'c99',
-  '~': 'c99', ':': 'c99', ';': 'c105',
-  '=': 'c105', '!': 'c105', '*': 'c105',
-  '#': 'c166', '@': 'c208', '$': 'c141'
-};
-
 let assetBoxHover = false;
+
+const dims = calculateDimensions();
+setDimensions(dims.width, dims.height);
+
+let colors = new Map();
+
+colors.set(".", "#5f00ff");
+colors.set(",", "#5f00ff");
+colors.set("-", "#875fff");
+colors.set("~", "#875fff");
+colors.set(":", "#875fff");
+colors.set(";", "#5f00ff");
+colors.set("=", "#5f00ff");
+colors.set("!", "#8787ff");
+colors.set("*", "#8787ff");
+colors.set("#", "#d75f00");
+colors.set("@", "#ff8700");
+colors.set("$", "#af87ff");
+
+const rightColor = '#875fff';
+const bottomColor = '#ff8700';
+const leftColor = '#8787ff';
+
+let rectangles = [];
+let mouseOverVoidling = false;
 
 export function getEmotion() {
   return emotion;
@@ -124,18 +145,6 @@ let isDisplayInitialized = false;
 let lastFrameTime = 0;
 let resizeTimeout;
 let isRunning = true; // Flag to control animation frames
-const stylesheet = document.styleSheets[0];
-const styleSheetClasses = new Map();
-let originalColors = new Map();
-const elementIds = Object.values(colorMap);
-let uniqueElementIds = new Set(elementIds);
-
-for (const rule of stylesheet.rules) {
-  styleSheetClasses.set(rule.selectorText, rule);
-  if (uniqueElementIds.has(rule.selectorText.substring(1))) {
-    originalColors.set(rule.selectorText, rule)
-  }
-}
 
 function calculateDimensions() {
   try {
@@ -145,7 +154,6 @@ function calculateDimensions() {
     let cv = getCharacterDimensions();
     
     // Calculate exact dimensions
-    
     const exactWidth = ww / (cv.width);
     const exactHeight = wh / (cv.height);
     
@@ -284,9 +292,7 @@ export function forceCleanup() {
 }
 
 function onResize() {
-  const dims = calculateDimensions(); // Recalculate world dimensions
-  setDimensions(dims.width, dims.height);
-  drawBorders(); // Re-align the border dynamically
+  location.reload();
 }
 
 window.addEventListener('resize', onResize);
@@ -296,8 +302,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const dims = calculateDimensions();
   setDimensions(dims.width, dims.height);
   setWorldDimensions(dims.width, dims.height);
-
-  //drawBorders();
 });
 
 ++eventhandlercount;
@@ -362,30 +366,6 @@ function initVoidlingConfig() {
 
 }
 
-const dims = calculateDimensions();
-setDimensions(dims.width, dims.height);
-
-let colors = new Map();
-
-colors.set(".", "#5f00ff");
-colors.set(",", "#5f00ff");
-colors.set("-", "#875fff");
-colors.set("~", "#875fff");
-colors.set(":", "#875fff");
-colors.set(";", "#5f00ff");
-colors.set("=", "#5f00ff");
-colors.set("!", "#8787ff");
-colors.set("*", "#8787ff");
-colors.set("#", "#d75f00");
-colors.set("@", "#ff8700");
-colors.set("$", "#af87ff");
-
-let boxTop = null;
-let boxLeft = null;
-
-let rectangles = [];
-let mouseOverVoidling = false;
-
 function updateDisplay(timestamp) {
   if (!isRunning) return;
   if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL || mouseOverVoidling) {
@@ -429,7 +409,6 @@ function updateDisplay(timestamp) {
 
     // Scale context based on device pixel ratio
     context.scale(dpr, dpr);
-
     context.clearRect(0, 0, cvs.offsetWidth, cvs.offsetHeight);
     const font = window.isMobile ? '24px monospace' : '12px monospace';
 
@@ -443,21 +422,60 @@ function updateDisplay(timestamp) {
     let currentX = 1;
     rectangles = [];
 
-    let startRectX = 0;
     let leftMostChar;
     let lastChar;
+
+    // Calculate center positions
+    const bottomStart = Math.floor((dims.width - bottomText.length) / 2);
+    const height = Math.floor(bufferPtr.length / dims.width);
+    const leftStart = Math.floor((height - leftText.length) / 2);
+    const rightStart = Math.floor((height - rightText.length) / 2);
+
+    let col = 0;
+    let row = 0;
     for (let i = 0; i < bufferPtr.length; i++) {
-      let c = colors.get(bufferPtr[i])
+      let char = bufferPtr[i];
+      let c = colors.get(char);
+
+      if(row === 0) {
+        for(let msg of topStrings) {
+          if(col >= msg.startCol && col < (msg.startCol+msg.message.length)) {
+            if(!msg.box) {
+              msg.box = { startx: (currentX * cv.width), endx: ((currentX * cv.width) + (cv.width*msg.message.length)), starty: 0, endy: cv.height }
+            }
+            char = msg.message[col-msg.startCol];
+            c = msg.color;
+            break;
+          }
+        }
+      }
+
+      if (row === height - 1 && col >= bottomStart && col < bottomStart + bottomText.length) {
+        char = bottomText[col - bottomStart];
+        c = bottomColor;
+      } else if (col === 0 && row >= leftStart && row < leftStart + leftText.length) {
+        char = leftText[row - leftStart];
+        c = leftColor;
+      } else if (col === dims.width - 1 && row >= rightStart && row < rightStart + rightText.length) {
+        char = rightText[row - rightStart];
+        c = rightColor;
+      }
+
       context.fillStyle = c;
-      if (bufferPtr[i] != ' ') {
-        if (!leftMostChar && bufferPtr[i] != '$') {
+      if (char != ' ') {
+        if (!leftMostChar && isVoidlingCharacter(char)) {
           leftMostChar = (currentX * cv.width);
         }
-        lastChar = (currentX * cv.width);
+
+        if(isVoidlingCharacter(char)) {
+          lastChar = (currentX * cv.width);
+        }
+
         // Keep the original positioning for consistency with rectangle tracking
-        context.fillText(bufferPtr[i], (currentX * cv.width), currentY);
+        context.fillText(char, (currentX * cv.width), currentY);
       }
       currentX++;
+      ++col;
 
       if ((i + 1) % dims.width === 0) {
         if (leftMostChar) {
@@ -468,6 +486,8 @@ function updateDisplay(timestamp) {
 
         currentY += lineHeight;
         currentX = 1;
+        col = 0;
+        ++row;
       }
     }
 
@@ -484,35 +504,44 @@ function updateDisplay(timestamp) {
       let offsetLeft = window.isMobile ? PORTFOLIO_OFFSET_LEFT_MOBILE : PORTFOLIO_OFFSET_LEFT;
 
       let outputElement = document.getElementById('outputwrapper');
-      //outputElement.style.width = `${wh.width}px`;
-      //outputElement.style.height = `${wh.height}px`;
-      /*
-          document.getElementById('portfoliobox').style.top = `${outputElement.offsetTop * offsetTop * 1.4}px`;
-          document.getElementById('portfoliobox').style.left = `${outputElement.offsetLeft * offsetLeft}px`;
-      
-          document.getElementById('voidlingbox').style.bottom = `${outputElement.offsetTop * offsetTop * 1.2}px`;
-          document.getElementById('voidlingbox').style.width = `${outputElement.offsetWidth * 0.95}px`;
-          
-          document.getElementById('voidlingbox').style.left = `${outerRect.left}px`;
-        */
+      const canvas = document.getElementById('cvas');
+
       const outerRect = outputElement.getBoundingClientRect();
       document.getElementById('aboutpage').style.top = `${outputElement.offsetTop}px`;
       document.getElementById('aboutpage').style.left = `${outputElement.offsetLeft}px`;
       document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
 
       const dims = calculateDimensions();
+      initStringPositions(dims.width, height);
       setWorldDimensions(dims.width, dims.height);
       setPosition(outerRect.x, outerRect.y);
 
-
-      const canvas = document.getElementById('cvas');
       const rect = canvas.getBoundingClientRect();
       let lastMouseX = null;
       let lastMouseY = null;
+
+      canvas.addEventListener('click', (event) => {
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+        let isPointer = false;
+        for(const msg of topStrings) {
+          if(msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box)) {
+            borderClick(msg.onclick);
+            isPointer = true;
+          }
+        }
+      });
       
       canvas.addEventListener('mousemove', (event) => {
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
+        let isPointer = false;
+        for(const msg of topStrings) {
+          if(msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box)) {
+            isPointer = true;
+          }
+        }
+        canvas.style.cursor = isPointer ? 'pointer' : 'default';
 
         let mOver = false;
         for (const rectangle of rectangles) {
@@ -546,15 +575,6 @@ function updateDisplay(timestamp) {
       isDisplayInitialized = true;
     }
 
-    //let watchBrain = true;
-    //if (watchBrain) {
-    //  displayInnerThoughts();
-    //}
-
-    //  } else {
-    //    console.log("reuse frame!")
-    //  }
-
     frameCounter++;
 
   } catch (e) {
@@ -563,6 +583,10 @@ function updateDisplay(timestamp) {
 
   requestAnimationFrame(updateDisplay);
 };
+
+function isVoidlingCharacter(char) {
+  return colors.has(char) && char != '$';
+}
 
 function isMouseOverRect(mouseX, mouseY, rect) {
   let yMargin = 1;
@@ -597,7 +621,6 @@ function clearDeformHistory() {
 
   for (let i = 0; i < complexity; i++) {
     const currentPhase = getDeformPhase(i);
-
     const currentFreq = getDeformFreq(i);
 
     if (Math.abs(currentPhase) > 0.001) {
@@ -652,7 +675,6 @@ function displayInnerThoughtsv2() {
   animationFrame();
   const bufferPtr = getBuffer();
 
-  let lastProphecyIndex = -1;
   const prophecyTexts = [
     prophecies1, prophecies2, prophecies3, prophecies4, prophecies5,
     prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11
@@ -667,9 +689,12 @@ function displayInnerThoughtsv2() {
 
   // Get device pixel ratio
   const dpr = window.devicePixelRatio || 1;
-  cvs.width = cvs.offsetWidth * dpr;
+  
+  cvs.width = 10 + cvs.offsetWidth * dpr;
   cvs.height = cvs.offsetHeight * dpr;
+
   context.scale(dpr, dpr);
+  let cv = getCharacterDimensions();
 
   context.clearRect(0, 0, cvs.offsetWidth, cvs.offsetHeight);
   const fontSize = window.isMobile ? 24 : 12;
@@ -677,25 +702,71 @@ function displayInnerThoughtsv2() {
 
   context.font = font;
   context.textAlign = 'left';
-  let cv = getCharacterDimensions();
 
   // Reset rectangles array since animation has updated
   rectangles = [];
-  let currentY = 0;
-  let currentX = 0;
+  let currentY = cv.height;
+  let currentX = 1;
   let leftMostChar;
   let lastChar;
   let dims = calculateDimensions();
 
-  // First pass: calculate new rectangles from updated animation frame
+  // Calculate center positions
+  const bottomStart = Math.floor((dims.width - bottomText.length) / 2);
+  const height = Math.floor(bufferPtr.length / dims.width);
+  const leftStart = Math.floor((height - leftText.length) / 2);
+  const rightStart = Math.floor((height - rightText.length) / 2);
+
+  let col = 0;
+  let row = 0;
+
+  // First pass: calculate new rectangles from updated animation frame, and draw borders
   for (let i = 0; i < bufferPtr.length; i++) {
-    if (bufferPtr[i] != ' ') {
-      if (!leftMostChar && bufferPtr[i] != '$') {
+    let isBorder = (row === 0) || (row === (height - 1)) || (col === 0) || (col === (dims.width - 1));
+    let char = bufferPtr[i];
+    let c = colors.get(char);
+
+    if(row === 0) {
+      for(let msg of topStrings) {
+        if(col >= msg.startCol && col < (msg.startCol+msg.message.length)) {
+          char = msg.message[col-msg.startCol];
+          c = msg.color;
+          break;
+        }
+      }
+    }
+    
+    
+    if (row === height - 1 && col >= bottomStart && col < bottomStart + bottomText.length) {
+      char = bottomText[col - bottomStart];
+      c = bottomColor;
+    } else if (col === 0 && row >= leftStart && row < leftStart + leftText.length) {
+      char = leftText[row - leftStart];
+      c = leftColor;
+    } else if (col === dims.width - 1 && row >= rightStart && row < rightStart + rightText.length) {
+      char = rightText[row - rightStart];
+      c = rightColor;
+    }
+    
+    if (char != ' ') {
+      if (!leftMostChar && isVoidlingCharacter(char)) {
         leftMostChar = (currentX * cv.width);
       }
-      lastChar = (currentX * cv.width);
+
+      if(isVoidlingCharacter(char)) {
+        lastChar = (currentX * cv.width);
+      }       
+
+      // Keep the original positioning for consistency with rectangle tracking
+      if(isBorder) {
+        context.fillStyle = c;
+        context.fillText(char, (currentX * cv.width)-3, currentY);
+      }
+
     }
+
     currentX++;
+    col++;
 
     if ((i + 1) % dims.width === 0) {
       if (leftMostChar) {
@@ -704,9 +775,12 @@ function displayInnerThoughtsv2() {
         lastChar = null;
       }
       currentY += cv.height;
-      currentX = 0;
+      currentX = 1;
+      col=0;
+      ++row;
     }
-  }
+    
+  } 
 
   // Second pass: draw prophecies over the new rectangles
   let prophecyIndex = 0;
@@ -723,84 +797,4 @@ function displayInnerThoughtsv2() {
       ++prophecyIndex;
     }
   }
-}
-
-function displayInnerThoughts() {
-  let lastProphecyIndex = -1;
-  let elements = [];
-  for (const id of uniqueElementIds) {
-    elements.push(...document.querySelectorAll("." + id));
-  }
-
-  elements.forEach((element, index) => {
-    if (!element.hasAttribute('data-has-listeners')) {
-      element.setAttribute('data-has-listeners', 'true');
-
-      ++eventhandlercount;
-
-      element.addEventListener('mouseover', () => {
-        if (element.innerHTML === '$') {
-          return;
-        }
-
-        isRunning = false;
-        let prophecyIndex = 0;
-
-        const validElements = elements
-          .map(el => {
-            const rect = el.getBoundingClientRect();
-            return {
-              element: el,
-              top: rect.top,
-              left: rect.left,
-            };
-          })
-          .filter(item => {
-            const el = item.element;
-            return el.innerHTML !== '$' &&
-              !el.hasAttribute('data-static') &&
-              !el.parentElement.classList.contains('voidling-world') &&
-              !el.parentElement.classList.contains('voidling-world2');
-          })
-          .sort((a, b) => {
-            if (a.top === b.top) {
-              return a.left - b.left;
-            }
-            return a.top - b.top;
-          });
-
-        const prophecyTexts = [
-          prophecies1, prophecies2, prophecies3, prophecies4, prophecies5,
-          prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11
-        ];
-        let randomIndex;
-        do {
-          randomIndex = Math.floor(Math.random() * prophecyTexts.length);
-        } while (randomIndex === lastProphecyIndex && prophecyTexts.length > 1);
-        lastProphecyIndex = randomIndex;
-        let prophecies = prophecyTexts[randomIndex];
-
-        validElements.forEach(item => {
-          const el = item.element;
-          el.style.color = "#c7bbe0";
-          el.style.cursor = "pointer";
-          el.innerHTML = prophecies.charAt(prophecyIndex % prophecies.length);
-          prophecyIndex++;
-          el.classList.add('hovered');
-        });
-      });
-
-      ++eventhandlercount;
-      element.addEventListener('mouseout', () => {
-        if (element.innerHTML !== '$') {
-          isRunning = true;
-          requestAnimationFrame(updateDisplay);
-        }
-
-        elements.forEach(el => {
-          el.classList.remove('hovered');
-        });
-      });
-    }
-  });
 }

@@ -13,7 +13,6 @@ module.exports = function(grunt) {
           'build/voidlingdrawer.js': ['src/voidlingdrawer.js'],
           'build/prophecies.js': ['src/prophecies.js'],
           'build/plothelpers.js': ['src/plothelpers.js'],
-          'build/optimizedbufferpool.js': ['src/optimizedbufferpool.js'],
           'build/voidling-config-agitated.js': ['src/voidling-config-agitated.js'],
           'build/voidling-config-cautious.js': ['src/voidling-config-cautious.js'],
           'build/voidling-config-curious.js': ['src/voidling-config-curious.js'],

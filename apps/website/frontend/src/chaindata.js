@@ -295,12 +295,14 @@ function calculatePaddings(strings, maxLength) {
 
 function truncateString(str, maxLength) {
   if (str.length > maxLength) {
-    return str.slice(0, maxLength) + '...';
+    let dotLength = window.isMobile ? 2 : 3;
+    return str.slice(0, maxLength) + '.'.repeat(dotLength);
   } else {
     return str;
   }
 }
 
 function shorten(str) {
-  return (str.substr(0, 3) + "..." + str.substr(str.length - 3));
+  let length = window.isMobile ? 2 : 3;
+  return (str.substr(0, length) + ".".repeat(length) + str.substr(str.length - length));
 }
