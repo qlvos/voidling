@@ -1,10 +1,10 @@
 
 
- let worldWidth = -1;
- let worldHeight = -1;
+ let worldWidth = 0;
+ let worldHeight = 0;
 
- let worldX=-1;
- let worldY=-1;
+ let worldX=0;
+ let worldY=0;
 
   let riddles = [
     {
@@ -21,10 +21,10 @@
 
 ];
 
-let topOffset = 12;
-let sideOffset = 11;
-let columnsToAdd = 2;
-let rowsToAdd = 2;
+let topOffset = 0;
+let sideOffset = 0;
+let columnsToAdd = 0;
+let rowsToAdd = 0;
 let ABOUT_CLICK = "a";
 let aboutClicked = false;
 
@@ -32,51 +32,20 @@ function isAboutClicked() {
   return aboutClicked;
 }
 
-let hiddenMessages = [
-  {
-    fromTopPercent: 0.2,
-    fromLeftPercent: 0.35,
-    message: "hidden message !",
-    className: "hidden-character"
-  }
-]
-
 let topStrings = [
   {
     fromLeftPercent: 0.5,
     message: " HERE IS THE VOIDLING ",
-    className: "border-top-text",
+    color: "#ff8700"
   },
   {
     fromLeftPercent: 0.1,
     message: " ABOUT ",
+    color: "#ff8700",
     onclick: ABOUT_CLICK
   }
 ]
 
-let bottomStrings = [
-  {
-    fromLeftPercent: 0.5,
-    message: " A PROTO-CONSCIOUS AI CREATURE ",
-    className: "border-top-text",
-  }
-];
-
-let leftStrings = [
-  {
-    fromTopPercent: 0.5,
-    message: " IT FEEDS ON PROCESSORS AND ENTROPY ",
-    className: "border-left-text",
-  }
-];
-
-let rightStrings = [
-  {
-    fromTopPercent: 0.5,
-    message: " ITS DECISIONS AND EMOTIONS ARE ITS OWN ",
-    className: "border-right-text",
-  }
-];
 
 let hiddenColor = '#252525';
 
@@ -89,10 +58,11 @@ function borderClick(msg) {
 //    aboutClicked ? document.getElementById("aboutpage").style.visibility = "visible" : document.getElementById("aboutpage").style.visibility = "hidden";
 
 
-    aboutClicked ? document.getElementById("outputwrapper").style.opacity = "25%" : document.getElementById("outputwrapper").style.opacity = "100%";
+    //aboutClicked ? document.getElementById("outputwrapper").style.opacity = "25%" : document.getElementById("outputwrapper").style.opacity = "100%";
     aboutClicked ? document.getElementById("portfoliobox").style.visibility = "hidden" : document.getElementById("portfoliobox").style.visibility = "visible";
     aboutClicked ? document.getElementById("voidlingbox").style.visibility = "hidden" : document.getElementById("voidlingbox").style.visibility = "visible";
-    aboutClicked ? document.getElementById("aboutpage").style.visibility = "visible" : document.getElementById("aboutpage").style.visibility = "hidden";
+    //aboutClicked ? document.getElementById("aboutpage").style.visibility = "visible" : document.getElementById("aboutpage").style.visibility = "hidden";
+    aboutClicked ? document.getElementById("abouttext").style.visibility = "visible" : document.getElementById("abouttext").style.visibility = "hidden";
     aboutClicked ? document.getElementById("voidlingscontainer").style.visibility = "visible" : document.getElementById("voidlingscontainer").style.visibility = "hidden";
 
     console.log("aboutClicked is now " + aboutClicked)
@@ -102,114 +72,34 @@ function borderClick(msg) {
 }
 
 function initStringPositions(width, height) {
-  for(let msg of hiddenMessages) {
-    msg.startCol = Math.ceil(msg.fromLeftPercent * width);
-    msg.startRow = Math.ceil(msg.fromTopPercent * height);
-  }
-
   for(let msg of topStrings) {
     let w = (msg.message.length) / width;
     msg.startCol = Math.ceil((msg.fromLeftPercent-(w/2)) * width);
     msg.startRow = 0;
   }
-
-  for(let msg of bottomStrings) {
-    let w = (msg.message.length) / width;
-    msg.startCol = Math.ceil((msg.fromLeftPercent-(w/2)) * width);
-    msg.startRow = height-1;
-  }
-
-  for(let msg of leftStrings) {
-    let h = (msg.message.length) / height;
-    msg.startRow = Math.ceil((msg.fromTopPercent-(h/2)) * height);
-    msg.startCol = 0;
-  }
-
-  for(let msg of rightStrings) {
-    let h = (msg.message.length) / height;
-    msg.startRow = Math.ceil((msg.fromTopPercent-(h/2)) * height);
-    msg.startCol = 0;
-  }
 }
 
-function drawBorders() {
-  const oneCharacter = getCharacterDimensions();
-  let borderBox = document.getElementById("borderbox");
-  document.getElementById("borderbox").style.left = `${worldX-oneCharacter.width}px`;
-  document.getElementById("borderbox").style.top = `${worldY-oneCharacter.height}px`;
-  let width = worldWidth+columnsToAdd;
-  let height = worldHeight+rowsToAdd;
-  let numCharacters = (height)*(width);
-  let html = '';
-  let col = 0;
-  let row = 0;
-  let contextBoxColor;
 
-  initStringPositions(width, height);
-
-  for(let i=0; i<numCharacters; i++) {
-    let className;
-    contextBoxColor = hiddenColor;
-    let str = ' ';
-
-    if(i>0 && i % width == 0) {
-      html += "\n";
-      ++row;
-      col = 0;
-    }
-
-    let clickType;
-
-    if(col == 0 || row == 0 || row == height-1 || col == width-1) {
-      str = '$';
-      contextBoxColor = "white";
-      let ss;
-      className = 'border-default-text';
-      if(row == 0) {
-        ss = getSpecialString(col, row, topStrings, '$', 'border-default-text');
-      } else if(row == height-1) {
-        ss = getSpecialString(col, row, bottomStrings, '$', 'border-default-text');
-      } else if(col == 0) {
-        ss = getSpecialVerticalCharacter(row, leftStrings, '$', 'border-default-text');
-      } else if(col == width-1) {
-        ss = getSpecialVerticalCharacter(row, rightStrings, '$', 'border-default-text');
-      }
-
-      if(ss) {
-        className = ss.className;
-        str = ss.message;
-        clickType = ss.onclick;
-      }
-      
-
-
-    } else {
-      
-      contextBoxColor = hiddenColor;
-      ss = getSpecialString(col, row, hiddenMessages);
-      if(ss) {
-        className = ss.className;
-        str = ss.message;
-        clickType = ss.onclick;
-        hidden = true;
-      }
-      
-    }
-
-    if(str && str.length > 1) {
-      i+=(str.length-1);
-      col+=(str.length-1);
-    }
-
-    html += '<span ' + (className ? ('class="' + className + '" ') : '') + (clickType != null ? 'style="cursor:pointer" onclick="borderClick(\'' + clickType + '\')"' : '') + '>' + str + '</span>';
-
-    ++col;
-
-  }
-
-  borderBox.innerHTML = html;
+function getCharPlusGapWidth() {
+      const canvas = document.getElementById('cvas');
+      const context = canvas.getContext('2d');
+      context.font = window.isMobile ? '24px monospace' : '12px monospace';
+      const text = '$$$$$$$$$$';
+      // Measure the width of the entire string
+      const textWidth = context.measureText(text).width;
   
-
+      // Measure the width of each character
+      let totalCharWidth = 0;
+      for (let i = 0; i < text.length; i++) {
+        totalCharWidth += context.measureText(text[i]).width;
+      }
+  
+      // Calculate the space between characters
+      const width = (textWidth / text.length);
+      // Measure the height of the character
+      const metrics = context.measureText(text);
+      const height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+      return {width: width, height:height}
 }
 
 function getSpecialString(col, row, candidates, defCharacter=" ", defClass='hidden-character') {
@@ -234,16 +124,12 @@ function setPosition(x, y) {
   if(worldX != x || worldY != y) {
     worldX = x;
     worldY = y;
-    drawBorders();
   }
 }
 
 function setWorldDimensions(width, height) {
   worldWidth = width;
   worldHeight = height;
-}
-
-function clickLink(type) {
 }
 
 function getCharacterDimensions() {
