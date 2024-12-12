@@ -556,6 +556,7 @@ function updateDisplay(timestamp) {
           if (!mouseOverVoidling || 
               lastMouseX === null || lastMouseY === null ||  // Initial hover
               mouseX !== lastMouseX || mouseY !== lastMouseY) { // Any movement
+                console.log("yoo")
             displayInnerThoughtsv2();
           }
           mouseOverVoidling = true;
@@ -669,6 +670,8 @@ window.addEventListener('pageshow', function (event) {
     window.location.reload();
   }
 });
+
+let lastProphecyIndex = -1;
 
 function displayInnerThoughtsv2() {
   // Run one frame of animation when called
