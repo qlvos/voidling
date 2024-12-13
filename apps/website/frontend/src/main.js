@@ -18,6 +18,10 @@ const rightText = " ITS DECISIONS AND EMOTIONS ARE ITS OWN ";
 const bottomText = " A PROTO-CONSCIOUS AI CREATURE ";
 const leftText = " IT FEEDS ON PROCESSORS AND ENTROPY ";
 
+//let voidlingColors = [ '#f8f8f8', '#f8baba', '#f87c7c', '#f83e3e', '#f80000']
+
+let voidlingColors = [ '#FFFFFF', '#FFCCCC', '#FF9999', '#FF6666', '#FF3333', '#FF0000', '#CC0000', '#990000']
+
 let eventhandlercount = 0;
 
 window.isMobile = window.innerWidth <= 999;
@@ -108,6 +112,10 @@ const leftColor = '#8787ff';
 
 let rectangles = [];
 let mouseOverVoidling = false;
+
+let voidlingSteps = 0;
+let voidlingStepRaising = true;
+let voidlingMaxSteps = 100;
 
 export function getEmotion() {
   return emotion;
@@ -556,7 +564,14 @@ function updateDisplay(timestamp) {
           if (!mouseOverVoidling || 
               lastMouseX === null || lastMouseY === null ||  // Initial hover
               mouseX !== lastMouseX || mouseY !== lastMouseY) { // Any movement
-                console.log("yoo")
+            if(voidlingSteps==0) {
+              voidlingStepRaising = true;
+            } else if(voidlingSteps == voidlingMaxSteps) {
+              voidlingStepRaising = false;
+            }
+
+            voidlingStepRaising ? ++voidlingSteps : --voidlingSteps;
+
             displayInnerThoughtsv2();
           }
           mouseOverVoidling = true;
@@ -564,6 +579,7 @@ function updateDisplay(timestamp) {
           lastMouseY = mouseY;
         } else {
           if (mouseOverVoidling) { // Only if we were previously over the voidling
+            voidlingSteps = 0;
             mouseOverVoidling = false;
             lastMouseX = null;
             lastMouseY = null;
@@ -795,7 +811,10 @@ function displayInnerThoughtsv2() {
         prophecyIndex = 0;
       }
       let x = rectangle.startx + (i * cv.width);
-      context.fillStyle = "#c7bbe0";
+
+      const segmentSize = voidlingMaxSteps / voidlingColors.length;
+      let index = Math.min(Math.floor(voidlingSteps / segmentSize), voidlingColors.length - 1);
+      context.fillStyle = voidlingColors[index];
       context.fillText(prophecies[prophecyIndex], x, rectangle.starty + (cv.height / 2));
       ++prophecyIndex;
     }
