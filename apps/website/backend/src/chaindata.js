@@ -8,21 +8,17 @@ import { SERENE, AGITATED, EXCITED, CURIOUS, CAUTIOUS } from './prompts.js';
 import bent from 'bent';
 const getJSON = bent('json');
 
-const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
 const TOKEN_PRICE_URL = 'https://public-api.dextools.io/trial/v2/token/solana';
 const HELIUS_API_URL = "https://mainnet.helius-rpc.com/?api-key=" + config.VLING_HELIUS_API_KEY;
-
 const API_CALL_WAIT = 3500;
 
-const connection = new Connection('https://api.mainnet-beta.solana.com');
 const walletAddress = '5KjM3kBNii6kuNaRWr8f74PguuQ44qpxS1RKw2YKERSM';
 
 async function fetchTokenBalances(walletAddress) {
   try {
     const publicKey = new PublicKey(walletAddress);
     logger.info("getting wallet information")
-    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, { programId: TOKEN_PROGRAM_ID });
-  
+    const tokenAccounts = await getParsedTokenAccountsByOwner();
     const tokenBalances = tokenAccounts.value.map(accountInfo => {
       const tokenAmount = accountInfo.account.data.parsed.info.tokenAmount.uiAmount;
       const tokenMint = accountInfo.account.data.parsed.info.mint;
@@ -111,7 +107,7 @@ export async function getPortfolioStats() {
   if(!assets) {
     return;
   }
-  
+
   const sixHchangeAvg = assets.reduce((sum, asset) => sum + asset.priceChange6h, 0) / assets.length;
 
   let emotion;
@@ -294,3 +290,31 @@ async function getTokenDetails(token) {
   const data = await response.json();
   return { name: data.result.content.metadata.name, symbol: data.result.content.metadata.symbol }
 }
+
+async function getParsedTokenAccountsByOwner() {
+  const response = await fetch(HELIUS_API_URL, {
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      "jsonrpc": "2.0",
+      "id": 1,
+      "method": "getTokenAccountsByOwner",
+      "params": [
+        walletAddress,
+        {
+          "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "encoding": "jsonParsed"
+        }
+      ]
+    }),
+  });
+  const data = await response.json();
+  return data ? data.result : null;
+}
+
+
+
