@@ -86,7 +86,6 @@ for(const drop of drops) {
 
   setInterval(() => {
     if(drop.row >= worldHeight) {
-      drop.row = -1;
       drop.fromLeftPercent = Math.random();
     }
     ++drop.row;
