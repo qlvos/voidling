@@ -16,39 +16,74 @@ import {
 
 let drops = [
   {
-    symbol: "WIF",
+    symbol: "saylor",
     row: -1,
     fromLeftPercent: 0.1,
-    speed: 2
+    speed: 2,
+    caught: false,
+    points: 100
   },
   {
-    symbol: "WWW",
+    symbol: "sbf",
     row: -1,
     fromLeftPercent: 0.5,
-    speed: 3
+    speed: 3,
+    caught: false,
+    points: -100
+
   },
   {
-    symbol: "DOGE",
+    symbol: "ftx",
     row: -1,
+    speed: 4,
     fromLeftPercent: 0.7,
-    speed: 1
+    caught: false,
+    points: -50
   },
   {
-    symbol: "RG",
+    symbol: "elon",
     row: -1,
     fromLeftPercent: 0.8,
-    speed: 4
+    speed: 4,
+    caught: false,
+    points: 50
   },
   {
-    symbol: "PEPE",
+    symbol: "pepe",
     row: -1,
     fromLeftPercent: 0.9,
-    speed: 3
+    speed: 3,
+    caught: false,
+    points: 50
+  },
+  {
+    symbol: "bitconnect",
+    row: -1,
+    fromLeftPercent: 0.9,
+    speed: 3,
+    caught: false,
+    points: -500
+  },
+  {
+    symbol: "sol",
+    row: -1,
+    fromLeftPercent: 0.9,
+    speed: 3,
+    caught: false,
+    points: 100
   }
 ]
 
 for(const drop of drops) {
   drop.fromLeftPercent = Math.random();
+  drop.speed = Math.floor(Math.random() * 5) + 1;
+
+  let min = -15;
+  let max = -1;
+  drop.row = Math.floor(Math.random() * (max - min + 1)) + min;
+  
+  
+
   setInterval(() => {
     if(drop.row >= worldHeight) {
       drop.row = -1;
@@ -376,6 +411,8 @@ function initVoidlingConfig() {
 
 }
 
+let points = 0;
+
 function updateDisplay(timestamp) {
   if (!isRunning) return;
   if (!isTabVisible || timestamp - lastFrameTime < FRAME_INTERVAL || mouseOverVoidling) {
@@ -467,6 +504,17 @@ function updateDisplay(timestamp) {
         }
       }
 
+
+      if(row === height - 1) {
+        for(let msg of bottomStrings) {
+          if(col >= msg.startCol && col < (msg.startCol+msg.message.length)) {
+            char = msg.message[col-msg.startCol];
+            c = msg.color;
+            break;
+          }
+        }
+      }
+
       if (row === height - 1 && col >= bottomStart && col < bottomStart + bottomText.length) {
         char = bottomText[col - bottomStart];
         c = bottomColor;
@@ -480,10 +528,19 @@ function updateDisplay(timestamp) {
 
       context.fillStyle = c;
 
+      let originalChar = char;
+
       for(const drop of drops) {
         drop.col = Math.ceil((drop.fromLeftPercent) * dims.width);
-        if(drop.row > 0 && drop.row < (worldHeight-1) && drop.row == row && (col>=drop.col && col < (drop.col+drop.symbol.length))) {
+        if(!drop.caught && drop.row > 0 && drop.row < (worldHeight-1) && drop.row == row && (col>=drop.col && col < (drop.col+drop.symbol.length))) {
           char = drop.symbol[col-drop.col];
+          if(originalChar != ' ') {
+            drop.caught = true;
+            points += drop.points
+            pointString.message = ` Points: ${points} `;
+            console.log(points)
+            console.log("collision!")
+          }
         }
       }
 
