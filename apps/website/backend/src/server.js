@@ -37,6 +37,10 @@ setInterval(async () => {
   if(wss.clients.size > 0) {
     try {
       cachedChainData = await getPortfolioStats();
+      if(!cachedChainData) {
+        return;
+      }
+      
       wss.clients.forEach(async (ws) => {
         ws.send(JSON.stringify({ action: VOIDLING_DATA, ...cachedChainData }));
       });

@@ -108,6 +108,10 @@ function getMood(moodMatrix, value) {
 
 export async function getPortfolioStats() {
   let assets = await fetchTokenBalances(walletAddress);
+  if(!assets) {
+    return;
+  }
+  
   const sixHchangeAvg = assets.reduce((sum, asset) => sum + asset.priceChange6h, 0) / assets.length;
 
   let emotion;
