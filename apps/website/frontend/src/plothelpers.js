@@ -158,6 +158,7 @@ function borderClick(msg) {
     schemeCounter = (schemeCounter == (schemes.length-1)) ? 0 : ++schemeCounter;
     console.log(schemeCounter)
     scheme = schemes[schemeCounter]
+    document.body.style.backgroundColor = colorScheme.get(scheme).background;
   }
   
 }
