@@ -1,10 +1,63 @@
 
+let daemonColors = new Map();
+daemonColors.set(".", "#5f00ff");
+daemonColors.set(",", "#5f00ff");
+daemonColors.set("-", "#875fff");
+daemonColors.set("~", "#875fff");
+daemonColors.set(":", "#875fff");
+daemonColors.set(";", "#5f00ff");
+daemonColors.set("=", "#5f00ff");
+daemonColors.set("!", "#8787ff");
+daemonColors.set("*", "#8787ff");
+daemonColors.set("#", "#d75f00");
+daemonColors.set("@", "#ff8700");
+daemonColors.set("$", "#af87ff");
+
+let angelColors = new Map();
+angelColors.set(".", "#5f00af");
+angelColors.set(",", "#5f00af");
+angelColors.set("-", "#0000af");
+angelColors.set("~", "#0000af");
+angelColors.set(":", "#0000af");
+angelColors.set(";", "#0000d7");
+angelColors.set("=", "#0000d7");
+angelColors.set("!", "#0000af");
+angelColors.set("*", "#0000d7");
+angelColors.set("#", "#00d700");
+angelColors.set("@", "#00d75f");
+angelColors.set("$", "#00005f");
+
+let grayColors = new Map();
+grayColors.set(".", "#3a3a3a");
+grayColors.set(",", "#3a3a3a");
+grayColors.set("-", "#585858");
+grayColors.set("~", "#585858");
+grayColors.set(":", "#585858");
+grayColors.set(";", "#585858");
+grayColors.set("=", "#808080");
+grayColors.set("!", "#808080");
+grayColors.set("*", "#808080");
+grayColors.set("#", "#9e9e9e");
+grayColors.set("@", "#c6c6c6");
+grayColors.set("$", "#767676");
+
+let colorScheme = new Map();
+colorScheme.set("daemon", { voidling: daemonColors, background: "#17131d" });
+colorScheme.set("angel", { voidling: angelColors, background: "#f1edf8" });
+colorScheme.set("gray", { voidling: grayColors, background: "#19191a" });
+
+let scheme = "daemon";
+let schemes = ["daemon", "angel", "gray"];
+let schemeCounter = 0;
 
  let worldWidth = 0;
  let worldHeight = 0;
 
  let worldX=0;
  let worldY=0;
+
+ let tradingOnly = false;
+ let voidlingOnly = false;
 
   let riddles = [
     {
@@ -26,6 +79,9 @@ let sideOffset = 0;
 let columnsToAdd = 0;
 let rowsToAdd = 0;
 let ABOUT_CLICK = "a";
+let VOIDLING_ONLY_CLICK = "v";
+let TRADING_ONLY_CLICK = "t";
+let COLOR_CLICK = "c";
 let aboutClicked = false;
 
 function isAboutClicked() {
@@ -43,8 +99,27 @@ let topStrings = [
     message: " ABOUT ",
     color: "#ff8700",
     onclick: ABOUT_CLICK
+  },
+  {
+    fromLeftPercent: 0.2,
+    message: " V ",
+    color: "#ff8700",
+    onclick: VOIDLING_ONLY_CLICK
+  },
+  {
+    fromLeftPercent: 0.3,
+    message: " % ",
+    color: "#ff8700",
+    onclick: TRADING_ONLY_CLICK
+  },
+  {
+    fromLeftPercent: 0.9,
+    message: " C ",
+    color: "#ff8700",
+    onclick: COLOR_CLICK
   }
 ]
+
 
 
 let hiddenColor = '#252525';
@@ -67,6 +142,22 @@ function borderClick(msg) {
 
     console.log("aboutClicked is now " + aboutClicked)
     // set visibility to some other div to TRUE !
+  } else if(msg == VOIDLING_ONLY_CLICK) {
+    voidlingOnly = !voidlingOnly;
+    voidlingOnly ? document.getElementById("portfoliobox").style.visibility = "hidden" : document.getElementById("portfoliobox").style.visibility = "visible";
+    voidlingOnly ? document.getElementById("voidlingbox").style.visibility = "hidden" : document.getElementById("voidlingbox").style.visibility = "visible";
+   
+  } else if(msg == TRADING_ONLY_CLICK) {
+    tradingOnly = !tradingOnly;
+    if(tradingOnly) {
+      document.getElementById("portfoliobox").style.visibility = "visible";
+      document.getElementById("voidlingbox").style.visibility = "visible";
+    }
+    console.log(tradingOnly)
+  } else if(msg == COLOR_CLICK) {
+    schemeCounter = (schemeCounter == (schemes.length-1)) ? 0 : ++schemeCounter;
+    console.log(schemeCounter)
+    scheme = schemes[schemeCounter]
   }
   
 }

@@ -91,21 +91,6 @@ let assetBoxHover = false;
 const dims = calculateDimensions();
 setDimensions(dims.width, dims.height);
 
-let colors = new Map();
-
-colors.set(".", "#5f00ff");
-colors.set(",", "#5f00ff");
-colors.set("-", "#875fff");
-colors.set("~", "#875fff");
-colors.set(":", "#875fff");
-colors.set(";", "#5f00ff");
-colors.set("=", "#5f00ff");
-colors.set("!", "#8787ff");
-colors.set("*", "#8787ff");
-colors.set("#", "#d75f00");
-colors.set("@", "#ff8700");
-colors.set("$", "#af87ff");
-
 const rightColor = '#875fff';
 const bottomColor = '#ff8700';
 const leftColor = '#8787ff';
@@ -418,6 +403,9 @@ function updateDisplay(timestamp) {
     // Scale context based on device pixel ratio
     context.scale(dpr, dpr);
     context.clearRect(0, 0, cvs.offsetWidth, cvs.offsetHeight);
+    //context.fillStyle = '#f1edf8';
+    //context.fillRect(0, 0, cvs.offsetWidth, cvs.offsetHeight);
+
     const font = window.isMobile ? '24px monospace' : '12px monospace';
 
     // Set the font
@@ -443,7 +431,11 @@ function updateDisplay(timestamp) {
     let row = 0;
     for (let i = 0; i < bufferPtr.length; i++) {
       let char = bufferPtr[i];
-      let c = colors.get(char);
+      let c = colorScheme.get(scheme).voidling.get(char);
+
+      if((row === 0) || (row === (height - 1)) || (col === 0) || (col === (dims.width - 1))) {
+        c = "#af87ff";
+      }
 
       if(row === 0) {
         for(let msg of topStrings) {
@@ -480,7 +472,10 @@ function updateDisplay(timestamp) {
         }
 
         // Keep the original positioning for consistency with rectangle tracking
-        context.fillText(char, (currentX * cv.width), currentY);
+        if(!(tradingOnly && isVoidlingCharacter(char))) {
+          context.fillText(char, (currentX * cv.width), currentY);
+        }
+        
       }
       currentX++;
       ++col;
@@ -502,9 +497,6 @@ function updateDisplay(timestamp) {
     function setWorldDimensions(width, height) {
       worldWidth = width;
       worldHeight = height;
-      console.log('World dimensions set to:', width, height);
-      console.log('Canvas size:', document.getElementById('cvas').offsetWidth, document.getElementById('cvas').offsetHeight);
-      console.log('Character dimensions:', getCharacterDimensions());
     }
 
     if (!isDisplayInitialized) {
@@ -602,7 +594,7 @@ function updateDisplay(timestamp) {
 };
 
 function isVoidlingCharacter(char) {
-  return colors.has(char) && char != '$';
+  return colorScheme.get(scheme).voidling.has(char) && char != '$';
 }
 
 function isMouseOverRect(mouseX, mouseY, rect) {
@@ -743,7 +735,11 @@ function displayInnerThoughtsv2() {
   for (let i = 0; i < bufferPtr.length; i++) {
     let isBorder = (row === 0) || (row === (height - 1)) || (col === 0) || (col === (dims.width - 1));
     let char = bufferPtr[i];
-    let c = colors.get(char);
+    let c = colorScheme.get(scheme).voidling.get(char);
+
+    if((row === 0) || (row === (height - 1)) || (col === 0) || (col === (dims.width - 1))) {
+      c = "#af87ff";
+    }
 
     if(row === 0) {
       for(let msg of topStrings) {
