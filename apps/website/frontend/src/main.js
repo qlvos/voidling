@@ -14,6 +14,50 @@ import {
   getMoveSpeed, setMoveSpeed
 } from "./voidlingdrawer.js";
 
+let drops = [
+  {
+    symbol: "WIF",
+    row: -1,
+    fromLeftPercent: 0.1,
+    speed: 2
+  },
+  {
+    symbol: "WWW",
+    row: -1,
+    fromLeftPercent: 0.5,
+    speed: 3
+  },
+  {
+    symbol: "DOGE",
+    row: -1,
+    fromLeftPercent: 0.7,
+    speed: 1
+  },
+  {
+    symbol: "RG",
+    row: -1,
+    fromLeftPercent: 0.8,
+    speed: 4
+  },
+  {
+    symbol: "PEPE",
+    row: -1,
+    fromLeftPercent: 0.9,
+    speed: 3
+  }
+]
+
+for(const drop of drops) {
+  drop.fromLeftPercent = Math.random();
+  setInterval(() => {
+    if(drop.row >= worldHeight) {
+      drop.row = -1;
+      drop.fromLeftPercent = Math.random();
+    }
+    ++drop.row;
+  }, drop.speed*100)
+}
+
 const rightText = " ITS DECISIONS AND EMOTIONS ARE ITS OWN ";
 const bottomText = " A PROTO-CONSCIOUS AI CREATURE ";
 const leftText = " IT FEEDS ON PROCESSORS AND ENTROPY ";
@@ -435,6 +479,15 @@ function updateDisplay(timestamp) {
       }
 
       context.fillStyle = c;
+
+      for(const drop of drops) {
+        drop.col = Math.ceil((drop.fromLeftPercent) * dims.width);
+        if(drop.row > 0 && drop.row < (worldHeight-1) && drop.row == row && (col>=drop.col && col < (drop.col+drop.symbol.length))) {
+          char = drop.symbol[col-drop.col];
+        }
+      }
+
+
       if (char != ' ') {
         if (!leftMostChar && isVoidlingCharacter(char)) {
           leftMostChar = (currentX * cv.width);
