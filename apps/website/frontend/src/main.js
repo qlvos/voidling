@@ -5,7 +5,7 @@ import { voidlingConfigCautious } from "./voidling-config-cautious.js";
 import { voidlingConfigCurious } from "./voidling-config-curious.js";
 import { voidlingConfigExcited } from "./voidling-config-excited.js";
 import { voidlingConfigVanilla } from "./voidling-config-mob.js";
-import { prophecies1, prophecies2, prophecies3, prophecies4, prophecies5, prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11 } from "./prophecies.js";
+import { specialProphecies1, prophecies1, prophecies2, prophecies3, prophecies4, prophecies5, prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11 } from "./prophecies.js";
 import {
   initializeTrigCache, animationFrame, initVoidlingWithConfig, setDeformFreq, setDeformPhase, setCurrentTime, setTargetX, setTargetY, setMovementX, setMovementY, setRotX, setRotY, setRotZ, getHorizontalPersistenceTimer, getStuckCounter, getBehaviorTimer, getCurrentBehavior, getCurrentTime, getLastTargetX,
   getLastTargetY, getRotationSpeed, getTargetRotX, getTargetRotY, getTargetRotZ, getRotX, getRotY,
@@ -87,6 +87,7 @@ const MEMORY_THRESHOLD_MB = 200;
 const MEMORY_CHECK_INTERVAL = 2000;
 
 let assetBoxHover = false;
+let hoverCycles = 1;
 
 const dims = calculateDimensions();
 setDimensions(dims.width, dims.height);
@@ -559,6 +560,7 @@ function updateDisplay(timestamp) {
             if(voidlingSteps==0) {
               voidlingStepRaising = true;
             } else if(voidlingSteps == voidlingMaxSteps) {
+              ++hoverCycles;
               voidlingStepRaising = false;
             }
 
@@ -693,7 +695,8 @@ function displayInnerThoughtsv2() {
   
   let randomIndex = Math.floor(Math.random() * prophecyTexts.length);
   lastProphecyIndex = randomIndex;
-  let prophecies = prophecyTexts[randomIndex];
+
+  let prophecies = (hoverCycles % 2 == 0) ? specialProphecies1 : prophecyTexts[randomIndex];
 
   let cvs = document.getElementById('cvas');
   let context = cvs.getContext('2d');
@@ -799,6 +802,7 @@ function displayInnerThoughtsv2() {
 
   // Second pass: draw prophecies over the new rectangles
   let prophecyIndex = 0;
+  let voidlingColors = colorScheme.get(scheme).hoverColors;
   for (const rectangle of rectangles) {
     let w = rectangle.endx - rectangle.startx;
     let numchars = Math.ceil(w / cv.width);
@@ -811,6 +815,7 @@ function displayInnerThoughtsv2() {
       const segmentSize = voidlingMaxSteps / voidlingColors.length;
       let index = Math.min(Math.floor(voidlingSteps / segmentSize), voidlingColors.length - 1);
       context.fillStyle = voidlingColors[index];
+
       context.fillText(prophecies[prophecyIndex], x, rectangle.starty + (cv.height / 2));
       ++prophecyIndex;
     }

@@ -42,9 +42,12 @@ grayColors.set("@", "#c6c6c6");
 grayColors.set("$", "#767676");
 
 let colorScheme = new Map();
-colorScheme.set("daemon", { voidling: daemonColors, background: "#17131d" });
-colorScheme.set("angel", { voidling: angelColors, background: "#f1edf8" });
-colorScheme.set("gray", { voidling: grayColors, background: "#19191a" });
+
+let hoverColors = [ '#FFFFFF', '#FFCCCC', '#FF9999', '#FF6666', '#FF3333', '#FF0000', '#CC0000', '#990000']
+
+colorScheme.set("daemon", { voidling: daemonColors, hoverColors: hoverColors, background: "#17131d" });
+colorScheme.set("angel",  { voidling: angelColors, hoverColors: hoverColors, background: "#f1edf8" });
+colorScheme.set("gray",   { voidling: grayColors, hoverColors: hoverColors, background: "#19191a" });
 
 let scheme = "daemon";
 let schemes = ["daemon", "angel", "gray"];
@@ -156,7 +159,6 @@ function borderClick(msg) {
     console.log(tradingOnly)
   } else if(msg == COLOR_CLICK) {
     schemeCounter = (schemeCounter == (schemes.length-1)) ? 0 : ++schemeCounter;
-    console.log(schemeCounter)
     scheme = schemes[schemeCounter]
     document.body.style.backgroundColor = colorScheme.get(scheme).background;
   }
