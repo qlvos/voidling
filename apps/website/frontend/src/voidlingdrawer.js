@@ -6,7 +6,7 @@ let g_min_x_move = window.isMobile ? 10 : 50;
 let g_max_x_move = window.isMobile ? 80 : 150;
 let g_min_y_move = window.isMobile ? 37 : 27;
 let g_max_y_move = window.isMobile ? 71 : 41;
-const MIN_BASE_RADIUS = 1;
+const MIN_BASE_RADIUS = 5;
 const MAX_BASE_RADIUS = 20;
 
 class VoidlingConfig {
@@ -830,6 +830,10 @@ export function animationFrame() {
     return;
   }
 
+  let radius = config.baseRadius;
+  let tx = targetX;
+  let ty = targetY;
+
   frameCounter++;
   currentTime += config.timeSpeed;
 
@@ -855,8 +859,6 @@ export function animationFrame() {
     buffer[g_width - 1 + y * g_width] = '$';
   }
   
-
-
   behaviorTimer++;
   if (behaviorTimer >= config.behaviorChangeTime) {
     behaviorTimer = 0;
@@ -890,7 +892,7 @@ export function animationFrame() {
     updateRotationTargets();
   }
 
-  if (distance(movementX, movementY, targetX, targetY) < 2.0) {
+  if (distance(movementX, movementY, tx, ty) < 2.0) {
     stuckCounter++;
   } else {
     stuckCounter = 0;
@@ -899,19 +901,22 @@ export function animationFrame() {
   updateMovementTargets();
   updateRotationTargets();
   
-  movementX = lerp(movementX, targetX, config.moveSpeed * config.xBias * (window.isMobile ? 0.7 : 0.3));
-  movementY = lerp(movementY, targetY, config.moveSpeed * config.yBias);
-  enforceObjectBounds(movementX, movementY, config.baseRadius, g_width, g_height);
+  movementX = lerp(movementX, tx, config.moveSpeed * config.xBias * (window.isMobile ? 0.7 : 0.3));
+  movementY = lerp(movementY, ty, config.moveSpeed * config.yBias);
+  enforceObjectBounds(movementX, movementY, radius, g_width, g_height);
+
+  tx = targetX;
+  ty = targetY;
   
-  if (movementX <= config.baseRadius * 1.5 || 
-      movementX >= g_width - config.baseRadius * 1.5 || 
-      movementY <= config.baseRadius * 1.5 || 
-      movementY >= g_height - config.baseRadius * 1.5) {
+  if (movementX <= radius * 1.5 || 
+      movementX >= g_width - radius * 1.5 || 
+      movementY <= radius * 1.5 || 
+      movementY >= g_height - radius * 1.5) {
     
-    const squishX = calculateBorderSquish(movementX, 0, config.baseRadius) * 
-                    calculateBorderSquish(movementX, g_width, config.baseRadius);
-    const squishY = calculateBorderSquish(movementY, 0, config.baseRadius) * 
-                    calculateBorderSquish(movementY, g_height, config.baseRadius);
+    const squishX = calculateBorderSquish(movementX, 0, radius) * 
+                    calculateBorderSquish(movementX, g_width, radius);
+    const squishY = calculateBorderSquish(movementY, 0, radius) * 
+                    calculateBorderSquish(movementY, g_height, radius);
     
     if (squishX < 0.5 || squishY < 0.5) {
       squishCounter++;
@@ -940,17 +945,17 @@ export function animationFrame() {
   }
   currentHistoryIndex = (currentHistoryIndex + 1) % MAX_HISTORY_LENGTH;
   
-  const squishX = calculateBorderSquish(movementX, 0, config.baseRadius) * 
-                  calculateBorderSquish(movementX, g_width, config.baseRadius) * 
+  const squishX = calculateBorderSquish(movementX, 0, radius) * 
+                  calculateBorderSquish(movementX, g_width, radius) * 
                   config.aspectRatio;
-  const squishY = calculateBorderSquish(movementY, 0, config.baseRadius) * 
-                  calculateBorderSquish(movementY, g_height, config.baseRadius) * 
+  const squishY = calculateBorderSquish(movementY, 0, radius) * 
+                  calculateBorderSquish(movementY, g_height, radius) * 
                   config.aspectRatio;
   
   let volumeCompensation = 1.0 / (squishX * squishY);
   volumeCompensation = Math.max(1.0, Math.min(1.5, volumeCompensation));
   
-  const effectiveRadius = calculateEffectiveRadius(config.baseRadius, volumeCompensation, config.baseDeformStrength);
+  const effectiveRadius = calculateEffectiveRadius(radius, volumeCompensation, config.baseDeformStrength);
   const borderDistance = getDistanceToBorder(movementX, movementY, effectiveRadius, g_width, g_height);
   
   if (borderDistance < BORDER_PROXIMITY_THRESHOLD && stuckCounter > 200) {
@@ -998,14 +1003,14 @@ export function animationFrame() {
       let borderDeform = 0;
       const borderProximityX = Math.min(movementX, g_width - movementX);
       const borderProximityY = Math.min(movementY, g_height - movementY);
-      borderDeform = (1.0 - (Math.min(borderProximityX, borderProximityY) / (config.baseRadius * 7))) * config.baseDeformStrength;
+      borderDeform = (1.0 - (Math.min(borderProximityX, borderProximityY) / (radius * 7))) * config.baseDeformStrength;
       borderDeform = Math.max(borderDeform, 0.0);
   
-      if (borderProximityX < config.baseRadius) {
-        borderDeform += (1.0 - (borderProximityX / config.baseRadius)) * config.baseDeformStrength;
+      if (borderProximityX < radius) {
+        borderDeform += (1.0 - (borderProximityX / radius)) * config.baseDeformStrength;
       }
-      if (borderProximityY < config.baseRadius) {
-        borderDeform += (1.0 - (borderProximityY / config.baseRadius)) * config.baseDeformStrength;
+      if (borderProximityY < radius) {
+        borderDeform += (1.0 - (borderProximityY / radius)) * config.baseDeformStrength;
       }
   
       for (let i = 0; i < config.deformComplexity; i++) {
@@ -1018,11 +1023,10 @@ export function animationFrame() {
       deformation += dripEffect * config.extraDeformStrength;
       deformation += borderDeform * config.baseDeformStrength * 3.5;
   
-      const r = config.baseRadius + deformation;
-  
+      const r = radius + deformation;
+      
       for (let dr = 0; dr <= r; dr += 0.3) {
-        const relativeDepth = dr / r;
-  
+        const relativeDepth = dr / r; 
         let x = dr * cachedSin[thetaIndex] * cachedCos[phiIndex] * squishX;
         let y = dr * cachedSin[thetaIndex] * cachedSin[phiIndex] * config.aspectRatio * 1.8 * squishY;
         let z = dr * cachedCos[thetaIndex] * (1.0 + (volumeCompensation - 1.0) * 0.7);
@@ -1068,7 +1072,7 @@ export function animationFrame() {
           let illumination = (normal_x * light_x + normal_y * light_y + normal_z * light_z);
           illumination = (illumination + 1) * 0.5;
   
-          const depthFactor = (z + config.baseRadius) / (2 * config.baseRadius);
+          const depthFactor = (z + radius) / (2 * radius);
           illumination = illumination * 0.6 + 0.5;
   
           const interiorBrightness = 1.0 - relativeDepth * 0.2;
