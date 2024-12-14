@@ -6,6 +6,8 @@ let g_min_x_move = window.isMobile ? 10 : 50;
 let g_max_x_move = window.isMobile ? 80 : 150;
 let g_min_y_move = window.isMobile ? 37 : 27;
 let g_max_y_move = window.isMobile ? 71 : 41;
+const MIN_BASE_RADIUS = 1;
+const MAX_BASE_RADIUS = 20;
 
 class VoidlingConfig {
   constructor() {
@@ -453,16 +455,27 @@ export function getBufferSize() {
   return g_width * g_height;
 }
 
-function setBaseRadius(value) {
+export function setBaseRadius(value) {
+  if(value < MIN_BASE_RADIUS || value > MAX_BASE_RADIUS) {
+    return;
+  }
   config.baseRadius = value;
+}
+
+export function getBaseRadius() {
+  return config.baseRadius;
 }
 
 function setAspectRatio(value) {
   config.aspectRatio = value;
 }
 
-function setMoveSpeed(value) {
+export function setMoveSpeed(value) {
   config.moveSpeed = value;
+}
+
+export function getMoveSpeed() {
+  return config.moveSpeed;
 }
 
 function setMoveChangeFrequency(value) {

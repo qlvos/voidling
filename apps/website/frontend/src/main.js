@@ -10,24 +10,18 @@ import {
   initializeTrigCache, animationFrame, initVoidlingWithConfig, setDeformFreq, setDeformPhase, setCurrentTime, setTargetX, setTargetY, setMovementX, setMovementY, setRotX, setRotY, setRotZ, getHorizontalPersistenceTimer, getStuckCounter, getBehaviorTimer, getCurrentBehavior, getCurrentTime, getLastTargetX,
   getLastTargetY, getRotationSpeed, getTargetRotX, getTargetRotY, getTargetRotZ, getRotX, getRotY,
   getRotZ, getTargetX, getTargetY, getMovementX, getMovementY, setDimensions, getDeformComplexity,
-  getDeformFreq, cleanup, getBuffer, getBufferSize, getDeformPhase,
-  setCurrentBehavior
+  getDeformFreq, cleanup, getBuffer, getDeformPhase, setCurrentBehavior, getBaseRadius, setBaseRadius,
+  getMoveSpeed, setMoveSpeed
 } from "./voidlingdrawer.js";
 
 const rightText = " ITS DECISIONS AND EMOTIONS ARE ITS OWN ";
 const bottomText = " A PROTO-CONSCIOUS AI CREATURE ";
 const leftText = " IT FEEDS ON PROCESSORS AND ENTROPY ";
 
-//let voidlingColors = [ '#f8f8f8', '#f8baba', '#f87c7c', '#f83e3e', '#f80000']
-
-let voidlingColors = [ '#FFFFFF', '#FFCCCC', '#FF9999', '#FF6666', '#FF3333', '#FF0000', '#CC0000', '#990000']
-
-let eventhandlercount = 0;
-
 window.isMobile = window.innerWidth <= 999;
 let lastMobileState = window.isMobile;
-
 let moduleInitialized = false;
+let cfg;
 
 export function getModuleInitialized() {
   return moduleInitialized;
@@ -110,26 +104,6 @@ export function getEmotion() {
 export function setEmotion(em) {
   emotion = em;
 }
-
-function manageMouseOver(box) {
-  const rect = box.getBoundingClientRect();
-  const x = event.clientX;
-  const y = event.clientY;
-  if (x > rect.left && x < (rect.left + rect.width) && y > rect.top && y < (rect.top + rect.height)) {
-    let pbox = document.getElementById("portfoliobox");
-    assetBoxHover = true;
-    pbox.style.zIndex = '10';
-    return true;
-  } else {
-    if (assetBoxHover) {
-      let pbox = document.getElementById("portfoliobox");
-      pbox.style.zIndex = '0';
-      assetBoxHover = false;
-    }
-  }
-}
-
-++eventhandlercount;
 
 // Global variables
 let lastMemoryCheck = 0;
@@ -298,10 +272,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setWorldDimensions(dims.width, dims.height);
 });
 
-++eventhandlercount;
 window.addEventListener('resize', onResize);
 
-++eventhandlercount;
 document.addEventListener('DOMContentLoaded', function () {
   checkMobile();
   updateVoidlingSize();
@@ -310,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function initVoidlingConfig() {
-  let cfg = voidlingConfigSerene;
+  cfg = voidlingConfigSerene;
   if (emotion) {
     if (emotion == "EXCITED") {
       cfg = voidlingConfigExcited;
@@ -536,6 +508,19 @@ function updateDisplay(timestamp) {
       canvas.addEventListener('mousemove', (event) => {
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
+
+
+        let x = getMovementX();
+
+        //console.log(mouseX + " " + x)
+        //console.log(getMovementX())
+
+        let left = x > mouseX;
+        //console.log(left)
+        let t = left ? x+25 : x-25;
+        console.log(t)
+        //setTargetX(t);
+
         let isPointer = false;
         for(const msg of topStrings) {
           if(msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box)) {
@@ -573,7 +558,6 @@ function updateDisplay(timestamp) {
           lastMouseY = mouseY;
         } else {
           if (mouseOverVoidling) { // Only if we were previously over the voidling
-            voidlingSteps = 0;
             mouseOverVoidling = false;
             lastMouseX = null;
             lastMouseY = null;
@@ -656,12 +640,11 @@ function onVisibilityChange() {
     }
   }
 }
-++eventhandlercount;
+
 document.addEventListener('visibilitychange', onVisibilityChange);
 
 function onError(e) { }
 
-++eventhandlercount;
 window.addEventListener('pagehide', function () {
   isRunning = false;
 
@@ -673,7 +656,7 @@ window.addEventListener('pagehide', function () {
 
   //console.log('Page unloaded: all resources released.');
 });
-++eventhandlercount;
+
 window.addEventListener('pageshow', function (event) {
   if (event.persisted) {
     //console.log('Page was restored from bfcache');
@@ -821,3 +804,51 @@ function displayInnerThoughtsv2() {
     }
   }
 }
+
+let rightProgression = false;
+let leftProgression = false;
+let radiusStepSize = 0.2;
+
+document.addEventListener('wheel', (event) => {
+  if (event.deltaY < 0) {
+    console.log("yo")
+    let newRadius = getBaseRadius()+radiusStepSize*5;
+    setBaseRadius(newRadius);
+    cfg.baseRadius = newRadius;
+  } else if (event.deltaY > 0) {
+    console.log("yi")
+    let newRadius = getBaseRadius()-radiusStepSize*5;
+    setBaseRadius(newRadius);
+    cfg.baseRadius = newRadius;
+  }
+});
+
+
+document.addEventListener('keydown', (event) => {
+  let stepSize = 10;
+  let firstMultiplier = 15.5;
+  if (event.key === 'ArrowRight') {
+    stepSize = rightProgression ? stepSize : firstMultiplier * 2;
+    setTargetX(getTargetX()+stepSize);
+    rightProgression = true;
+    leftProgression = false;
+  } else if (event.key === 'ArrowLeft') {
+    stepSize = leftProgression ? stepSize : firstMultiplier * 2;
+    setTargetX(getTargetX()-stepSize);   
+    rightProgression = false;
+    leftProgression = true;
+  } else if (event.key === 'ArrowDown') {
+    let t = getTargetY()+stepSize;
+    setTargetY(t);
+  } else if (event.key === 'ArrowUp') {
+    setTargetY(getTargetY()-stepSize);
+  } else if (event.key === '+') {
+    let newRadius = getBaseRadius()+radiusStepSize;
+    setBaseRadius(newRadius);
+    cfg.baseRadius = newRadius;
+  } else if (event.key === '-') {
+    let newRadius = getBaseRadius()-radiusStepSize;
+    setBaseRadius(newRadius);
+    cfg.baseRadius = newRadius;
+  }
+});

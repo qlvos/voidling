@@ -62,20 +62,6 @@ let schemeCounter = 0;
  let tradingOnly = false;
  let voidlingOnly = false;
 
-  let riddles = [
-    {
-      startPosition: 0,
-      prevPlotted: null,
-      message: ["a", "b", "c", "d"]
-    },
-    {
-      startPosition: 10,
-      row: "b",
-      prevPlotted: null,
-      message: ["x", "y", "z", "u"]
-    },
-
-];
 
 let topOffset = 0;
 let sideOffset = 0;
@@ -99,7 +85,7 @@ let topStrings = [
   },
   {
     fromLeftPercent: 0.1,
-    message: " ABOUT ",
+    message: " ? ",
     color: "#ff8700",
     onclick: ABOUT_CLICK
   },
@@ -245,40 +231,3 @@ function getCharacterDimensions() {
 
   return { width, height };
 }
-
-
-// needed: bottomrow yes/no ! 
-    
-  function mouseOverCharacter(position) {
-    return;
-    //console.log(`${position} ${prevPlotted}`)
-
-
-    const row = Math.floor(position / worldWidth);
-    if(row === worldHeight - 1) {
-      console.log("bottom!")
-    }
-
-    for(const riddle of riddles) {
-      if((position >= riddle.startPosition && position < (riddle.startPosition+riddle.message.length)) && position != riddle.prevPlotted) {
-        if(position == riddle.startPosition || riddle.prevPlotted == position-1) {
-          console.log(riddle.message.slice(0, (position-riddle.startPosition)+1).join(''));
-          if(riddle.row && riddle.row == "b") {
-            console.log("a:" + ((worldWidth*worldHeight)-position))
-            console.log("width: " + worldWidth + ", height: " + worldHeight)
-            let p = ((worldWidth*worldHeight)-position);
-            console.log("position to fetch! " + p)
-            // CHECK IF THIS IS FETCHING WHAT IT SHOULD!
-            document.getElementById(p).innerHTML("----------")
-          }
-          riddle.prevPlotted = position;
-        } else {
-          riddle.prevPlotted = null;
-        }
-      } 
-    }
-
-    console.log(position)
-
-  
-  }
