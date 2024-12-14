@@ -511,14 +511,8 @@ function updateDisplay(timestamp) {
 
 
         let x = getMovementX();
-
-        //console.log(mouseX + " " + x)
-        //console.log(getMovementX())
-
         let left = x > mouseX;
-        //console.log(left)
         let t = left ? x+25 : x-25;
-        console.log(t)
         //setTargetX(t);
 
         let isPointer = false;
@@ -811,12 +805,10 @@ let radiusStepSize = 0.2;
 
 document.addEventListener('wheel', (event) => {
   if (event.deltaY < 0) {
-    console.log("yo")
     let newRadius = getBaseRadius()+radiusStepSize*5;
     setBaseRadius(newRadius);
     cfg.baseRadius = newRadius;
   } else if (event.deltaY > 0) {
-    console.log("yi")
     let newRadius = getBaseRadius()-radiusStepSize*5;
     setBaseRadius(newRadius);
     cfg.baseRadius = newRadius;

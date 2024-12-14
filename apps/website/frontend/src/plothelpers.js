@@ -129,7 +129,6 @@ function borderClick(msg) {
     aboutClicked ? document.getElementById("abouttext").style.visibility = "visible" : document.getElementById("abouttext").style.visibility = "hidden";
     aboutClicked ? document.getElementById("voidlingscontainer").style.visibility = "visible" : document.getElementById("voidlingscontainer").style.visibility = "hidden";
 
-    console.log("aboutClicked is now " + aboutClicked)
     // set visibility to some other div to TRUE !
   } else if(msg == VOIDLING_ONLY_CLICK) {
     voidlingOnly = !voidlingOnly;
@@ -142,7 +141,6 @@ function borderClick(msg) {
       document.getElementById("portfoliobox").style.visibility = "visible";
       document.getElementById("voidlingbox").style.visibility = "visible";
     }
-    console.log(tradingOnly)
   } else if(msg == COLOR_CLICK) {
     schemeCounter = (schemeCounter == (schemes.length-1)) ? 0 : ++schemeCounter;
     scheme = schemes[schemeCounter]
