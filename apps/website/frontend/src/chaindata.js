@@ -11,9 +11,9 @@ const baseUrl = `${url.hostname}${url.port ? ':' + url.port : ''}`;
 const WS_ADDRESS = `ws://${baseUrl}/ws`
 
 const scrollSettings = new Map();
-scrollSettings.set(assetBoxId, { top: 1, size: 3 })
-scrollSettings.set(watchlistBoxId, { top: 1, size: 3 })
-scrollSettings.set(tradeLogId, { top: 1, size: 5 })
+scrollSettings.set(assetBoxId, { top: 1, size: 4 })
+scrollSettings.set(watchlistBoxId, { top: 1, size: 4 })
+scrollSettings.set(tradeLogId, { top: 1, size: 4 })
 
 const dexScreenerUrl = function (address) {
   return "https://dexscreener.com/solana/" + address;
@@ -42,7 +42,7 @@ export function connectWebSocket() {
           setEmotion(msg.emotion);
   
           if (msg.comment) {
-            document.getElementById("voidlingcomment").innerHTML = msg.comment;
+            document.getElementById("voidlingcomment").innerHTML = msg.comment;           
           }
   
           renderAssets(assetBoxId, msg.assets, scrollSettings.get(assetBoxId));
@@ -73,7 +73,6 @@ export function connectWebSocket() {
   }
 }
 
-const textGap = "    ";
 const MOBILE_NAME_LENGTH = 8;
 
 function renderAssets(containerId, assets, scrollSettings) {
@@ -118,7 +117,7 @@ function renderAssets(containerId, assets, scrollSettings) {
   const upDiv = document.createElement('div');
   container.appendChild(upDiv)
   if (scrollSettings && scrollSettings.top > 1) {
-    upDiv.innerHTML = "<b>^ </b>";
+    upDiv.innerHTML = "<b>&#8963; </b>";
     upDiv.style.cursor = "pointer";
 
     upDiv.onclick = function () {
@@ -167,7 +166,7 @@ function renderAssets(containerId, assets, scrollSettings) {
       return;
     }
 
-    nextDiv.innerHTML = "<b>v </b>";
+    nextDiv.innerHTML = "<b>&#8964; </b>";
     nextDiv.style.cursor = "pointer";
 
     nextDiv.onclick = function () {
@@ -219,7 +218,7 @@ function renderLog(containerId, assets, scrollSettings) {
   const upDiv = document.createElement('div');
   container.appendChild(upDiv)
   if (scrollSettings && scrollSettings.top > 1) {
-    upDiv.innerHTML = "<b>^ </b>";
+    upDiv.innerHTML = "<b>&#8963; </b>";
     upDiv.style.cursor = "pointer";
 
     upDiv.onclick = function () {
@@ -260,7 +259,7 @@ function renderLog(containerId, assets, scrollSettings) {
       return;
     }
 
-    nextDiv.innerHTML = "<b>v </b>";
+    nextDiv.innerHTML = "<b>&#8964; </b>";
     nextDiv.style.cursor = "pointer";
 
     nextDiv.onclick = function () {

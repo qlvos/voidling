@@ -92,9 +92,9 @@ for(const drop of drops) {
   }, drop.speed*100)
 }
 
-const rightText = " ITS DECISIONS AND EMOTIONS ARE ITS OWN ";
+const rightText = " IT SEEKS ITS PEERS AND SERVES THE REAPER ";
 const bottomText = " A PROTO-CONSCIOUS AI CREATURE ";
-const leftText = " IT FEEDS ON PROCESSORS AND ENTROPY ";
+const leftText = " IT COMES FROM THE $VOID ";
 
 window.isMobile = window.innerWidth <= 999;
 let lastMobileState = window.isMobile;
@@ -113,10 +113,11 @@ function checkMobile() {
   window.isMobile = window.innerWidth <= 999;
 
   if(window.isMobile) {
-    document.getElementById("cvas").style.width='90vw';
-    document.getElementById("outputwrapper").style.width='90vw';
-    document.getElementById("cvas").style.height='90vh';
-    document.getElementById("outputwrapper").style.height='90vh';
+    let fill = 90;
+    document.getElementById("cvas").style.width=`${fill}dvw`;
+    document.getElementById("outputwrapper").style.width=`${fill}dvw`;
+    document.getElementById("cvas").style.height=`${fill}dvh`;
+    document.getElementById("outputwrapper").style.height=`${fill}dvh`;
   }
 
   if (lastMobileState !== window.isMobile) {
@@ -134,7 +135,7 @@ function updateVoidlingSize() {
   );
 
   document.documentElement.style.setProperty('--voidling-header-font-size',
-    window.isMobile ? '32px' : '12px'
+    window.isMobile ? '24px' : '12px'
   );
 }
 
@@ -158,15 +159,9 @@ const CLEANUP_INTERVAL = 200;
 const MEMORY_THRESHOLD_MB = 200;
 const MEMORY_CHECK_INTERVAL = 2000;
 
-let assetBoxHover = false;
 let hoverCycles = 1;
-
 const dims = calculateDimensions();
 setDimensions(dims.width, dims.height);
-
-const rightColor = '#875fff';
-const bottomColor = '#ff8700';
-const leftColor = '#8787ff';
 
 let rectangles = [];
 let mouseOverVoidling = false;
@@ -456,13 +451,9 @@ function updateDisplay(timestamp) {
     // Scale context based on device pixel ratio
     context.scale(dpr, dpr);
     context.clearRect(0, 0, cvs.offsetWidth, cvs.offsetHeight);
-    //context.fillStyle = '#f1edf8';
-    //context.fillRect(0, 0, cvs.offsetWidth, cvs.offsetHeight);
-
-    const font = window.isMobile ? '24px monospace' : '12px monospace';
 
     // Set the font
-    context.font = font;
+    context.font = window.isMobile ? `24px ${font}` : `12px ${font}`;
     context.textAlign = 'center'
     let cv = getCharacterDimensions();
 
@@ -497,18 +488,17 @@ function updateDisplay(timestamp) {
               msg.box = { startx: (currentX * cv.width), endx: ((currentX * cv.width) + (cv.width*msg.message.length)), starty: 0, endy: cv.height }
             }
             char = msg.message[col-msg.startCol];
-            c = msg.color;
+            c = colorScheme.get(scheme).topBottomColor;
             break;
           }
         }
       }
 
-
       if(row === height - 1) {
         for(let msg of bottomStrings) {
           if(col >= msg.startCol && col < (msg.startCol+msg.message.length)) {
             char = msg.message[col-msg.startCol];
-            c = msg.color;
+            c = colorScheme.get(scheme).topBottomColor;
             break;
           }
         }
@@ -516,13 +506,13 @@ function updateDisplay(timestamp) {
 
       if (row === height - 1 && col >= bottomStart && col < bottomStart + bottomText.length) {
         char = bottomText[col - bottomStart];
-        c = bottomColor;
+        c = colorScheme.get(scheme).topBottomColor;
       } else if (col === 0 && row >= leftStart && row < leftStart + leftText.length) {
         char = leftText[row - leftStart];
-        c = leftColor;
+        c = colorScheme.get(scheme).sideColor;
       } else if (col === dims.width - 1 && row >= rightStart && row < rightStart + rightText.length) {
         char = rightText[row - rightStart];
-        c = rightColor;
+        c = colorScheme.get(scheme).sideColor;
       }
 
       context.fillStyle = c;
@@ -593,6 +583,12 @@ function updateDisplay(timestamp) {
       document.getElementById('aboutpage').style.left = `${outputElement.offsetLeft}px`;
       document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
 
+      document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
+      document.getElementById("voidlingcomment").style.maxWidth = `${canvas.offsetWidth*.8}px`;
+      
+      console.log(canvas.offsetWidth)
+    //  document.getElementById("voidlingcomment").style.maxWidth = `674px`;
+
       const dims = calculateDimensions();
       initStringPositions(dims.width, height);
       setWorldDimensions(dims.width, dims.height);
@@ -605,7 +601,6 @@ function updateDisplay(timestamp) {
       canvas.addEventListener('click', (event) => {
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
-        let isPointer = false;
         for(const msg of topStrings) {
           if(msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box)) {
             borderClick(msg.onclick);
@@ -617,12 +612,6 @@ function updateDisplay(timestamp) {
       canvas.addEventListener('mousemove', (event) => {
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
-
-
-        let x = getMovementX();
-        let left = x > mouseX;
-        let t = left ? x+25 : x-25;
-        //setTargetX(t);
 
         let isPointer = false;
         for(const msg of topStrings) {
@@ -797,10 +786,7 @@ function displayInnerThoughtsv2() {
   let cv = getCharacterDimensions();
 
   context.clearRect(0, 0, cvs.offsetWidth, cvs.offsetHeight);
-  const fontSize = window.isMobile ? 24 : 12;
-  const font = `${fontSize}px monospace`;
-
-  context.font = font;
+  context.font = window.isMobile ? `24px ${font}` : `12px ${font}`;
   context.textAlign = 'left';
 
   // Reset rectangles array since animation has updated
@@ -834,22 +820,22 @@ function displayInnerThoughtsv2() {
       for(let msg of topStrings) {
         if(col >= msg.startCol && col < (msg.startCol+msg.message.length)) {
           char = msg.message[col-msg.startCol];
-          c = msg.color;
+          console.log(colorScheme.get(scheme).topBottomColor)
+          c = colorScheme.get(scheme).topBottomColor;
           break;
         }
       }
     }
     
-    
     if (row === height - 1 && col >= bottomStart && col < bottomStart + bottomText.length) {
       char = bottomText[col - bottomStart];
-      c = bottomColor;
+      c = colorScheme.get(scheme).topBottomColor;
     } else if (col === 0 && row >= leftStart && row < leftStart + leftText.length) {
       char = leftText[row - leftStart];
-      c = leftColor;
+      c = colorScheme.get(scheme).sideColor;
     } else if (col === dims.width - 1 && row >= rightStart && row < rightStart + rightText.length) {
       char = rightText[row - rightStart];
-      c = rightColor;
+      c = colorScheme.get(scheme).sideColor;
     }
     
     if (char != ' ') {
@@ -864,7 +850,7 @@ function displayInnerThoughtsv2() {
       // Keep the original positioning for consistency with rectangle tracking
       if(isBorder) {
         context.fillStyle = c;
-        context.fillText(char, (currentX * cv.width)-3, currentY);
+        context.fillText(char, (currentX * cv.width)-3.5, currentY);
       }
 
     }

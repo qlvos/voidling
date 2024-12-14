@@ -5,6 +5,7 @@
   <title>voidling</title>
   <meta http-equiv="Content-Security-Policy"
     content="script-src 'self' 'unsafe-eval' 'unsafe-inline' https://code.jquery.com https://cdnjs.cloudflare.com">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=0.5, maximum-scale=0.5">
   <style>
     :root {
       --background-color: #252525;
@@ -14,6 +15,8 @@
       --c166-color: #d75f00;
       --c208-color: #ff8700;
       --c141-color: #af87ff;
+      --text-color: #ac8ece;
+      --text-opacity: 70%;
     }
 
     body {
@@ -25,7 +28,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      height: 100vh;
+      height: 100dvh;
       overflow: hidden;
     }
 
@@ -35,7 +38,6 @@
       white-space: nowrap;
       font-size: var(--voidling-font-size, 12px);
       line-height: 1;
-      font-family: 'Courier New', monospace;
     }
 
     a {
@@ -50,7 +52,7 @@
       justify-content: center;
       align-items: center;
       overflow: hidden;
-      height: 100vh;
+      height: 100dvh;
       z-index: 0;
       background-color: transparent;
       position: relative;
@@ -59,26 +61,48 @@
     }
 
     .stateheader {
+      color: var(--text-color);
       margin-top: 15px;
       margin-bottom: 5px;
+      opacity: var(--text-opacity);
     }
 
     .statecontent {
+      color: var(--text-color);
       margin-bottom: 5px;
+      opacity: var(--text-opacity);
+      word-wrap: break-word;
+    }
+
+    .assetboxclass {
+      display: block;
+      font-size: var(--voidling-font-size, 12px);
+      margin: 0px 0;
+      white-space: pre-wrap;
+      color: var(--text-color);
+      opacity: var(--text-opacity);
+      padding-left: 10px;
+      padding-bottom: 30px;
+    }
+
+    .portfolioheader {
+      display: block;
+      font-size: var(--voidling-header-font-size, 12px);
+      color: var(--text-color);
+      opacity: var(--text-opacity);
     }
 
     #output {
       white-space: nowrap;
       font-size: var(--voidling-font-size, 12px);
-      font-family: 'Courier New', monospace;
       line-height: 1;
       z-index: 2;
       background-color: transparent;
     }
 
     #abouttext {
-      margin-left:25px;
-      margin-right:25px;
+      margin-left: 25px;
+      margin-right: 25px;
     }
 
     #aboutpage {
@@ -87,7 +111,6 @@
       white-space: nowrap;
       color: white;
       font-size: var(--voidling-font-size, 12px);
-      font-family: 'Courier New', monospace;
       line-height: 1;
       z-index: 999;
       background-color: transparent;
@@ -104,21 +127,20 @@
     }
 
     .borderboxclass {
-  position: absolute;
-  box-sizing: border-box;
-  z-index: -10;
-  color: var(--c166-color);
-  font-size: var(--voidling-font-size, 12px);
-  font-family: 'Courier New', monospace;
-  display: block;
-  white-space: pre;
-  line-height: 10.88px;
-}
+      position: absolute;
+      box-sizing: border-box;
+      z-index: -10;
+      color: var(--c166-color);
+      font-size: var(--voidling-font-size, 12px);
+      display: block;
+      white-space: pre;
+      line-height: 10.88px;
+    }
 
-.borderboxclass span {
-  display: inline-block;
-  line-height: 10.88px;
-}
+    .borderboxclass span {
+      display: inline-block;
+      line-height: 10.88px;
+    }
 
 
     .voidling-gray {
@@ -128,8 +150,8 @@
 
     .voidling-world {
       position: absolute;
-      top: 12%;
-      left: 7%;
+      top: 5%;
+      left: 2.5%;
       background-color: transparent;
       z-index: 1;
       display: flex;
@@ -146,8 +168,8 @@
 
     .voidling-world2 {
       position: absolute;
-      bottom: 9%;
-      right: 7%;
+      bottom: 3%;
+      right: 2.5%;
       background-color: transparent;
       color: #554d64;
       z-index: 1;
@@ -170,31 +192,13 @@
       width: 100%;
     }
 
-    .assetboxclass {
-      display: block;
-      font-size: var(--voidling-font-size, 12px);
-      font-family: 'Courier New', monospace;
-      margin: 0px 0;
-      white-space: pre-wrap;
-      color: #554d64;
-      padding-left: 10px;
-      padding-bottom: 30px;
-    }
-
-    .portfolioheader {
-      display: block;
-      font-size: var(--voidling-header-font-size, 12px);
-      font-family: 'Courier New', monospace;
-      color: #554d64;
-    }
-
     .asset {
       margin: 0px 0;
       padding-left: 0px;
     }
 
     #voidlingscontainer {
-      visibility:hidden;
+      visibility: hidden;
       display: flex;
       flex-wrap: wrap;
       /* Allow wrapping */
@@ -202,8 +206,8 @@
 
     #outputwrapper {
       position: absolute;
-      width: 85vw;
-      height: 85vh;
+      width: 95dvw;
+      height: 90dvh;
     }
 
     .voidlingmember {
@@ -211,11 +215,14 @@
       padding: 10px;
     }
 
-    #cvas { 
+    #cvas {
       position: absolute;
-      width: 100%;  /* Change from 75vw */
-      height: 100%; /* Change from 75vh */
-      padding: 0;   /* Add this */
+      width: 100%;
+      /* Change from 75vw */
+      height: 100%;
+      /* Change from 75vh */
+      padding: 0;
+      /* Add this */
       margin: 0;
       left: 0.5%;
       top: 1.5%;
@@ -269,6 +276,17 @@
       color: var(--background-color);
     }
 
+    @media screen and (max-width: 999px) {
+      .voidling-world {
+        top: 5%;
+        left: 7.5%;
+      }
+
+      .voidling-world2 {
+        bottom: 5%;
+        right: 7.5%;
+      }
+    }
   </style>
 </head>
 
@@ -278,40 +296,46 @@
     <div id="borderbox" class="borderboxclass"></div>
     <div id="aboutpage">
       <div id="abouttext">
-The world of the voidlings
+        The world of the voidlings
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</div>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
+        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+        laborum.</div>
       <div>
 
         <div onclick="borderClick('a')" id="voidlingscontainer">
           <div class="voidlingmember">
             +++++++++++ VOIDLING ++++++++++++
-            +                               +
-            +                ~              +
-            +            .;##*;.            +
-            +           .;~#**,             +
-            +             .;#;,             +
-            +                               +
-            +  character:   The Voidling    +
-            +  token:       VOID            +
-            +  contract:    <a target="_blank" href="https://dexscreener.com/solana/Feut3r89xpN6nuF1w3otRcjuYcAatygjEqxW7MeiHArW">Abc...def</a>       +
-            +  circ supply: 999,999,999     +
-            +                               +
+            + +
+            + ~ +
+            + .;##*;. +
+            + .;~#**, +
+            + .;#;, +
+            + +
+            + character: The Voidling +
+            + token: VOID +
+            + contract: <a target="_blank"
+              href="https://dexscreener.com/solana/Feut3r89xpN6nuF1w3otRcjuYcAatygjEqxW7MeiHArW">Abc...def</a> +
+            + circ supply: 999,999,999 +
+            + +
             +++++++++++++++++++++++++++++++++
           </div>
           <div class="voidlingmember">
             ++++++++ REAPER'S GAMBIT ++++++++
-            +                               +
-            +            /| 0               +
-            +             |\|/              +
-            +             | |               +
-            +             |/ \              +
-            +                               +
-            +  character:   The Reaper      +
-            +  token:       RG              +
-            +  contract:    <a target="_blank" href="https://dexscreener.com/solana/Feut3r89xpN6nuF1w3otRcjuYcAatygjEqxW7MeiHArW">Feu...ArW</a>       +
-            +  circ supply: 637,234,701     +
-            +                               +
+            + +
+            + /| 0 +
+            + |\|/ +
+            + | | +
+            + |/ \ +
+            + +
+            + character: The Reaper +
+            + token: RG +
+            + contract: <a target="_blank"
+              href="https://dexscreener.com/solana/Feut3r89xpN6nuF1w3otRcjuYcAatygjEqxW7MeiHArW">Feu...ArW</a> +
+            + circ supply: 637,234,701 +
+            + +
             +++++++++++++++++++++++++++++++++
           </div>
 
@@ -321,7 +345,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
     </div>
     <div id="outputwrapper">
-      <canvas id="cvas" style="width:85vw; height:85vh;"></canvas>
+      <canvas id="cvas"></canvas>
       <div id="portfoliobox" class="voidling-world">
         <div>
           <span class="portfolioheader">VOIDLING PORTFOLIO</span>
