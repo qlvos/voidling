@@ -109,6 +109,17 @@ let topStrings = [
   }
 ]
 
+let pointString = {
+  fromLeftPercent: 0.8,
+  message: " Points: 0 ",
+  color: "#ff8700"
+}
+
+let bottomStrings = [ pointString ]
+  
+
+
+
 
 
 let hiddenColor = '#252525';
@@ -151,6 +162,12 @@ function borderClick(msg) {
 
 function initStringPositions(width, height) {
   for(let msg of topStrings) {
+    let w = (msg.message.length) / width;
+    msg.startCol = Math.ceil((msg.fromLeftPercent-(w/2)) * width);
+    msg.startRow = 0;
+  }
+
+  for(let msg of bottomStrings) {
     let w = (msg.message.length) / width;
     msg.startCol = Math.ceil((msg.fromLeftPercent-(w/2)) * width);
     msg.startRow = 0;
