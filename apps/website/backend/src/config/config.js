@@ -56,6 +56,13 @@ config.VLING_POSTGRES_CREDENTIALS = get({
   default: process.env.VLING_POSTGRES_CREDENTIALS,
 });
 
+config.VLING_REDIS_URL = get({
+  dev: null,
+  test: null,
+  prod: null,
+  default: process.env.VLING_REDIS_URL
+});
+
 config.VLINGSITE_REST_PORT = get({
   dev: null,
   test: null,

@@ -3,7 +3,6 @@ import knex from 'knex'
 
 let connectionString = 'postgres://' + config.VLING_POSTGRES_CREDENTIALS + "@" + config.VLING_POSTGRES_URL + "/" + config.VLING_POSTGRES_DATABASE;
 
-console.log(connectionString)
 const db = knex({
   client: 'pg',
   connection: connectionString

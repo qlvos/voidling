@@ -1,7 +1,6 @@
 import { config } from './config/config.js';
 import { logger } from './logger.js';
-import { Connection, PublicKey } from '@solana/web3.js';
-import { getLastOpenTrade, getWatchlist, getBuys, getSells } from './db/postgresdbhandler.js';
+import { getWatchlist, getBuys, getSells } from './db/postgresdbhandler.js';
 import { getVoidlingEmotion } from './aimodel.js';
 import { getVoidlingUserPrompt } from './prompts.js';
 import { SERENE, AGITATED, EXCITED, CURIOUS, CAUTIOUS } from './prompts.js';
@@ -14,7 +13,7 @@ const API_CALL_WAIT = 3500;
 
 const walletAddress = '5KjM3kBNii6kuNaRWr8f74PguuQ44qpxS1RKw2YKERSM';
 
-async function fetchTokenBalances(walletAddress) {
+async function fetchTokenBalances() {
   try {
     logger.info("getting wallet information")
     const tokenAccounts = await getParsedTokenAccountsByOwner();
@@ -99,7 +98,7 @@ function getMood(moodMatrix, value) {
 }
 
 export async function getPortfolioStats() {
-  let assets = await fetchTokenBalances(walletAddress);
+  let assets = await fetchTokenBalances();
   if(!assets) {
     return;
   }
@@ -119,7 +118,6 @@ export async function getPortfolioStats() {
     radius: normalize(RADIUS_MIN, RADIUS_MAX, Math.min(VARIATION_MIN, sixHchangeAvg), Math.max(VARIATION_MAX, sixHchangeAvg), sixHchangeAvg)
   }
 
-
   assets = assets.sort((a, b) => {
     if (a.holdingsUsdValue < b.holdingsUsdValue) {
       return 1;
@@ -135,7 +133,7 @@ export async function getPortfolioStats() {
 
   let tradeLog = await getTradeLog(assetDictionary);
 
-  // find this token and get it's up to date name and price information etc etc.
+  // find this token and get it's up to date name and price information etc
   let wList = await getWatchlist();
   let watchList = wList ? wList.map((asset) => { return { token: { name: asset.name, symbol: asset.symbol }, address: asset.address } }) : null;
 
@@ -260,6 +258,3 @@ async function getParsedTokenAccountsByOwner() {
   const data = await response.json();
   return data ? data.result : null;
 }
-
-
-
