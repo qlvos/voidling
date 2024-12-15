@@ -52,7 +52,7 @@ services:
 
   telegrambot:
     build:
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
       context: ./apps/telegrambot
     volumes:
       - ./apps/telegrambot/src:/apps/telegrambot/src
