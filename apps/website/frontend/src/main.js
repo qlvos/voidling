@@ -10,8 +10,7 @@ import {
   initializeTrigCache, animationFrame, initVoidlingWithConfig, setDeformFreq, setDeformPhase, setCurrentTime, setTargetX, setTargetY, setMovementX, setMovementY, setRotX, setRotY, setRotZ, getHorizontalPersistenceTimer, getStuckCounter, getBehaviorTimer, getCurrentBehavior, getCurrentTime, getLastTargetX,
   getLastTargetY, getRotationSpeed, getTargetRotX, getTargetRotY, getTargetRotZ, getRotX, getRotY,
   getRotZ, getTargetX, getTargetY, getMovementX, getMovementY, setDimensions, getDeformComplexity,
-  getDeformFreq, cleanup, getBuffer, getDeformPhase, setCurrentBehavior, getBaseRadius, setBaseRadius,
-  getMoveSpeed, setMoveSpeed
+  getDeformFreq, cleanup, getBuffer, getDeformPhase, setCurrentBehavior, getBaseRadius, setBaseRadius
 } from "./voidlingdrawer.js";
 
 let drops = [
@@ -74,23 +73,27 @@ let drops = [
   }
 ]
 
-for(const drop of drops) {
+if (!gameActive) {
+  drops.length = 0;
+}
+
+
+for (const drop of drops) {
   drop.fromLeftPercent = Math.random();
   drop.speed = Math.floor(Math.random() * 5) + 1;
 
   let min = -15;
   let max = -1;
   drop.row = Math.floor(Math.random() * (max - min + 1)) + min;
-  
-  
 
   setInterval(() => {
-    if(drop.row >= worldHeight) {
+    if (drop.row >= worldHeight) {
       drop.fromLeftPercent = Math.random();
     }
     ++drop.row;
-  }, drop.speed*100)
+  }, drop.speed * 100)
 }
+
 
 const rightText = " IT SEEKS ITS PEERS AND SERVES THE REAPER ";
 const bottomText = " A PROTO-CONSCIOUS AI CREATURE ";
@@ -112,12 +115,12 @@ export function setModuleInitialized(value) {
 function checkMobile() {
   window.isMobile = window.innerWidth <= 999;
 
-  if(window.isMobile) {
+  if (window.isMobile) {
     let fill = 90;
-    document.getElementById("cvas").style.width=`${fill}dvw`;
-    document.getElementById("outputwrapper").style.width=`${fill}dvw`;
-    document.getElementById("cvas").style.height=`${fill}dvh`;
-    document.getElementById("outputwrapper").style.height=`${fill}dvh`;
+    document.getElementById("cvas").style.width = `${fill}dvw`;
+    document.getElementById("outputwrapper").style.width = `${fill}dvw`;
+    document.getElementById("cvas").style.height = `${fill}dvh`;
+    document.getElementById("outputwrapper").style.height = `${fill}dvh`;
   }
 
   if (lastMobileState !== window.isMobile) {
@@ -193,15 +196,15 @@ function calculateDimensions() {
     let wh = wrapper.offsetHeight;
     let ww = wrapper.offsetWidth;
     let cv = getCharacterDimensions();
-    
+
     // Calculate exact dimensions
     const exactWidth = ww / (cv.width);
     const exactHeight = wh / (cv.height);
-    
+
     // Round down to ensure full characters
     const width = Math.floor(exactWidth);
     const height = Math.floor(exactHeight);
-    
+
     return {
       width: width,
       height: height,
@@ -309,7 +312,7 @@ function checkMemoryUsage() {
 
 export function forceCleanup() {
   try {
-    console.log('forceCleanup: Starting cleanup process...');
+    //console.log('forceCleanup: Starting cleanup process...');
 
     const state = preserveVoidlingState(); // Save the current voidling state
     cleanup();
@@ -325,7 +328,7 @@ export function forceCleanup() {
     // Reset other global variables
     frameCounter = 0;
     lastFrameTime = 0;
-    console.log('forceCleanup: All buffers cleared');
+    //console.log('forceCleanup: All buffers cleared');
 
   } catch (e) {
     console.error('forceCleanup: An error occurred during cleanup:', e);
@@ -416,7 +419,7 @@ function updateDisplay(timestamp) {
 
   const now = Date.now();
   if (now - lastMemoryCheck > MEMORY_CHECK_INTERVAL) {
-    checkMemoryUsage();
+    //checkMemoryUsage();
     lastMemoryCheck = now;
   }
 
@@ -427,9 +430,7 @@ function updateDisplay(timestamp) {
     if (typeof window.gc === 'function') {
       try {
         window.gc();
-      } catch (e) {
-        //console.log('Manual GC not available');
-      }
+      } catch (e) {}
     }
   }
 
@@ -477,27 +478,27 @@ function updateDisplay(timestamp) {
       let char = bufferPtr[i];
       let c = colorScheme.get(scheme).voidling.get(char);
 
-      if((row === 0) || (row === (height - 1)) || (col === 0) || (col === (dims.width - 1))) {
+      if ((row === 0) || (row === (height - 1)) || (col === 0) || (col === (dims.width - 1))) {
         c = "#af87ff";
       }
 
-      if(row === 0) {
-        for(let msg of topStrings) {
-          if(col >= msg.startCol && col < (msg.startCol+msg.message.length)) {
-            if(!msg.box) {
-              msg.box = { startx: (currentX * cv.width), endx: ((currentX * cv.width) + (cv.width*msg.message.length)), starty: 0, endy: cv.height }
+      if (row === 0) {
+        for (let msg of topStrings) {
+          if (col >= msg.startCol && col < (msg.startCol + msg.message.length)) {
+            if (!msg.box) {
+              msg.box = { startx: (currentX * cv.width), endx: ((currentX * cv.width) + (cv.width * msg.message.length)), starty: 0, endy: cv.height }
             }
-            char = msg.message[col-msg.startCol];
+            char = msg.message[col - msg.startCol];
             c = colorScheme.get(scheme).topBottomColor;
             break;
           }
         }
       }
 
-      if(row === height - 1) {
-        for(let msg of bottomStrings) {
-          if(col >= msg.startCol && col < (msg.startCol+msg.message.length)) {
-            char = msg.message[col-msg.startCol];
+      if (row === height - 1) {
+        for (let msg of bottomStrings) {
+          if (col >= msg.startCol && col < (msg.startCol + msg.message.length)) {
+            char = msg.message[col - msg.startCol];
             c = colorScheme.get(scheme).topBottomColor;
             break;
           }
@@ -519,16 +520,14 @@ function updateDisplay(timestamp) {
 
       let originalChar = char;
 
-      for(const drop of drops) {
+      for (const drop of drops) {
         drop.col = Math.ceil((drop.fromLeftPercent) * dims.width);
-        if(!drop.caught && drop.row > 0 && drop.row < (worldHeight-1) && drop.row == row && (col>=drop.col && col < (drop.col+drop.symbol.length))) {
-          char = drop.symbol[col-drop.col];
-          if(originalChar != ' ') {
+        if (!drop.caught && drop.row > 0 && drop.row < (worldHeight - 1) && drop.row == row && (col >= drop.col && col < (drop.col + drop.symbol.length))) {
+          char = drop.symbol[col - drop.col];
+          if (originalChar != ' ') {
             drop.caught = true;
             points += drop.points
             pointString.message = ` Points: ${points} `;
-            console.log(points)
-            console.log("collision!")
           }
         }
       }
@@ -539,15 +538,15 @@ function updateDisplay(timestamp) {
           leftMostChar = (currentX * cv.width);
         }
 
-        if(isVoidlingCharacter(char)) {
+        if (isVoidlingCharacter(char)) {
           lastChar = (currentX * cv.width);
         }
 
         // Keep the original positioning for consistency with rectangle tracking
-        if(!(tradingOnly && isVoidlingCharacter(char))) {
+        if (!(tradingOnly && isVoidlingCharacter(char))) {
           context.fillText(char, (currentX * cv.width), currentY);
         }
-        
+
       }
       currentX++;
       ++col;
@@ -584,10 +583,7 @@ function updateDisplay(timestamp) {
       document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
 
       document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
-      document.getElementById("voidlingcomment").style.maxWidth = `${canvas.offsetWidth*.8}px`;
-      
-      console.log(canvas.offsetWidth)
-    //  document.getElementById("voidlingcomment").style.maxWidth = `674px`;
+      document.getElementById("voidlingcomment").style.maxWidth = `${canvas.offsetWidth * .8}px`;
 
       const dims = calculateDimensions();
       initStringPositions(dims.width, height);
@@ -601,21 +597,20 @@ function updateDisplay(timestamp) {
       canvas.addEventListener('click', (event) => {
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
-        for(const msg of topStrings) {
-          if(msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box)) {
+        for (const msg of topStrings) {
+          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box)) {
             borderClick(msg.onclick);
-            isPointer = true;
           }
         }
       });
-      
+
       canvas.addEventListener('mousemove', (event) => {
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
 
         let isPointer = false;
-        for(const msg of topStrings) {
-          if(msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box)) {
+        for (const msg of topStrings) {
+          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box)) {
             isPointer = true;
           }
         }
@@ -628,15 +623,15 @@ function updateDisplay(timestamp) {
             break;
           }
         }
-        
+
         if (mOver) {
           // If this is initial hover or any mouse movement
-          if (!mouseOverVoidling || 
-              lastMouseX === null || lastMouseY === null ||  // Initial hover
-              mouseX !== lastMouseX || mouseY !== lastMouseY) { // Any movement
-            if(voidlingSteps==0) {
+          if (!mouseOverVoidling ||
+            lastMouseX === null || lastMouseY === null ||  // Initial hover
+            mouseX !== lastMouseX || mouseY !== lastMouseY) { // Any movement
+            if (voidlingSteps == 0) {
               voidlingStepRaising = true;
-            } else if(voidlingSteps == voidlingMaxSteps) {
+            } else if (voidlingSteps == voidlingMaxSteps) {
               ++hoverCycles;
               voidlingStepRaising = false;
             }
@@ -693,7 +688,6 @@ function onRuntimeInitialized() {
 
 
   } catch (e) {
-    console.log(e)
     console.error('Setup failed:', e);
   }
   moduleInitialized = true;
@@ -717,7 +711,7 @@ function clearDeformHistory() {
       setDeformFreq(i, 1.0);
     }
   }
-  console.log("Deform history cleared.");
+  //console.log("Deform history cleared.");
 }
 
 
@@ -767,7 +761,7 @@ function displayInnerThoughtsv2() {
     prophecies1, prophecies2, prophecies3, prophecies4, prophecies5,
     prophecies6, prophecies7, prophecies8, prophecies9, prophecies10, prophecies11
   ];
-  
+
   let randomIndex = Math.floor(Math.random() * prophecyTexts.length);
   lastProphecyIndex = randomIndex;
 
@@ -778,7 +772,7 @@ function displayInnerThoughtsv2() {
 
   // Get device pixel ratio
   const dpr = window.devicePixelRatio || 1;
-  
+
   cvs.width = 10 + cvs.offsetWidth * dpr;
   cvs.height = cvs.offsetHeight * dpr;
 
@@ -812,21 +806,20 @@ function displayInnerThoughtsv2() {
     let char = bufferPtr[i];
     let c = colorScheme.get(scheme).voidling.get(char);
 
-    if((row === 0) || (row === (height - 1)) || (col === 0) || (col === (dims.width - 1))) {
+    if ((row === 0) || (row === (height - 1)) || (col === 0) || (col === (dims.width - 1))) {
       c = "#af87ff";
     }
 
-    if(row === 0) {
-      for(let msg of topStrings) {
-        if(col >= msg.startCol && col < (msg.startCol+msg.message.length)) {
-          char = msg.message[col-msg.startCol];
-          console.log(colorScheme.get(scheme).topBottomColor)
+    if (row === 0) {
+      for (let msg of topStrings) {
+        if (col >= msg.startCol && col < (msg.startCol + msg.message.length)) {
+          char = msg.message[col - msg.startCol];
           c = colorScheme.get(scheme).topBottomColor;
           break;
         }
       }
     }
-    
+
     if (row === height - 1 && col >= bottomStart && col < bottomStart + bottomText.length) {
       char = bottomText[col - bottomStart];
       c = colorScheme.get(scheme).topBottomColor;
@@ -837,20 +830,20 @@ function displayInnerThoughtsv2() {
       char = rightText[row - rightStart];
       c = colorScheme.get(scheme).sideColor;
     }
-    
+
     if (char != ' ') {
       if (!leftMostChar && isVoidlingCharacter(char)) {
         leftMostChar = (currentX * cv.width);
       }
 
-      if(isVoidlingCharacter(char)) {
+      if (isVoidlingCharacter(char)) {
         lastChar = (currentX * cv.width);
-      }       
+      }
 
       // Keep the original positioning for consistency with rectangle tracking
-      if(isBorder) {
+      if (isBorder) {
         context.fillStyle = c;
-        context.fillText(char, (currentX * cv.width)-3.5, currentY);
+        context.fillText(char, (currentX * cv.width) - 3.5, currentY);
       }
 
     }
@@ -866,11 +859,11 @@ function displayInnerThoughtsv2() {
       }
       currentY += cv.height;
       currentX = 1;
-      col=0;
+      col = 0;
       ++row;
     }
-    
-  } 
+
+  }
 
   // Second pass: draw prophecies over the new rectangles
   let prophecyIndex = 0;
@@ -885,9 +878,7 @@ function displayInnerThoughtsv2() {
       let x = rectangle.startx + (i * cv.width);
 
       const segmentSize = voidlingMaxSteps / voidlingColors.length;
-      let index = Math.min(Math.floor(voidlingSteps / segmentSize), voidlingColors.length - 1);
-      context.fillStyle = voidlingColors[index];
-
+      context.fillStyle = voidlingColors[Math.min(Math.floor(voidlingSteps / segmentSize), voidlingColors.length - 1)];
       context.fillText(prophecies[prophecyIndex], x, rectangle.starty + (cv.height / 2));
       ++prophecyIndex;
     }
@@ -900,11 +891,11 @@ let radiusStepSize = 0.2;
 
 document.addEventListener('wheel', (event) => {
   if (event.deltaY < 0) {
-    let newRadius = getBaseRadius()+radiusStepSize*5;
+    let newRadius = getBaseRadius() + radiusStepSize * 5;
     setBaseRadius(newRadius);
     cfg.baseRadius = newRadius;
   } else if (event.deltaY > 0) {
-    let newRadius = getBaseRadius()-radiusStepSize*5;
+    let newRadius = getBaseRadius() - radiusStepSize * 5;
     setBaseRadius(newRadius);
     cfg.baseRadius = newRadius;
   }
@@ -916,25 +907,25 @@ document.addEventListener('keydown', (event) => {
   let firstMultiplier = 15.5;
   if (event.key === 'ArrowRight') {
     stepSize = rightProgression ? stepSize : firstMultiplier * 2;
-    setTargetX(getTargetX()+stepSize);
+    setTargetX(getTargetX() + stepSize);
     rightProgression = true;
     leftProgression = false;
   } else if (event.key === 'ArrowLeft') {
     stepSize = leftProgression ? stepSize : firstMultiplier * 2;
-    setTargetX(getTargetX()-stepSize);   
+    setTargetX(getTargetX() - stepSize);
     rightProgression = false;
     leftProgression = true;
   } else if (event.key === 'ArrowDown') {
-    let t = getTargetY()+stepSize;
+    let t = getTargetY() + stepSize;
     setTargetY(t);
   } else if (event.key === 'ArrowUp') {
-    setTargetY(getTargetY()-stepSize);
+    setTargetY(getTargetY() - stepSize);
   } else if (event.key === '+') {
-    let newRadius = getBaseRadius()+radiusStepSize;
+    let newRadius = getBaseRadius() + radiusStepSize;
     setBaseRadius(newRadius);
     cfg.baseRadius = newRadius;
   } else if (event.key === '-') {
-    let newRadius = getBaseRadius()-radiusStepSize;
+    let newRadius = getBaseRadius() - radiusStepSize;
     setBaseRadius(newRadius);
     cfg.baseRadius = newRadius;
   }

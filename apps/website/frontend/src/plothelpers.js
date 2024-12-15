@@ -29,6 +29,7 @@ grayColors.set("$", "#767676");
 
 let colorScheme = new Map();
 let font = '"Courier New", monospace';
+let gameActive = false;
 
 colorScheme.set("daemon", 
   { voidling: daemonColors,
@@ -112,7 +113,7 @@ let pointString = {
   color: "#ff8700"
 }
 
-let bottomStrings = [pointString]
+let bottomStrings = gameActive ? [pointString] : [];
 let hiddenColor = '#252525';
 
 function borderClick(msg) {

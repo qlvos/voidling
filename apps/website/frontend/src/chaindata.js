@@ -1,7 +1,7 @@
 import { forceCleanup, getEmotion, setEmotion, assetBoxId, tradeLogId, watchlistBoxId, getModuleInitialized } from "./main.js";
-const EMOTION_LOAD_WAIT = 3000;
 
 let socket;
+const EMOTION_LOAD_WAIT = 3000;
 let reconnectInterval = 2000;
 let keepAliveTimer;
 const currentUrl = window.location.href; // Create a new URL object 
@@ -30,9 +30,7 @@ export function connectWebSocket() {
         let msg = JSON.parse(event.data);
         if (msg.action == "vdata") {
           if (getEmotion() != msg.emotion) {
-            //console.log("New emotion!")
             document.getElementById("voidlingemotion").innerHTML = msg.emotion;
-            //console.log(msg.emotion)
   
             let emotionChangeTimeout = getModuleInitialized() ? 0 : EMOTION_LOAD_WAIT;
             setTimeout(() => { forceCleanup(); }, emotionChangeTimeout)

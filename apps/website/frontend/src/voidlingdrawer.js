@@ -1,7 +1,6 @@
 
 let g_width = 190;
 let g_height = 61;
-const PI = 3.14159265;
 let g_min_x_move = window.isMobile ? 10 : 50;
 let g_max_x_move = window.isMobile ? 80 : 150;
 let g_min_y_move = window.isMobile ? 37 : 27;
@@ -350,7 +349,6 @@ export function initVoidlingWithConfig(
   horizontalPersistenceTimer = 0;
   isInitialized = 1;
 
-  console.log('Voidling initialized successfully with config values');
 }
 
 export function initializeTrigCache() {
