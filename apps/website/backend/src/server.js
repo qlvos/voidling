@@ -8,7 +8,7 @@ const router = express.Router();
 import cors from 'cors';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
-import { addCatEvent } from './db/postgresdbhandler.js'
+import { addCatEvent, getLastOpenTrade } from './db/postgresdbhandler.js'
 import { getPortfolioStats } from './chaindata.js';
 
 app.use(cors());
@@ -40,7 +40,7 @@ setInterval(async () => {
       if(!cachedChainData) {
         return;
       }
-      
+
       wss.clients.forEach(async (ws) => {
         ws.send(JSON.stringify({ action: VOIDLING_DATA, ...cachedChainData }));
       });
@@ -60,7 +60,17 @@ eventSource.onmessage = async function (event) {
     if (catEvent.event == "pepito") {
       logger.info('New cat event received:', event.data);
       catEvent.time = Date.now();
+      // https://github.com/Clement87/Pepito-API
+
       await addCatEvent(catEvent.type, catEvent.img, catEvent.time);
+      let lastOpenTrade = await getLastOpenTrade();
+      if(lastOpenTrade) {
+        // sell
+        await this.redisPublisher.publish(config.VLING_EVENT_KEY, JSON.stringify({event: CAT_SELL_TOKEN }));
+      } else {
+        // buy
+        await this.redisPublisher.publish(config.VLING_EVENT_KEY, JSON.stringify({event: CAT_BUY_RANDOM_TOKEN }));
+      }
     }
   } catch (err) {
     console.log(err);

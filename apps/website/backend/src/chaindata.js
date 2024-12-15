@@ -16,7 +16,6 @@ const walletAddress = '5KjM3kBNii6kuNaRWr8f74PguuQ44qpxS1RKw2YKERSM';
 
 async function fetchTokenBalances(walletAddress) {
   try {
-    const publicKey = new PublicKey(walletAddress);
     logger.info("getting wallet information")
     const tokenAccounts = await getParsedTokenAccountsByOwner();
     const tokenBalances = tokenAccounts.value.map(accountInfo => {
@@ -29,9 +28,6 @@ async function fetchTokenBalances(walletAddress) {
     let counter = 0;
     for (const asset of tokenBalances) {
       ++counter;
-      if (counter > 3) {
-        //continue;
-      }
       let url = `${TOKEN_PRICE_URL}/${asset.tokenMint}/price`;
       logger.info("calling " + url);
       try {
@@ -216,60 +212,9 @@ async function getTradeLog(assetDictionary) {
 
 }
 
-async function getLastTrade(assetDictionary) {
-  let lastTrade = await getLastOpenTrade();
-  if (lastTrade) {
-    let assetDetails = assetDictionary.get(lastTrade.toaddress.toLowerCase());
-    if (!assetDetails) {
-
-      // backup
-      let url = `${TOKEN_PRICE_URL}/${lastTrade.toaddress}/price`;
-      let res = await getJSON(url, null, { 'x-api-key': config.DEXTOOLS_API_KEY });
-      if (res && res.statusCode && res.statusCode == 200 && res.data) {
-        let tokenDetails = await getTokenDetails(lastTrade.toaddress);
-        assetDetails = {
-          token: tokenDetails,
-          tokenUsd: res.data.price
-        }
-      }
-    }
-
-    let variation = Number(assetDetails.tokenUsd) / Number(lastTrade.tokenusdvalue);
-    return {
-      token: assetDetails.token,
-      address: lastTrade.toaddress,
-      currentUsd: assetDetails.tokenUsd,
-      buyUsd: lastTrade.tokenusdvalue,
-      bagValue: Number(lastTrade.receivedamount) * assetDetails.tokenUsd,
-      variation: variation,
-      unrealized: variation * (Number(lastTrade.receivedamount) * Number(lastTrade.tokenusdvalue))
-    }
-  }
-
-}
-
 
 function normalize(rangeMin, rangeMax, valueMin, valueMax, value) {
   return ((rangeMax - rangeMin) * (value - valueMin) / (valueMax - valueMin)) + rangeMin;
-}
-
-function getStatsOverPeriod(assetStats, period) {
-  let volume = 0;
-  let buys = 0;
-  let sells = 0;
-  let variation = 0;
-  for (const asset of assetStats) {
-    volume += asset['volume' + period];
-    buys += asset['buys' + period];
-    sells += asset['sells' + period];
-    variation += asset['variation' + period];
-  }
-  return {
-    volume: volume,
-    buys: buys,
-    sells: sells,
-    variation: variation
-  }
 }
 
 async function getTokenDetails(token) {
