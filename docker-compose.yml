@@ -27,6 +27,9 @@ services:
       - DEXTOOLS_API_KEY
       - VLING_HELIUS_API_KEY
       - VLING_HYPERBOLIC_API_KEY
+    depends_on:
+      - postgres
+      - redis      
 
   trader:
     build:

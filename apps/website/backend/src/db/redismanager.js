@@ -26,6 +26,7 @@ export async function getRedisConnection() {
 
   redisConnection.on('error', err => logger.error('Redis Client Error', err));
   redisConnection.on('connect', async (client) => {
+    logger.info("redis connected")
   });
 
   await redisConnection.connect();

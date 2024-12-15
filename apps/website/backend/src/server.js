@@ -132,7 +132,7 @@ function startWebsocketServer() {
 
   });
 
-  server.listen(config.VLINGSITE_WS_PORT, () => { console.log(`Server is listening on port ${config.VLINGSITE_WS_PORT}`); });
+  server.listen(config.VLINGSITE_WS_PORT, () => { logger.info(`server is listening on ws port ${config.VLINGSITE_WS_PORT}`); });
 
   return wss;
 }
