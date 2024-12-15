@@ -13,6 +13,8 @@ services:
       - WDS_SOCKET_HOST=127.0.0.1
       - VLING_BACKEND_SERVICE_NAME=backend
       - VLING_FRONTEND_SERVICE_NAME=frontend
+    depends_on:
+      - backend
 
   backend:
     build:

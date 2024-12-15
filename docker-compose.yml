@@ -11,6 +11,8 @@ services:
       - WDS_SOCKET_HOST=127.0.0.1
       - VLING_BACKEND_SERVICE_NAME=backend
       - VLING_FRONTEND_SERVICE_NAME=frontend
+    depends_on:
+      - backend
 
   backend:
     build:
@@ -33,7 +35,7 @@ services:
 
   trader:
     build:
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
       context: ./apps/trader
     volumes:
       - ./apps/trader/src:/apps/trader/src
