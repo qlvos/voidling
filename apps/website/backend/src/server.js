@@ -46,10 +46,13 @@ setInterval(async () => {
 
 setInterval(async () => { cachedChainData = await getPortfolioStats(); }, SLOW_CACHE_UPDATE_FREQUENCY);
 
+/*
 app.listen(config.VLINGSITE_REST_PORT, () => {
   logger.info('rest server running on port: ' + config.VLINGSITE_REST_PORT)
 });
+*/
 
+console.log("yoo")
 let wss = startWebsocketServer();
 
 async function handlePingPong(msg, ws) {

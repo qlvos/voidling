@@ -11,7 +11,7 @@ RUN npm install
 COPY . .
 
 #Expose the API port
-EXPOSE 47900
+EXPOSE 47901
 
 CMD [ "npm", "run", "startdev"]
 

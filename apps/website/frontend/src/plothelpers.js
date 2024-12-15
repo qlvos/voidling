@@ -118,21 +118,12 @@ let hiddenColor = '#252525';
 
 function borderClick(msg) {
   if (msg == ABOUT_CLICK) {
-
     aboutClicked = !aboutClicked;
-
-    //    aboutClicked ? document.getElementById("outputwrapper").style.visibility = "hidden" : document.getElementById("outputwrapper").style.visibility = "visible";
-    //    aboutClicked ? document.getElementById("aboutpage").style.visibility = "visible" : document.getElementById("aboutpage").style.visibility = "hidden";
-
-
-    //aboutClicked ? document.getElementById("outputwrapper").style.opacity = "25%" : document.getElementById("outputwrapper").style.opacity = "100%";
     aboutClicked ? document.getElementById("portfoliobox").style.visibility = "hidden" : document.getElementById("portfoliobox").style.visibility = "visible";
     aboutClicked ? document.getElementById("voidlingbox").style.visibility = "hidden" : document.getElementById("voidlingbox").style.visibility = "visible";
-    //aboutClicked ? document.getElementById("aboutpage").style.visibility = "visible" : document.getElementById("aboutpage").style.visibility = "hidden";
-    aboutClicked ? document.getElementById("abouttext").style.visibility = "visible" : document.getElementById("abouttext").style.visibility = "hidden";
+    aboutClicked ? document.getElementById("aboutpage").style.visibility = "visible" : document.getElementById("aboutpage").style.visibility = "hidden";
     aboutClicked ? document.getElementById("voidlingscontainer").style.visibility = "visible" : document.getElementById("voidlingscontainer").style.visibility = "hidden";
 
-    // set visibility to some other div to TRUE !
   } else if (msg == VOIDLING_ONLY_CLICK) {
     voidlingOnly = !voidlingOnly;
     voidlingOnly ? document.getElementById("portfoliobox").style.visibility = "hidden" : document.getElementById("portfoliobox").style.visibility = "visible";
@@ -140,11 +131,8 @@ function borderClick(msg) {
     if(voidlingOnly) {
       document.documentElement.style.setProperty('--text-opacity', '70%')
     }
-    
-
   } else if (msg == TRADING_ONLY_CLICK) {
     tradingOnly = !tradingOnly;
-
     tradingOnly ? document.documentElement.style.setProperty('--text-opacity', '100%') : document.documentElement.style.setProperty('--text-opacity', '70%');
 
     if (tradingOnly) {

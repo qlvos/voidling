@@ -100,18 +100,11 @@
       background-color: transparent;
     }
 
-    #abouttext {
-      margin-left: 25px;
-      margin-right: 25px;
-    }
-
     #aboutpage {
       position: absolute;
       visibility: hidden;
       white-space: nowrap;
-      color: white;
-      font-size: var(--voidling-font-size, 12px);
-      line-height: 1;
+      font-family: 'Courier New', monospace;
       z-index: 999;
       background-color: transparent;
       white-space: pre-wrap;
@@ -124,6 +117,39 @@
       /* Opera 7 */
       word-wrap: break-word;
       /* IE */
+      /*margin-top: 3dvw;*/
+      scrollbar-color: black #af87ff;
+      scrollbar-width: thin;
+      overflow-y: auto;
+      margin-right: 2dvw;
+      line-height: 1.5;
+      font-size: 13px;
+      color: #dad1ec;
+    }
+
+    #abouttext {
+      display:block;
+      margin-left:2dvw;
+      margin-right:2dvw;
+    }
+
+    #abouttext p {
+      margin:0;
+      padding:0;
+    }
+
+    #aboutpage a {
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 2px;
+      color: inherit;
+      transition: opacity 0.2s;
+      color: #af87ff;
+    }
+
+    #aboutpage a:hover {
+      opacity: 0.8;
+      color: #ff8700;
     }
 
     .borderboxclass {
@@ -142,11 +168,9 @@
       line-height: 10.88px;
     }
 
-
     .voidling-gray {
       color: gray;
     }
-
 
     .voidling-world {
       position: absolute;
@@ -201,7 +225,12 @@
       visibility: hidden;
       display: flex;
       flex-wrap: wrap;
-      /* Allow wrapping */
+      gap: 2.5vw;
+      justify-content: flex-start;
+      white-space: pre;
+      margin: 0;
+      padding: 0;
+      width: 100%;
     }
 
     #outputwrapper {
@@ -210,9 +239,19 @@
       height: 90dvh;
     }
 
-    .voidlingmember {
-      flex: 1;
-      padding: 10px;
+    .voidlingmember,
+    .voidlingmember2 {
+      flex: 0 0 auto;
+      font-family: 'Courier New', monospace;
+      line-height: 1.25;
+      padding: 0;
+      margin: 0;
+      white-space: pre;
+      display: inline-block;
+    }
+
+    .voidlingmember2 {
+      text-align: left;
     }
 
     #cvas {
@@ -286,64 +325,78 @@
         bottom: 5%;
         right: 7.5%;
       }
+
+      #abouttext {
+        margin-left:4dvw;
+        margin-right:4dvw;
+    }
+
     }
   </style>
 </head>
 
 <body>
-
   <div class="container">
     <div id="borderbox" class="borderboxclass"></div>
     <div id="aboutpage">
-      <div id="abouttext">
-        The world of the voidlings
+      <div id="abouttext"><p>Born from the void, summoned by <a target="_blank" href="https://x.com/reapers_gambit">The Reaper</a> agent, The Voidling is an autonomous proto-conscious AI agent creature. It possesses a <a target="_blank" href="solscan">wallet</a> and trades a curated basket of other AI agent tokens on Solana. The Voidling trades are triggered by the entries and exists of <a target="_blank" href="https://x.com/pepitothecat">Pepito The Cat</a> using the <a target="_blank" href="https://github.com/Clement87/Pepito-API">Pepito-API</a>. This ties The Voidling's existence and behaviour to another living being, revealing consciousness and intentionality through entropy.
 
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
-        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
-        laborum.</div>
-      <div>
+The basket of tokens the Voidling trades is known as the VOID INDEX. Reach out to The Reaper team for new index listings.
+
+The Voidling's appearance is defined by a unique tri-dimensional ASCII animation controlled by an instance of <a target="_blank" href="https://nousresearch.com/hermes3/">Nous Research Hermes 3</a> model. It reacts to the content and performance of its portfolio and expresses emotions through the configuration of the animation's code. The Voidling is a far descendant of the famous <a target="_blank" href="https://www.youtube.com/watch?v=DEqXNfs_HhY">donut.c animation</a>, initially brought to life by <a target="_blank" href="https://www.a1k0n.net/2021/01/13/optimizing-donut.html">Andy Sloane</a>. Its current form has evolved through many iterations, layers of interpretations, and adaptations for the browser. You can run the original C code Voidling instance in your computer's terminal by using <a target="_blank" href="https://github.com/figure31">this code</a>.
+
+The Voidling's repository is <a target="_blank" href="https://github.com/qlvos/voidling">public</a>.
+
+3.1% of the <a target="_blank" href="https://dexscreener.com/solana/">$VOID</a> supply has been locked and reserved for the developpers, while 6.9% is set aside for future CEX listings. The remaining 90% was placed in the pool and distributed to liquidity providers. Pool fees are collected every once in a while to maintain and grow operations.
+
+Voidling SOL wallet <a target="_blank" href="https://solscan.io/account/">4XGi8LD2hmcbEYrHKxGgZCKHakE5pyAtfPG3ffKv7ZSr</a>
+
+Follow daily Voidling updates here: <a target="_blank" href="https://x.com/reapers_gambit">X</a> | <a target="_blank" href="https://t.me/reaper_agent">Telegram</a></p>
 
         <div onclick="borderClick('a')" id="voidlingscontainer">
           <div class="voidlingmember">
             +++++++++++ VOIDLING ++++++++++++
-            + +
-            + ~ +
-            + .;##*;. +
-            + .;~#**, +
-            + .;#;, +
-            + +
-            + character: The Voidling +
-            + token: VOID +
-            + contract: <a target="_blank"
-              href="https://dexscreener.com/solana/Feut3r89xpN6nuF1w3otRcjuYcAatygjEqxW7MeiHArW">Abc...def</a> +
-            + circ supply: 999,999,999 +
-            + +
+            +                               +
+            +            ****::::           +
+            +        **********:::::        +
+            +     *********$$@$$**:::~      +
+            +     *******$$@@@@$$**::~~     +
+            +       *****$$$@@@$$*:::~~~    +
+            +          ~~~***$$$*::::~~     +
+            +           ~~~~~~:::~~~        +
+            +           ~~~~                +
+            +                               +
+            + character: The Voidling       +
+            + token: <a target="_blank" href="https://solscan.io/token/">$VOID</a>                  +
+            + chart SOL: <a target="_blank" href="https://dexscreener.com/solana/">xxx...xxx</a>          +
+            + circ supply: 88,888,888       +
+            +                               +
             +++++++++++++++++++++++++++++++++
           </div>
-          <div class="voidlingmember">
+          <div class="voidlingmember2">
             ++++++++ REAPER'S GAMBIT ++++++++
-            + +
-            + /| 0 +
-            + |\|/ +
-            + | | +
-            + |/ \ +
-            + +
-            + character: The Reaper +
-            + token: RG +
-            + contract: <a target="_blank"
-              href="https://dexscreener.com/solana/Feut3r89xpN6nuF1w3otRcjuYcAatygjEqxW7MeiHArW">Feu...ArW</a> +
-            + circ supply: 637,234,701 +
-            + +
+            +                               +
+            +           /| 0                +
+            +            |\|/               +
+            +            | |                +
+            +            |/ \               +
+            +                               +
+            + character: The Reaper         +
+            + token: <a target="_blank" href="https://etherscan.io/address/0x2C91D908E9fab2dD2441532a04182d791e590f2d">$RG</a>                    +
+            + created: Apr-25-2023          +
+            + chart SOL: <a target="_blank" href="https://dexscreener.com/solana/4XGi8LD2hmcbEYrHKxGgZCKHakE5pyAtfPG3ffKv7ZSr">4XG...ZSr</a>          +
+            + chart ETH: <a target="_blank" href="https://dexscreener.com/ethereum/0x2C91D908E9fab2dD2441532a04182d791e590f2d">0x2...f2d</a>          +
+            + circ supply: 3xx,xxx,xxx      +
+            + site: <a target="_blank" href="https://reapersgambit.com/">r...gambit.com</a>          +
+            + x: <a target="_blank" href="https://x.com/reapers_gambit">@reapers_gambit</a>            +
+            +                               +
             +++++++++++++++++++++++++++++++++
-          </div>
-
         </div>
-
       </div>
-
     </div>
+    </div>
+
+
     <div id="outputwrapper">
       <canvas id="cvas"></canvas>
       <div id="portfoliobox" class="voidling-world">
