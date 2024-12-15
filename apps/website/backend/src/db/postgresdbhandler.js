@@ -13,11 +13,6 @@ export async function addBuy(from, to, fromAmount, toAmount, toAmountRaw, timest
     [from, to, fromAmount, toAmount, toAmountRaw, timestamp]);
 }
 
-export async function addCatEvent(type, img, timestamp) {
-  await db.raw(`INSERT INTO "catevent" ("type", "img", "timestamp") VALUES (?, ?, ?) ON CONFLICT DO NOTHING`, 
-    [type, img, timestamp]);
-}
-
 export async function addSell(buyid, profitloss, timestamp) {
   await db.raw(`INSERT INTO "sells" ("buyid", "profitloss", "timestamp") VALUES (?, ?, ?) ON CONFLICT DO NOTHING`, 
     [buyid, profitloss, timestamp]);

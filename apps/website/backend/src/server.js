@@ -1,13 +1,11 @@
 import { logger } from './logger.js';
 import { config } from './config/config.js';
-import EventSource from 'eventsource';
 import express from 'express';
 import compression from 'compression';
 const app = express();
 import cors from 'cors';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
-import { addCatEvent, getLastOpenTrade } from './db/postgresdbhandler.js'
 import { getPortfolioStats } from './chaindata.js';
 import { getRedisConnection } from './db/redismanager.js';
 //const router = express.Router();
@@ -24,8 +22,6 @@ const CACHE_UPDATE_FREQUENCY = 60000 * 10;
 const SLOW_CACHE_UPDATE_FREQUENCY = 60000 * 60 * 1; // 1 per hour
 let cachedChainData = null;
 const VOIDLING_DATA = "vdata";
-const sseUrl = 'https://api.thecatdoor.com/sse/v1/events';
-const eventSource = new EventSource(sseUrl);
 let redis = await getRedisConnection();
 let redisPublisher = redis.duplicate();
 redisPublisher.on('error', err => logger.error(err));
@@ -49,37 +45,6 @@ setInterval(async () => {
 }, CACHE_UPDATE_FREQUENCY);
 
 setInterval(async () => { cachedChainData = await getPortfolioStats(); }, SLOW_CACHE_UPDATE_FREQUENCY);
-
-// Listen for messages from the SSE endpoint
-eventSource.onmessage = async function (event) {
-  try {
-    let catEvent = JSON.parse(event.data);
-    if (catEvent.event == "pepito") {
-      logger.info('New cat event received:', event.data);
-      catEvent.time = Date.now();
-      
-      // https://github.com/Clement87/Pepito-API
-      await addCatEvent(catEvent.type, catEvent.img, catEvent.time);
-      let lastOpenTrade = await getLastOpenTrade();
-      if(lastOpenTrade) {
-        // sell
-        redisPublisher.publish(config.VLING_EVENT_KEY, JSON.stringify({event: CAT_SELL_TOKEN }));
-      } else {
-        // buy
-        redisPublisher.publish(config.VLING_EVENT_KEY, JSON.stringify({event: CAT_BUY_RANDOM_TOKEN }));
-      }
-    }
-  } catch (err) {
-    console.log(err);
-    logger.error("Error on cat event fetching " + err);
-  }
-};
-
-// Listen for errors
-eventSource.onerror = function (error) {
-  console.log(error)
-  console.error('Error occurred on event source:', error);
-};
 
 app.listen(config.VLINGSITE_REST_PORT, () => {
   logger.info('rest server running on port: ' + config.VLINGSITE_REST_PORT)

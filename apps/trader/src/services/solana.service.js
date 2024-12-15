@@ -22,7 +22,7 @@ const MAX_SLIPPAGE = 10;
 
 const TRANSACTION_DELAY = 7000;
 
-export async function buyToken(token, redis) {
+export async function buyToken(token) {
 
   if (Number(config.VLING_BUY_AMOUNT) > MAX_AMOUNT) {
     logger.warn("Aborting as the amount was higher than the maximum allowed (" + MAX_AMOUNT + ")");
@@ -134,7 +134,7 @@ async function sendRawTransactionWithRetry(transaction, retries = 5, delay = 100
   }
 }
 
-export async function sellToken(redis) {
+export async function sellToken() {
   // find which is the LATEST OPENED TOKEN THAT WAS NOT SOLD !
   let lastOpenTrade = await getLastOpenTrade();
   if(lastOpenTrade) {

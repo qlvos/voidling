@@ -32,7 +32,6 @@ export class VoidlingBot {
 
     this.channel.set(Number(config.VLING_TG_CHANNEL_ID), true);
 
-
     redis.subscribe(config.VLING_EVENT_KEY, async (message) => {
   
       if (message != null) {
@@ -53,7 +52,7 @@ export class VoidlingBot {
       }
     });
 
-    logger.info("subscribed to redis event key " + config.VLING_EVENT_KEY);  
+    logger.info("redis subscribed to " + config.VLING_EVENT_KEY);  
 
   }
 

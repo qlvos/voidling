@@ -2,7 +2,6 @@ import { config } from './../config/config.js';
 import knex from 'knex'
 
 let connectionString = 'postgres://' + config.VLING_POSTGRES_CREDENTIALS + "@" + config.VLING_POSTGRES_URL + "/" + config.VLING_POSTGRES_DATABASE;
-console.log(connectionString)
 
 const db = knex({
   client: 'pg',
@@ -17,6 +16,11 @@ export async function addBuy(from, to, fromAmount, toAmount, toAmountRaw, tokenU
 export async function addSell(buyid, profitloss, tokenusdvalue, timestamp) {
   await db.raw(`INSERT INTO "sells" ("buyid", "profitloss", "tokenusdvalue", "timestamp") VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING`, 
     [buyid, profitloss, tokenusdvalue, timestamp]);
+}
+
+export async function addCatEvent(type, img, timestamp) {
+  await db.raw(`INSERT INTO "catevent" ("type", "img", "timestamp") VALUES (?, ?, ?) ON CONFLICT DO NOTHING`, 
+    [type, img, timestamp]);
 }
 
 export async function getLastOpenTrade() {

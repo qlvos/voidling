@@ -2,6 +2,7 @@ import { logger } from './logger.js';
 import { getRedisConnection } from "./db/redismanager.js";
 import { config } from './config/config.js';
 import { catRouter } from './catrouter.js';
+import { startCatTrader } from './trademaster.js';
 
 export async function init() {
   let redis = await getRedisConnection();
@@ -9,7 +10,7 @@ export async function init() {
   redisPublisher.on('error', err => logger.error(err));
   redisPublisher.connect();
   
-  logger.info("Redis subscribing to " + config.VLING_EVENT_KEY);
+  logger.info("redis subscribing to " + config.VLING_EVENT_KEY);
   await redis.subscribe(config.VLING_EVENT_KEY, async (message) => {
   
     if (message != null) {
@@ -23,7 +24,7 @@ export async function init() {
     }
   });
 
-  return redis;
+  startCatTrader(redisPublisher);
 }
 
 init();

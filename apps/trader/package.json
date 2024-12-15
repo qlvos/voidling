@@ -22,6 +22,7 @@
     "@thewebchimp/primate": "^1.3.8-entities",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.5",
+    "eventsource": "^3.0.2",
     "knex": "^3.1.0",
     "nodemon": "^3.1.7",
     "pg": "^8.13.1",
