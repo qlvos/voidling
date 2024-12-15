@@ -1,5 +1,4 @@
 import { Connection, Keypair, PublicKey, VersionedTransaction, sendAndConfirmRawTransaction } from '@solana/web3.js';
-
 import { Wallet } from '@project-serum/anchor';
 import bs58 from 'bs58';
 import { getMint } from '@solana/spl-token';
@@ -23,25 +22,27 @@ const MAX_SLIPPAGE = 10;
 const TRANSACTION_DELAY = 7000;
 
 export async function buyToken(token) {
-
-  if (Number(config.VLING_BUY_AMOUNT) > MAX_AMOUNT) {
-    logger.warn("Aborting as the amount was higher than the maximum allowed (" + MAX_AMOUNT + ")");
-    return;
+  try {
+    if (Number(config.VLING_BUY_AMOUNT) > MAX_AMOUNT) {
+      logger.warn("Aborting as the amount was higher than the maximum allowed (" + MAX_AMOUNT + ")");
+      return;
+    }
+    let swapDetails = await swap(WRAPPED_SOL, token, config.VLING_BUY_AMOUNT);
+    // complement with token price
+    let priceDetails = await getTokenPriceDetails(token);
+      if(swapDetails) {
+      // save to DB (buys) !
+      await addBuy(WRAPPED_SOL, token, config.VLING_BUY_AMOUNT, swapDetails.receivedAmount, swapDetails.receivedAmountRaw, priceDetails ? priceDetails.price : -1, Date.now());
+      logger.info("Buy saved in database");
+    }
+    return swapDetails;
+  } catch(err) {
+    logger.error("failed to swap " + token + ": " + err);
+    console.log(err)
   }
-
-  let swapDetails = await swap(WRAPPED_SOL, token, config.VLING_BUY_AMOUNT);
-  // complement with token price
-  let priceDetails = await getTokenPriceDetails(token);
-
-  if(swapDetails) {
-    // save to DB (buys) !
-    await addBuy(WRAPPED_SOL, token, config.VLING_BUY_AMOUNT, swapDetails.receivedAmount, swapDetails.receivedAmountRaw, priceDetails ? priceDetails.price : -1, Date.now());
-    logger.info("Buy saved in database");
-  }
-  return swapDetails;
 }
 
-async function swap(fromToken, toToken, amount, slippagePercent = 2) {
+async function swap(fromToken, toToken, amount, slippagePercent = 5) {
   try {
     const inputMintData = await getMint(connection, new PublicKey(fromToken));
     const outputMintData = await getMint(connection, new PublicKey(toToken));
@@ -83,6 +84,7 @@ async function swap(fromToken, toToken, amount, slippagePercent = 2) {
     });
 
     const jsonResponse = await response.json();
+    console.log(jsonResponse)
     if (jsonResponse.error || !jsonResponse.swapTransaction || jsonResponse.simulationError) {
       logger.error("Simulation error " + jsonResponse.error)
       logger.error("Simulation error " + jsonResponse.simulationError)
@@ -134,26 +136,10 @@ async function sendRawTransactionWithRetry(transaction, retries = 5, delay = 100
   }
 }
 
-export async function sellToken() {
-  // find which is the LATEST OPENED TOKEN THAT WAS NOT SOLD !
-  let lastOpenTrade = await getLastOpenTrade();
-  if(lastOpenTrade) {
-    logger.info("selling trade " + lastOpenTrade)
-    // get the token price
-    let priceDetails;
-    try {
-      priceDetails = await getTokenPriceDetails(lastOpenTrade.toaddress);
-    } catch (err) {
-      logger.warn("Could not fetch price details, not blocking...");
-    }
-    
-    let sellInfo = await swap(lastOpenTrade.toaddress, lastOpenTrade.fromaddress, lastOpenTrade.receivedamount);
-
-    await addSell(lastOpenTrade.id, sellInfo.solDifference, priceDetails ? priceDetails.price : -1, Date.now());
-    return sellInfo;
-  }
-
- }
+export async function sellToken(fromaddress, toaddress, amount) {
+  logger.info("selling " + fromaddress)
+  return await swap(fromaddress, toaddress, amount);
+}
 
 async function getSwapDetails(token, soldToken, transactionHash) {
   const cfg = { commitment: 'confirmed', maxSupportedTransactionVersion: 0 } // Set the maximum supported transaction version };

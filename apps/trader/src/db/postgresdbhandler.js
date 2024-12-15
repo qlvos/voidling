@@ -28,6 +28,11 @@ export async function getLastOpenTrade() {
   return res && res.rows.length > 0 ? res.rows[0] : null;
 }
 
+export async function getOpenTrades() {
+  let res = await db.raw(`select b.* from "buys" b left join "sells" s on b.id = s.buyid where s.buyid is null order by s.timestamp desc`);
+  return res && res.rows.length > 0 ? res.rows : null;
+}
+
 export async function getWatchlist() {
   let res = await db.raw(`select * from "watchlist" order by address desc`);
   return res && res.rows.length > 0 ? res.rows : null;

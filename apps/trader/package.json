@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "testpick": "node ./test/testrandompick.js",
+    "testcatevent": "node ./test/testcatevent.js",
     "testbuy": "node ./test/testbuy.js",
     "testsell": "node ./test/testsell.js",
     "start": "node ./src/app.js",
@@ -20,6 +21,7 @@
     "@solana/spl-token-registry": "^0.2.4574",
     "@solana/web3.js": "^1.95.2",
     "@thewebchimp/primate": "^1.3.8-entities",
+    "bent": "^7.3.12",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.5",
     "eventsource": "^3.0.2",
