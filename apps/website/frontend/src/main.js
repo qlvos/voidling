@@ -574,15 +574,25 @@ function updateDisplay(timestamp) {
       let offsetTop = window.isMobile ? PORTFOLIO_OFFSET_TOP_MOBILE : PORTFOLIO_OFFSET_TOP;
       let offsetLeft = window.isMobile ? PORTFOLIO_OFFSET_LEFT_MOBILE : PORTFOLIO_OFFSET_LEFT;
 
+      let cv = getCharacterDimensions();
+
       let outputElement = document.getElementById('outputwrapper');
       const canvas = document.getElementById('cvas');
 
+      let canvasBox = canvas.getBoundingClientRect();
       const outerRect = outputElement.getBoundingClientRect();
-      document.getElementById('aboutpage').style.top = `${outputElement.offsetTop}px`;
-      document.getElementById('aboutpage').style.left = `${outputElement.offsetLeft}px`;
-      document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
+      let aboutPage = document.getElementById('aboutpage');
+      aboutPage.style.top = `${canvasBox.top+cv.height}px`;
+      aboutPage.style.left = `${canvasBox.left}px`;
+      aboutPage.style.width = `${canvasBox.width}px`;
+      aboutPage.style.maxWidth = `${canvasBox.width-(cv.width/2)}px`;
+      aboutPage.style.maxHeight = `${canvasBox.height-(cv.height*2)}px`;
+      const contentHeight = aboutPage.scrollHeight;
 
-      document.getElementById('aboutpage').style.maxWidth = `${outputElement.offsetWidth}px`;
+      if(Number(contentHeight) < parseInt(aboutPage.style.maxHeight, 10)) {
+        aboutPage.style.overflowY = "hidden";
+      }
+
       document.getElementById("voidlingcomment").style.maxWidth = `${canvas.offsetWidth * .8}px`;
 
       const dims = calculateDimensions();

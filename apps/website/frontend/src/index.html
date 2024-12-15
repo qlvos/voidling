@@ -221,37 +221,10 @@
       padding-left: 0px;
     }
 
-    #voidlingscontainer {
-      visibility: hidden;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2.5vw;
-      justify-content: flex-start;
-      white-space: pre;
-      margin: 0;
-      padding: 0;
-      width: 100%;
-    }
-
     #outputwrapper {
       position: absolute;
       width: 95dvw;
       height: 90dvh;
-    }
-
-    .voidlingmember,
-    .voidlingmember2 {
-      flex: 0 0 auto;
-      font-family: 'Courier New', monospace;
-      line-height: 1.25;
-      padding: 0;
-      margin: 0;
-      white-space: pre;
-      display: inline-block;
-    }
-
-    .voidlingmember2 {
-      text-align: left;
     }
 
     #cvas {
@@ -315,6 +288,17 @@
       color: var(--background-color);
     }
 
+    #voidlingscontainer {
+      visibility: hidden;
+      text-align: center;
+    }
+
+    .voidlingmember {
+      display: inline-block;
+      margin-left: 10%;
+      margin-right: 10%;
+    }
+
     @media screen and (max-width: 999px) {
       .voidling-world {
         top: 5%;
@@ -329,7 +313,15 @@
       #abouttext {
         margin-left:4dvw;
         margin-right:4dvw;
-    }
+      }
+
+      #voidlingscontainer {
+        text-align: center;
+      }
+
+      .voidlingmember {
+        display: block;
+      }
 
     }
   </style>
@@ -352,46 +344,42 @@ The Voidling's repository is <a target="_blank" href="https://github.com/qlvos/v
 Voidling SOL wallet <a target="_blank" href="https://solscan.io/account/">4XGi8LD2hmcbEYrHKxGgZCKHakE5pyAtfPG3ffKv7ZSr</a>
 
 Follow daily Voidling updates here: <a target="_blank" href="https://x.com/reapers_gambit">X</a> | <a target="_blank" href="https://t.me/reaper_agent">Telegram</a></p>
-
-        <div onclick="borderClick('a')" id="voidlingscontainer">
-          <div class="voidlingmember">
-            +++++++++++ VOIDLING ++++++++++++
-            +                               +
-            +            ****::::           +
-            +        **********:::::        +
-            +     *********$$@$$**:::~      +
-            +     *******$$@@@@$$**::~~     +
-            +       *****$$$@@@$$*:::~~~    +
-            +          ~~~***$$$*::::~~     +
-            +           ~~~~~~:::~~~        +
-            +           ~~~~                +
-            +                               +
-            + character: The Voidling       +
-            + token: <a target="_blank" href="https://solscan.io/token/">$VOID</a>                  +
-            + chart SOL: <a target="_blank" href="https://dexscreener.com/solana/">xxx...xxx</a>          +
-            + circ supply: 88,888,888       +
-            +                               +
-            +++++++++++++++++++++++++++++++++
-          </div>
-          <div class="voidlingmember2">
-            ++++++++ REAPER'S GAMBIT ++++++++
-            +                               +
-            +           /| 0                +
-            +            |\|/               +
-            +            | |                +
-            +            |/ \               +
-            +                               +
-            + character: The Reaper         +
-            + token: <a target="_blank" href="https://etherscan.io/address/0x2C91D908E9fab2dD2441532a04182d791e590f2d">$RG</a>                    +
-            + created: Apr-25-2023          +
-            + chart SOL: <a target="_blank" href="https://dexscreener.com/solana/4XGi8LD2hmcbEYrHKxGgZCKHakE5pyAtfPG3ffKv7ZSr">4XG...ZSr</a>          +
-            + chart ETH: <a target="_blank" href="https://dexscreener.com/ethereum/0x2C91D908E9fab2dD2441532a04182d791e590f2d">0x2...f2d</a>          +
-            + circ supply: 3xx,xxx,xxx      +
-            + site: <a target="_blank" href="https://reapersgambit.com/">r...gambit.com</a>          +
-            + x: <a target="_blank" href="https://x.com/reapers_gambit">@reapers_gambit</a>            +
-            +                               +
-            +++++++++++++++++++++++++++++++++
-        </div>
+<div id="voidlingscontainer"> 
+  <div class="voidlingmember">
++++++++++++ VOIDLING ++++++++++++
++                               +
++            ****::::           +
++        **********:::::        +
++     *********$$@$$**:::~      +
++     *******$$@@@@$$**::~~     +
++       *****$$$@@@$$*:::~~~    +
++          ~~~***$$$*::::~~     +
++           ~~~~~~:::~~~        +
++           ~~~~                +
++                               +
++ character: The Voidling       +
++ token: <a target="_blank" href="https://solscan.io/token/">$VOID</a>                  +
++ chart SOL: <a target="_blank" href="https://dexscreener.com/solana/">xxx...xxx</a>          +
++ circ supply: 88,888,888       +
++                               +
++++++++++++++++++++++++++++++++++</div><div class="voidlingmember">
+++++++++ REAPER'S GAMBIT ++++++++
++                               +
++           /| 0                +
++            |\|/               +
++            | |                +
++            |/ \               +
++                               +
++ character: The Reaper         +
++ token: <a target="_blank" href="https://etherscan.io/address/0x2C91D908E9fab2dD2441532a04182d791e590f2d">$RG</a>                    +
++ created: Apr-25-2023          +
++ chart SOL: <a target="_blank" href="https://dexscreener.com/solana/4XGi8LD2hmcbEYrHKxGgZCKHakE5pyAtfPG3ffKv7ZSr">4XG...ZSr</a>          +
++ chart ETH: <a target="_blank" href="https://dexscreener.com/ethereum/0x2C91D908E9fab2dD2441532a04182d791e590f2d">0x2...f2d</a>          +
++ circ supply: 3xx,xxx,xxx      +
++ site: <a target="_blank" href="https://reapersgambit.com/">r...gambit.com</a>          +
++ x: <a target="_blank" href="https://x.com/reapers_gambit">@reapers_gambit</a>            +
++                               +
++++++++++++++++++++++++++++++++++</div>
       </div>
     </div>
     </div>
