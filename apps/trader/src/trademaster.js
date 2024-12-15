@@ -101,6 +101,10 @@ export async function manageCatEvent(redis) {
     if(positions && positions.length > 0) {
       logger.info("closing position: " + trade.toaddress);
       let trade = positions[0];
+      if(trade.variation < 1) {
+        logger.info("No position in profit and will not open new ones, aborting.")
+        return;
+      }
       let sellInfo = await sellAndSignalToken(trade.toaddress, trade.fromaddress, trade.holdingsToken, redis);
       await addSell(trade.id, sellInfo.solDifference, trade.tokenUsd, Date.now());
       logger.info("executed sell transaction, wait a bit before buying...")
