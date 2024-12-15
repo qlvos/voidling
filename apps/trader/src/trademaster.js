@@ -73,7 +73,7 @@ export function startCatTrader(redis) {
         catEvent.time = Date.now();
         // https://github.com/Clement87/Pepito-API
         await addCatEvent(catEvent.type, catEvent.img, catEvent.time);
-        if(catEvent.type == "out") {
+        if(catEvent.type == "in" || catEvent.type == "out") {
           await manageCatEvent(redis);
         }
       }
