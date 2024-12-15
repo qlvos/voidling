@@ -586,7 +586,7 @@ function updateDisplay(timestamp) {
       aboutPage.style.left = `${canvasBox.left}px`;
       aboutPage.style.width = `${canvasBox.width}px`;
       aboutPage.style.maxWidth = `${canvasBox.width-(cv.width/2)}px`;
-      aboutPage.style.maxHeight = `${canvasBox.height-(cv.height*2)}px`;
+      aboutPage.style.maxHeight = `${canvasBox.height-(cv.height*2.5)}px`;
       const contentHeight = aboutPage.scrollHeight;
 
       if(Number(contentHeight) < parseInt(aboutPage.style.maxHeight, 10)) {
