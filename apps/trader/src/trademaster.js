@@ -1,5 +1,6 @@
 import { logger } from './logger.js';
 import { EventSource } from 'eventsource';
+import ReconnectingEventSource from "reconnecting-eventsource";
 import { CAT_BOUGHT_TOKEN, CAT_SOLD_TOKEN } from "./config/eventkeys.js";
 import { config } from './config/config.js';
 import { buyToken, sellToken } from './services/solana.service.js';
@@ -10,10 +11,14 @@ const getJSON = bent('json');
 const TOKEN_PRICE_URL = 'https://public-api.dextools.io/trial/v2/token/solana';
 const sseUrl = 'https://api.thecatdoor.com/sse/v1/events';
 
-const eventSource = new EventSource(sseUrl);
+let eventSource = new EventSource(sseUrl);
+
 const SELL_BUY_WAIT_TIME = 30000;
 const MAX_OPEN_TRADES = 9;
 const API_CALL_WAIT = 3500;
+const PEPITO_RECONNECT_INTERVAL = 30000;
+
+setInterval(() => { eventSource = new EventSource(sseUrl); }, PEPITO_RECONNECT_INTERVAL);
 
 export async function pickToken() {
   let wlist = await getWatchlist()
