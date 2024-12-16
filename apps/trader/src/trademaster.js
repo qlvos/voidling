@@ -1,6 +1,5 @@
 import { logger } from './logger.js';
 import { EventSource } from 'eventsource';
-import ReconnectingEventSource from "reconnecting-eventsource";
 import { CAT_BOUGHT_TOKEN, CAT_SOLD_TOKEN } from "./config/eventkeys.js";
 import { config } from './config/config.js';
 import { buyToken, sellToken } from './services/solana.service.js';
