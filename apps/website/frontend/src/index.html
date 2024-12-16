@@ -16,11 +16,13 @@
       --c141-color: #af87ff;
       --text-color: #ac8ece;
       --text-opacity: 70%;
+      --voidling-font-size: 12px;
     }
 
     body {
       background-color: var(--background-color);
       font-family: 'Courier New', monospace;
+      font-size: var(--voidling-font-size, 12px);
       color: #fff;
       margin: 0;
       padding: 0;
@@ -104,6 +106,7 @@
       visibility: hidden;
       white-space: nowrap;
       font-family: 'Courier New', monospace;
+      font-size: var(--voidling-font-size, 12px);
       z-index: 999;
       background-color: transparent;
       white-space: pre-wrap;
@@ -394,13 +397,13 @@ Follow daily Voidling updates here: <a target="_blank" href="https://x.com/reape
       </div>
       <div id="voidlingbox" class="voidling-world2">
         <div>
-          <pre>
+          <div>
                 <div class="stateheader">VOIDLING STATE</div>
                 <div class="statecontent" id="voidlingemotion"></div>
 
                 <div class="stateheader">VOIDLING COMMENT</div>
                 <div class="statecontent" id="voidlingcomment"></div>
-              </pre>
+          </div>
         </div>
       </div>
     </div>
