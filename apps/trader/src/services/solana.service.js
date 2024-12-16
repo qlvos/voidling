@@ -30,13 +30,13 @@ export async function buyToken(token) {
     let swapDetails = await swap(WRAPPED_SOL, token, config.VLING_BUY_AMOUNT);
     // complement with token price
     let priceDetails = await getTokenPriceDetails(token);
-      if(swapDetails) {
+    if (swapDetails) {
       // save to DB (buys) !
       await addBuy(WRAPPED_SOL, token, config.VLING_BUY_AMOUNT, swapDetails.receivedAmount, swapDetails.receivedAmountRaw, priceDetails ? priceDetails.price : -1, Date.now());
       logger.info("Buy saved in database");
     }
     return swapDetails;
-  } catch(err) {
+  } catch (err) {
     logger.error("failed to swap " + token + ": " + err);
     console.log(err)
   }
@@ -73,7 +73,7 @@ async function swap(fromToken, toToken, amount, slippagePercent = 5) {
         dynamicComputeUnitLimit: true,
         //computeUnitPriceMicroLamports : 'auto',
         //prioritizationFeeLamports: 'auto',
-        priorityLevelWithMaxLamports: { 
+        priorityLevelWithMaxLamports: {
           maxLamports: 10000000, // Set the maximum lamports for priority fee 
           priorityLevel: 'medium', // Set the priority level to medium 
         },
@@ -146,12 +146,12 @@ async function getSwapDetails(token, soldToken, transactionHash) {
   let tx = await connection.getTransaction(transactionHash, cfg);
   let maxRetries = 3;
   let tries = 0;
-  
-  while(!tx && tries < maxRetries) {
-    logger.info(`failed to get tx, wait a bit... (try ${tries+1} / ${maxRetries}`);
+
+  while (!tx && tries < maxRetries) {
+    logger.info(`failed to get tx, wait a bit... (try ${tries + 1} / ${maxRetries}`);
     await new Promise(resolve => setTimeout(resolve, TRANSACTION_DELAY));
     tx = await connection.getTransaction(transactionHash, cfg);
-    if(tx) {
+    if (tx) {
       break;
     }
   }
@@ -159,7 +159,7 @@ async function getSwapDetails(token, soldToken, transactionHash) {
   let receivedRaw = -1;
   let received = - 1;
 
-  if(tx) {
+  if (tx) {
     let walletPreTokens = tx.meta.preTokenBalances.filter(
       (item) => item.mint.toLowerCase() == token.toLowerCase() && item.owner.toLowerCase() == wallet.publicKey.toString().toLowerCase());
     let walletPostTokens = tx.meta.postTokenBalances.filter(
@@ -180,7 +180,7 @@ async function getSwapDetails(token, soldToken, transactionHash) {
   let details = await getTokenDetails(token);
   let soldTokenDetails = await getTokenDetails(soldToken);
 
-  return  {
+  return {
     spentSol: config.VLING_BUY_AMOUNT,
     receivedToken: details,
     soldToken: soldTokenDetails,
@@ -232,8 +232,8 @@ async function getTokenPriceDetails(token) {
   let url = `${TOKEN_PRICE_URL}/${token}/price`;
   logger.info("calling " + url);
   try {
-    let res = await getJSON(url, null, {'x-api-key': config.DEXTOOLS_API_KEY});
-    if(res && res.statusCode && res.statusCode == 200 && res.data) {
+    let res = await getJSON(url, null, { 'x-api-key': config.DEXTOOLS_API_KEY });
+    if (res && res.statusCode && res.statusCode == 200 && res.data) {
       return res.data;
     }
   } catch (err) {
