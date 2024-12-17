@@ -17,7 +17,11 @@ const MAX_OPEN_TRADES = 9;
 const API_CALL_WAIT = 3500;
 const PEPITO_RECONNECT_INTERVAL = 30000;
 
-setInterval(() => { eventSource = new EventSource(sseUrl); }, PEPITO_RECONNECT_INTERVAL);
+setInterval(() => { 
+  eventSource.close();
+  eventSource = new EventSource(sseUrl); 
+}, 
+  PEPITO_RECONNECT_INTERVAL);
 
 export async function pickToken() {
   let wlist = await getWatchlist()
