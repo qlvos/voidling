@@ -21,26 +21,19 @@ export let openingAnimation = [
   {
     backgroundFromPrevious: true,
     voidling: false,
-    voidlingAtPercentage: 0.6,
     background: '$',
     text : [ " S&V "],
     type: "fillprogressively",
     timeseconds: 4
   },
- /* {
-    backgroundFromPrevious: false,
+  {
+    backgroundFromPrevious: true,
+    voidling: false,
+    voidlingAtPercentage: 0,
     background: ' ',
-    type: "fillprogressively",
-    content: "image",
-    left: 0.5,
-    top: 0.1,
-    text : [ 
-`a    d  
- b     e
- c    f`
-],
+    text : [' '],
     type: "fillprogressively",
     timeseconds: 4
-  }*/
+  }
 
 ];
