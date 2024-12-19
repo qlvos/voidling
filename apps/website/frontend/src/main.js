@@ -511,7 +511,8 @@ function updateDisplay(timestamp) {
             char = background[i];
             context.fillStyle = backgroundColor;
           } else if(!openingDone && currentScene.voidling && isVoidlingCharacter(char)) {
-            char = " ";
+            context.fillStyle = backgroundColor;
+            //char = " ";
           }
           
           context.fillText(char, (currentX * cv.width), currentY);        

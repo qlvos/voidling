@@ -21,7 +21,7 @@ export let openingAnimation = [
   {
     backgroundFromPrevious: true,
     voidling: false,
-    //voidlingAtPercentage: 0.7,
+    voidlingAtPercentage: 0.6,
     background: '$',
     text : [ " S&V "],
     type: "fillprogressively",
