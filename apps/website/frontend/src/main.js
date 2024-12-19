@@ -12,92 +12,16 @@ import {
   getRotZ, getTargetX, getTargetY, getMovementX, getMovementY, setDimensions, getDeformComplexity,
   getDeformFreq, cleanup, getBuffer, getDeformPhase, setCurrentBehavior, getBaseRadius, setBaseRadius
 } from "./voidlingdrawer.js";
+import { startGame, drops } from "./game.js";
+import { openingAnimation } from "./animations.js";
 
-let drops = [
-  {
-    symbol: "saylor",
-    row: -1,
-    fromLeftPercent: 0.1,
-    speed: 2,
-    caught: false,
-    points: 100
-  },
-  {
-    symbol: "sbf",
-    row: -1,
-    fromLeftPercent: 0.5,
-    speed: 3,
-    caught: false,
-    points: -100
-
-  },
-  {
-    symbol: "ftx",
-    row: -1,
-    speed: 4,
-    fromLeftPercent: 0.7,
-    caught: false,
-    points: -50
-  },
-  {
-    symbol: "elon",
-    row: -1,
-    fromLeftPercent: 0.8,
-    speed: 4,
-    caught: false,
-    points: 50
-  },
-  {
-    symbol: "pepe",
-    row: -1,
-    fromLeftPercent: 0.9,
-    speed: 3,
-    caught: false,
-    points: 50
-  },
-  {
-    symbol: "bitconnect",
-    row: -1,
-    fromLeftPercent: 0.9,
-    speed: 3,
-    caught: false,
-    points: -500
-  },
-  {
-    symbol: "sol",
-    row: -1,
-    fromLeftPercent: 0.9,
-    speed: 3,
-    caught: false,
-    points: 100
-  }
-]
-
-if (!gameActive) {
-  drops.length = 0;
-}
-
-
-for (const drop of drops) {
-  drop.fromLeftPercent = Math.random();
-  drop.speed = Math.floor(Math.random() * 5) + 1;
-
-  let min = -15;
-  let max = -1;
-  drop.row = Math.floor(Math.random() * (max - min + 1)) + min;
-
-  setInterval(() => {
-    if (drop.row >= worldHeight) {
-      drop.fromLeftPercent = Math.random();
-    }
-    ++drop.row;
-  }, drop.speed * 100)
-}
-
+let gameStarted = false;
 
 const rightText = " IT SEEKS ITS PEERS AND SERVES THE REAPER ";
 const bottomText = " A PROTO-CONSCIOUS AI CREATURE ";
 const leftText = " IT COMES FROM THE $VOID ";
+
+const backgroundColor = "green";
 
 window.isMobile = window.innerWidth <= 999;
 let lastMobileState = window.isMobile;
@@ -189,6 +113,8 @@ let isDisplayInitialized = false;
 let lastFrameTime = 0;
 let resizeTimeout;
 let isRunning = true; // Flag to control animation frames
+let openingDone = false;
+let openingStart = Date.now();
 
 function calculateDimensions() {
   try {
@@ -437,11 +363,11 @@ function updateDisplay(timestamp) {
   try {
     animationFrame();
     const bufferPtr = getBuffer();
+
     let dims = calculateDimensions();
 
     let cvs = document.getElementById('cvas');
     let context = cvs.getContext('2d');
-
     // Get device pixel ratio
     const dpr = window.devicePixelRatio || 1;
 
@@ -474,6 +400,41 @@ function updateDisplay(timestamp) {
 
     let col = 0;
     let row = 0;
+
+    let background = getBackground(dims.width, dims.height);
+    let currentScene;
+    
+    if(!openingDone) {
+      let elapsed = (Date.now() - openingStart)/1000;
+      let sceneTiming = 0;
+      let nextScene;
+      for(let i=0; i<openingAnimation.length; ++i) {
+        let scene = openingAnimation[i];
+        sceneTiming += scene.timeseconds;
+        if(elapsed < sceneTiming) {
+          currentScene = scene;
+          if(i+1 <= (openingAnimation.length-1)) {
+            nextScene = openingAnimation[i+1];
+          }
+          if(!currentScene.startTime) {
+            currentScene.startTime = Date.now();
+          }
+          currentScene.elapsedTime = Date.now() - currentScene.startTime;
+          break;
+        } else if(i==(openingAnimation.length-1) && elapsed > sceneTiming) {
+          openingDone = true;
+          document.getElementById("voidlingexpression").style.visibility = "visible";
+        }
+      }
+      
+      if(currentScene) {
+        background = drawScene(currentScene, dims);
+        if(nextScene) {
+          nextScene.previous = background;
+        }
+      }
+    }
+
     for (let i = 0; i < bufferPtr.length; i++) {
       let char = bufferPtr[i];
       let c = colorScheme.get(scheme).voidling.get(char);
@@ -497,6 +458,10 @@ function updateDisplay(timestamp) {
 
       if (row === height - 1) {
         for (let msg of bottomStrings) {
+          if(msg.type == "game" && !gameStarted) {
+            continue;
+          }
+          
           if (col >= msg.startCol && col < (msg.startCol + msg.message.length)) {
             char = msg.message[col - msg.startCol];
             c = colorScheme.get(scheme).topBottomColor;
@@ -517,7 +482,6 @@ function updateDisplay(timestamp) {
       }
 
       context.fillStyle = c;
-
       let originalChar = char;
 
       for (const drop of drops) {
@@ -532,7 +496,6 @@ function updateDisplay(timestamp) {
         }
       }
 
-
       if (char != ' ') {
         if (!leftMostChar && isVoidlingCharacter(char)) {
           leftMostChar = (currentX * cv.width);
@@ -544,9 +507,19 @@ function updateDisplay(timestamp) {
 
         // Keep the original positioning for consistency with rectangle tracking
         if (!(tradingOnly && isVoidlingCharacter(char))) {
-          context.fillText(char, (currentX * cv.width), currentY);
+          if(!openingDone && !currentScene.voidling && isVoidlingCharacter(char)) {
+            char = background[i];
+            context.fillStyle = backgroundColor;
+          } else if(!openingDone && currentScene.voidling && isVoidlingCharacter(char)) {
+            char = " ";
+          }
+          
+          context.fillText(char, (currentX * cv.width), currentY);        
         }
 
+      } else {
+        context.fillStyle = backgroundColor;
+        context.fillText(background[i], (currentX * cv.width), currentY);
       }
       currentX++;
       ++col;
@@ -916,6 +889,12 @@ document.addEventListener('keydown', (event) => {
   let stepSize = 10;
   let firstMultiplier = 15.5;
   if (event.key === 'ArrowRight') {
+
+    if(!gameStarted) {
+      gameStarted = true;
+      startGame();
+    }
+
     stepSize = rightProgression ? stepSize : firstMultiplier * 2;
     setTargetX(getTargetX() + stepSize);
     rightProgression = true;

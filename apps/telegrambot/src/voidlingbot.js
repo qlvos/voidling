@@ -57,18 +57,23 @@ export class VoidlingBot {
   }
 
   async testmessage(context) {
+    console.log(context)
     if(!this.isSuperUser(context.from.id)) {
       logger.info("not a super user, cannot buy random tokens!")
       return;
     }
 
-    await this.sendPhoto(config.VLING_TG_CHANNEL_ID, `The voidling bought a token`);
+    await this.sendPhoto(config.VLING_TG_CHANNEL_ID, context.message_thread_id, `The voidling bought a token`);
     
   }
 
-  async sendPhoto(channel, message) {
+  async sendPhoto(channel, threadId, message) {
     try {
-      await this.bot.sendPhoto(channel, VOIDLING_IMAGE, {caption:message, parse_mode:"html"});
+      let data = {caption:message, parse_mode:"html"};
+      if(threadId) {
+        data.reply_to_message_id = threadId;
+      }
+      await this.bot.sendPhoto(channel, VOIDLING_IMAGE, data);
     } catch (err) {
       // backup
       await this.bot.sendMessage(channel, message);

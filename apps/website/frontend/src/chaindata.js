@@ -42,7 +42,7 @@ export function connectWebSocket() {
           }
   
           renderAssets(assetBoxId, msg.assets, scrollSettings.get(assetBoxId));
-          renderLog(tradeLogId, msg.tradelog, scrollSettings.get(tradeLogId));
+          //renderLog(tradeLogId, msg.tradelog, scrollSettings.get(tradeLogId));
           renderAssets("watchlistbox", msg.watchlist, scrollSettings.get(watchlistBoxId));
   
         } else if (msg.action == "ping") {

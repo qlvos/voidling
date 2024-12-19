@@ -108,12 +108,13 @@ let topStrings = [
 ]
 
 let pointString = {
+  type: "game",
   fromLeftPercent: 0.8,
   message: " Points: 0 ",
   color: "#ff8700"
 }
 
-let bottomStrings = gameActive ? [pointString] : [];
+let bottomStrings = [pointString];
 let hiddenColor = '#252525';
 
 function borderClick(msg) {
@@ -209,3 +210,137 @@ function getCharacterDimensions() {
 
   return { width, height };
 }
+
+function drawScene(scene, dims) {
+
+  let background = scene.backgroundFromPrevious ? scene.previous : new Array(dims.width*dims.height);
+
+  if(!scene.backgroundFromPrevious) {
+    background.fill(scene.background)
+  }
+
+  if(scene.type == "randomtext") {
+    let numEntries = 200;
+    if(scene.generatedScene) {
+      return scene.generatedScene;
+    }
+    for(let i=0; i<numEntries; i++) {
+      let pos = Math.floor(Math.random() * background.length);
+      let item = scene.text[Math.floor(Math.random() * scene.text.length)];
+      item = ` ${item} `;
+      for(let i=0; i<item.length; i++) {
+        if(pos+i < background.length-1) {
+          background[pos+i] = item[i];
+        }
+      }
+    }
+    scene.generatedScene = background;
+
+  } else if(scene.type == "fillprogressively") {
+    // fill from top to bottom, spreading it out over the available time...
+    let partToFill = (scene.elapsedTime/1000) / scene.timeseconds;
+
+    if(scene.voidlingAtPercentage != undefined && scene.voidlingAtPercentage <= partToFill) {
+      scene.voidling = true;
+    }
+
+    let limit = Math.floor(partToFill*(dims.width*dims.height));
+
+    if(scene.content == "image") {
+      let startCol = Math.floor(scene.left * dims.width);
+      console.log("start: " + startCol)
+      let startRow = Math.floor(dims.height * scene.top);
+
+      let startPos = (startRow-1)*dims.width + startCol;
+
+      let counter = 0;
+      let c = 0;
+      let r = 0;
+      while(counter <= limit) {
+        if(counter % dims.width == 0) {
+          ++r;
+          c = 0;
+        }
+
+        background[counter] = scene.background;
+
+        if(startPos >= limit) {
+          ++counter;
+          continue;
+        }
+
+        if(counter >= startPos) {
+          for(let i=0; i<scene.text.length; i++) {
+            let textRows = scene.text[i].split('\n');
+            for(let row of textRows) {
+              if((c >= startCol && c < (startCol+row.length)) && (r >= startRow && r < (startRow+textRows.length))) {
+                for(let j=0; j<row.length; j++) {
+                  // what is the start and end position in this row
+                  // check whether counter is between start and end position
+                  counter++;
+                  if(counter < (startPos+j)) {
+                    console.log("Break!")
+                    break;
+                  }
+                  background[(r*dims.width + c)] = row[j];
+                  console.log("row*width: " + (r*dims.width + c))
+                  console.log("counter: " + counter)
+                  console.log("row[j]: " + row[j])
+                  ++c;
+                }
+              }
+            }
+
+            if(counter >= limit) {
+              break;
+            }
+          }
+        }
+
+        ++counter;
+        ++c;
+      }
+    } else {
+      let counter = 0;
+      while(counter <= limit) {
+        for(let i=0; i<scene.text.length; i++) {
+          for(const char of scene.text[i]) {
+            background[counter] = char;
+            ++counter;
+          }
+          if(counter >= limit) {
+            break;
+          }
+        }
+      }
+    }
+  } else {
+    background.fill(scene.text[0]);
+  }
+  return background;
+
+}
+
+function getBackground(width, height) {
+  let background = new Array(width*height);
+  background.fill(" ")
+  //drawText("hello", 0.7, 0.5, width, height, background);
+  //drawText("How are you today", 0.1, 0.9, width, height, background);
+  return background;
+}
+
+function drawText(text, left, top, width, height, buffer) {
+  let col = Math.floor(left*width);
+  let row = Math.floor((buffer.length / width) * top);
+  let newLines = 0;
+  for(let i=0; i<text.length; i++) {
+    let idx = (row*width)+(col)+i;
+    if(text[i] == '\n') {
+      ++newLines;
+    }
+    
+    buffer[idx+(newLines*(width-2))] = text[i];
+  }
+  return buffer;
+}
+

@@ -10,7 +10,9 @@ module.exports = function(grunt) {
         files : {
           'build/main.js': ['./src/main.js'],
           'build/chaindata.js': ['src/chaindata.js'],
+          'build/animations.js': ['src/animations.js'],
           'build/voidlingdrawer.js': ['src/voidlingdrawer.js'],
+          'build/game.js': ['src/game.js'],
           'build/prophecies.js': ['src/prophecies.js'],
           'build/plothelpers.js': ['src/plothelpers.js'],
           'build/voidling-config-agitated.js': ['src/voidling-config-agitated.js'],

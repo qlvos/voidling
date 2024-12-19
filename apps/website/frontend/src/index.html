@@ -41,6 +41,10 @@
       line-height: 1;
     }
 
+    #voidlingexpression {
+      visibility:hidden;
+    }
+
     a {
       text-decoration: none;
       color: inherit;
@@ -382,12 +386,13 @@ Follow daily Voidling updates here: <a target="_blank" href="https://x.com/reape
 
     <div id="outputwrapper">
       <canvas id="cvas"></canvas>
+      <span id="voidlingexpression">
       <div id="portfoliobox" class="voidling-world">
         <div>
           <span class="portfolioheader">VOIDLING PORTFOLIO</span>
           <span id="assetbox" class="assetboxclass"></span>
-          <span class="portfolioheader">VOIDLING TRADES</span>
-          <span id="tradelogbox" class="assetboxclass"></span>
+          <!--<span class="portfolioheader">VOIDLING TRADES</span>
+          <span id="tradelogbox" class="assetboxclass"></span>-->
           <span class="portfolioheader">VOID INDEX</span>
           <span id="watchlistbox" class="assetboxclass">
           </span>
@@ -405,6 +410,7 @@ Follow daily Voidling updates here: <a target="_blank" href="https://x.com/reape
           </div>
         </div>
       </div>
+    </span>
     </div>
   </div>
 
