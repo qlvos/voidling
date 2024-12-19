@@ -216,13 +216,13 @@ function drawScene(scene, dims) {
   let background = scene.backgroundFromPrevious ? scene.previous : new Array(dims.width*dims.height);
 
   if(!scene.backgroundFromPrevious) {
-    background.fill(scene.background)
+    background.fill(scene.background);
   }
 
   if(scene.type == "randomtext") {
-    let numEntries = 200;
+    let numEntries = 10;
     if(scene.generatedScene) {
-      return scene.generatedScene;
+      background = scene.generatedScene;
     }
     for(let i=0; i<numEntries; i++) {
       let pos = Math.floor(Math.random() * background.length);
@@ -317,6 +317,17 @@ function drawScene(scene, dims) {
   } else {
     background.fill(scene.text[0]);
   }
+
+  // post processing
+
+  /*
+  for(let i=0; i<background.length; i++) {
+    if(i < 100) {
+      console.log("Yeoo")
+      background[i] = '-';
+    }
+  }*/
+
   return background;
 
 }

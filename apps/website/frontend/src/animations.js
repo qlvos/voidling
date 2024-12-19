@@ -3,7 +3,7 @@ export let openingAnimation = [
   {
     background: '$',
     text: ['$'],
-    timeseconds: 1.5
+    timeseconds: 2
   },
   {
     background: '$',
@@ -21,7 +21,7 @@ export let openingAnimation = [
   {
     backgroundFromPrevious: true,
     voidling: false,
-    voidlingAtPercentage: 0.5,
+    voidlingAtPercentage: 0.7,
     background: '$',
     text : [ " S&V "],
     type: "fillprogressively",

@@ -21,7 +21,7 @@ const rightText = " IT SEEKS ITS PEERS AND SERVES THE REAPER ";
 const bottomText = " A PROTO-CONSCIOUS AI CREATURE ";
 const leftText = " IT COMES FROM THE $VOID ";
 
-const backgroundColor = "green";
+const backgroundColor = "#8787ff";
 
 window.isMobile = window.innerWidth <= 999;
 let lastMobileState = window.isMobile;
