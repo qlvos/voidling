@@ -21,7 +21,7 @@ COPY ./template/nginx.conf.template /etc/nginx/templates/nginx.conf.template
 
 RUN rm -rf /usr/share/nginx/html/*
 
-EXPOSE 80
+EXPOSE 443
 
 
 
