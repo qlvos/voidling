@@ -22,4 +22,4 @@ services:
     environment:
       - TERM=xterm
     depends_on:
-      - frontend
+      - frontend-cert
