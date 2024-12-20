@@ -1,0 +1,25 @@
+services:
+  frontend:
+    build:
+      dockerfile: Dockerfile.cert
+      context: ./apps/website/frontend
+    environment:
+      - WDS_SOCKET_HOST=127.0.0.1
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /tmp/acme_challenge:/tmp/acme_challenge
+    ports:
+      - "80:80"
+
+  letsencrypt:
+    container_name: 'certbot-service-vling'
+    image: certbot/certbot
+    command: sh -c "certbot certonly --expand --webroot -w /tmp/acme_challenge -d standardvoids.com -d www.standardvoids.com --text --agree-tos --email dev@standardvoids.com --rsa-key-size 4096 --verbose --keep-until-expiring --preferred-challenges=http"
+    entrypoint: ""
+    volumes:
+      - "/etc/letsencrypt:/etc/letsencrypt"
+      - "/tmp/acme_challenge:/tmp/acme_challenge"
+    environment:
+      - TERM=xterm
+    depends_on:
+      - frontend

@@ -1,7 +1,7 @@
 server {
     listen 80;
     listen [::]:80;
-    server_name www.voidling.com;
+    server_name www.standardvoids.com;
 
     location ~ /.well-known/acme-challenge {
         allow all;
