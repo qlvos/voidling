@@ -72,12 +72,6 @@ export const assetBoxId = "assetbox";
 export const tradeLogId = "tradelogbox";
 export const watchlistBoxId = "watchlistbox";
 
-// portfolio box offset compared to the voidling square
-const PORTFOLIO_OFFSET_TOP = 1.4;
-const PORTFOLIO_OFFSET_LEFT = 1.35;
-const PORTFOLIO_OFFSET_TOP_MOBILE = 1.6;
-const PORTFOLIO_OFFSET_LEFT_MOBILE = 1.5;
-
 // Configuration constants
 const FRAME_INTERVAL = 48;
 const CLEANUP_INTERVAL = 200;
@@ -112,7 +106,7 @@ let lastFrameTime = 0;
 let resizeTimeout;
 let isRunning = true; // Flag to control animation frames
 let gameStarted = false;
-let openingDone = true;
+let openingDone = false;
 let dropCaught = false;
 let currentDropCaught;
 let randomAnimChecked = false;
