@@ -15,8 +15,6 @@ import {
 import { startGame, drops } from "./game.js";
 import { openingAnimation } from "./animations.js";
 
-let gameStarted = false;
-
 const rightText = " IT SEEKS ITS PEERS AND SERVES THE REAPER ";
 const bottomText = " A PROTO-CONSCIOUS AI CREATURE ";
 const leftText = " IT COMES FROM THE $VOID ";
@@ -113,7 +111,10 @@ let isDisplayInitialized = false;
 let lastFrameTime = 0;
 let resizeTimeout;
 let isRunning = true; // Flag to control animation frames
+let gameStarted = false;
 let openingDone = false;
+let openingDoneAt;
+let openingDonePostPeriod = 3000;
 let openingStart = Date.now();
 
 function calculateDimensions() {
@@ -423,6 +424,7 @@ function updateDisplay(timestamp) {
           break;
         } else if(i==(openingAnimation.length-1) && elapsed > sceneTiming) {
           openingDone = true;
+          openingDoneAt = Date.now();
           document.getElementById("voidlingexpression").style.visibility = "visible";
         }
       }
@@ -430,7 +432,8 @@ function updateDisplay(timestamp) {
       if(currentScene) {
         background = drawScene(currentScene, dims);
         if(nextScene) {
-          nextScene.previous = background;
+          currentScene.latestBackground = background;
+          nextScene.previous = currentScene;
         }
       }
     }
@@ -512,7 +515,15 @@ function updateDisplay(timestamp) {
             context.fillStyle = backgroundColor;
           } else if(!openingDone && currentScene.voidling && isVoidlingCharacter(char)) {
             context.fillStyle = backgroundColor;
-            //char = " ";
+          }
+
+          let now = Date.now();
+          if(now-openingDoneAt < openingDonePostPeriod) {
+            let ratio = ((now-openingDoneAt) / openingDonePostPeriod);
+            if(Math.random() >  ratio) {
+              context.fillStyle = backgroundColor;
+            }
+            
           }
           
           context.fillText(char, (currentX * cv.width), currentY);        

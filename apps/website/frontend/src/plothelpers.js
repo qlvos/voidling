@@ -119,11 +119,16 @@ let hiddenColor = '#252525';
 
 function borderClick(msg) {
   if (msg == ABOUT_CLICK) {
+
+
+
     aboutClicked = !aboutClicked;
+    /*
     aboutClicked ? document.getElementById("portfoliobox").style.visibility = "hidden" : document.getElementById("portfoliobox").style.visibility = "visible";
     aboutClicked ? document.getElementById("voidlingbox").style.visibility = "hidden" : document.getElementById("voidlingbox").style.visibility = "visible";
     aboutClicked ? document.getElementById("aboutpage").style.visibility = "visible" : document.getElementById("aboutpage").style.visibility = "hidden";
     aboutClicked ? document.getElementById("voidlingscontainer").style.visibility = "visible" : document.getElementById("voidlingscontainer").style.visibility = "hidden";
+    */
 
   } else if (msg == VOIDLING_ONLY_CLICK) {
     voidlingOnly = !voidlingOnly;
@@ -213,44 +218,25 @@ function getCharacterDimensions() {
 
 function drawScene(scene, dims) {
 
-  let background = scene.backgroundFromPrevious ? scene.previous : new Array(dims.width*dims.height);
+  let background = scene.backgroundFromPrevious ? scene.previous.latestBackground : new Array(dims.width*dims.height);
+  let partToFill = (scene.elapsedTime/1000) / scene.timeseconds;
+  let limit = Math.floor(partToFill*(dims.width*dims.height));
 
   if(!scene.backgroundFromPrevious) {
     background.fill(scene.background);
   }
 
   if(scene.type == "randomtext") {
-    let numEntries = 10;
-    if(scene.generatedScene) {
-      background = scene.generatedScene;
-    }
-    for(let i=0; i<numEntries; i++) {
-      let pos = Math.floor(Math.random() * background.length);
-      let item = scene.text[Math.floor(Math.random() * scene.text.length)];
-      item = ` ${item} `;
-      for(let i=0; i<item.length; i++) {
-        if(pos+i < background.length-1) {
-          background[pos+i] = item[i];
-        }
-      }
-    }
-    scene.generatedScene = background;
-
+    background = generateRandomText(scene, background);
   } else if(scene.type == "fillprogressively") {
     // fill from top to bottom, spreading it out over the available time...
-    let partToFill = (scene.elapsedTime/1000) / scene.timeseconds;
-
     if(scene.voidlingAtPercentage != undefined && scene.voidlingAtPercentage <= partToFill) {
       scene.voidling = true;
     }
 
-    let limit = Math.floor(partToFill*(dims.width*dims.height));
-
     if(scene.content == "image") {
       let startCol = Math.floor(scene.left * dims.width);
-      console.log("start: " + startCol)
       let startRow = Math.floor(dims.height * scene.top);
-
       let startPos = (startRow-1)*dims.width + startCol;
 
       let counter = 0;
@@ -279,13 +265,9 @@ function drawScene(scene, dims) {
                   // check whether counter is between start and end position
                   counter++;
                   if(counter < (startPos+j)) {
-                    console.log("Break!")
                     break;
                   }
                   background[(r*dims.width + c)] = row[j];
-                  console.log("row*width: " + (r*dims.width + c))
-                  console.log("counter: " + counter)
-                  console.log("row[j]: " + row[j])
                   ++c;
                 }
               }
@@ -318,18 +300,34 @@ function drawScene(scene, dims) {
     background.fill(scene.text[0]);
   }
 
-  // post processing
-
-  /*
-  for(let i=0; i<background.length; i++) {
-    if(i < 100) {
-      console.log("Yeoo")
-      background[i] = '-';
-    }
-  }*/
+  if(scene.previous && scene.previous.overlapNext) {
+    background = generateRandomText(scene.previous, background, limit);
+  }
 
   return background;
 
+}
+
+function generateRandomText(scene, background, startPos=0) {
+  let numEntries = 5;
+  if (scene.generatedScene) {
+    background = scene.generatedScene;
+  }
+  for (let i = 0; i < numEntries; i++) {
+    let pos = Math.floor(Math.random() * background.length);
+    if(pos < startPos) {
+      continue;
+    }
+    let item = scene.text[Math.floor(Math.random() * scene.text.length)];
+    item = ` ${item} `;
+    for (let i = 0; i < item.length; i++) {
+      if (pos + i < background.length - 1) {
+        background[pos + i] = item[i];
+      }
+    }
+  }
+  scene.generatedScene = background;
+  return background;
 }
 
 function getBackground(width, height) {

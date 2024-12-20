@@ -3,37 +3,37 @@ export let openingAnimation = [
   {
     background: '$',
     text: ['$'],
-    timeseconds: 2
+    timeseconds: 1
   },
   {
     background: '$',
-    text : [ "wif" , "goat", "www" , "pepito", "rg" , "sendai"],
+    text : ["wif" , "goat", "www" , "pepito", "rg" , "sendai"],
     type: "randomtext",
-    timeseconds: 2.5
+    timeseconds: 2,
+    overlapNext: true
   },
   {
     backgroundFromPrevious: true,
     background: '$',
-    text : [ " standard & voids "],
+    text : [" standard & voids "],
     type: "fillprogressively",
-    timeseconds: 4
+    timeseconds: 3
   },
   {
     backgroundFromPrevious: true,
     voidling: false,
     background: '$',
-    text : [ " S&V "],
+    text : [' S&V '],
     type: "fillprogressively",
-    timeseconds: 4
+    timeseconds: 3
   },
   {
     backgroundFromPrevious: true,
     voidling: false,
-    voidlingAtPercentage: 0,
+    voidlingAtPercentage: 0.3,
     background: ' ',
     text : [' '],
     type: "fillprogressively",
-    timeseconds: 4
+    timeseconds: 3
   }
-
 ];
