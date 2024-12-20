@@ -12,9 +12,6 @@ COPY . .
 
 RUN npm run grunt
 
-#Expose the API port
-EXPOSE 3000
-
 FROM nginx:latest
 RUN rm /etc/nginx/conf.d/default.conf
 COPY ./template/nginx.conf.template /etc/nginx/templates/nginx.conf.template
@@ -22,6 +19,7 @@ COPY ./template/nginx.conf.template /etc/nginx/templates/nginx.conf.template
 RUN rm -rf /usr/share/nginx/html/*
 
 EXPOSE 443
+EXPOSE 80
 
 
 
