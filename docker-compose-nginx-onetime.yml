@@ -1,5 +1,5 @@
 services:
-  frontend:
+  frontend-cert:
     build:
       dockerfile: Dockerfile.cert
       context: ./apps/website/frontend
