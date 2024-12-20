@@ -37,3 +37,29 @@ export let openingAnimation = [
     timeseconds: 3
   }
 ];
+
+export let randomAnimations = [
+  {
+    voidling: false,
+    background: ' ',
+    text : [' S&V '],
+    type: "fillprogressively",
+    timeseconds: 2
+  },
+  {
+    backgroundFromPrevious: true,
+    background: ' ',
+    text : [' '],
+    type: "fillprogressively",
+    timeseconds: 2
+  }
+];
+
+export function resetAnimations(animation) {
+  for(const anim of animation) {
+    anim.previous = null;
+    anim.elapsedTime = null;
+    anim.startTime = null;
+    anim.latestBackground = null;
+  }
+}

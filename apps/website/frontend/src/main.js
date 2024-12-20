@@ -13,7 +13,7 @@ import {
   getDeformFreq, cleanup, getBuffer, getDeformPhase, setCurrentBehavior, getBaseRadius, setBaseRadius
 } from "./voidlingdrawer.js";
 import { startGame, drops } from "./game.js";
-import { openingAnimation } from "./animations.js";
+import { openingAnimation, randomAnimations, resetAnimations } from "./animations.js";
 
 const rightText = " IT SEEKS ITS PEERS AND SERVES THE REAPER ";
 const bottomText = " A PROTO-CONSCIOUS AI CREATURE ";
@@ -112,10 +112,17 @@ let lastFrameTime = 0;
 let resizeTimeout;
 let isRunning = true; // Flag to control animation frames
 let gameStarted = false;
-let openingDone = false;
+let openingDone = true;
+let dropCaught = false;
+let currentDropCaught;
+let randomAnimChecked = false;
+let randomAnimationInProgress = false;
+let randomAnimationStart;
+const RANDOM_ANIMATION_PROBABILITY = 0.3;
 let openingDoneAt;
 let openingDonePostPeriod = 3000;
 let openingStart = Date.now();
+let dropCaughtTimeoutId;
 
 function calculateDimensions() {
   try {
@@ -436,6 +443,53 @@ function updateDisplay(timestamp) {
           nextScene.previous = currentScene;
         }
       }
+    } else {
+      let secondTicker = Math.floor(Date.now() / 1000);
+      if(secondTicker % 10 == 0 && !randomAnimationInProgress) {
+        const randomNumber = Math.random();
+        if(!randomAnimChecked && (randomNumber < RANDOM_ANIMATION_PROBABILITY)) {
+          randomAnimationInProgress = true;
+          randomAnimationStart = Date.now();
+        }
+        randomAnimChecked = true;
+      } else {
+        randomAnimChecked = false;
+      }
+    }
+
+    if(randomAnimationInProgress) {
+      let elapsed = (Date.now() - randomAnimationStart)/1000;
+      let sceneTiming = 0;
+      let nextScene;
+      for(let i=0; i<randomAnimations.length; ++i) {
+        let scene = randomAnimations[i];
+        sceneTiming += scene.timeseconds;
+
+        if(elapsed < sceneTiming) {
+          currentScene = scene;
+          if(i+1 <= (randomAnimations.length-1)) {
+            nextScene = randomAnimations[i+1];
+          }
+          if(!currentScene.startTime) {
+            currentScene.startTime = Date.now();
+          }
+          currentScene.elapsedTime = Date.now() - currentScene.startTime;
+          break;
+        } else if(i==(randomAnimations.length-1) && elapsed > sceneTiming) {
+          randomAnimationInProgress = false;
+          randomAnimationStart = 0;
+          resetAnimations(randomAnimations);
+          currentScene = null;
+        }
+      }
+
+      if(currentScene) {
+        background = drawScene(currentScene, dims);
+        currentScene.latestBackground = background;
+        if(nextScene) {
+          nextScene.previous = currentScene;
+        }
+      }
     }
 
     for (let i = 0; i < bufferPtr.length; i++) {
@@ -490,8 +544,31 @@ function updateDisplay(timestamp) {
       for (const drop of drops) {
         drop.col = Math.ceil((drop.fromLeftPercent) * dims.width);
         if (!drop.caught && drop.row > 0 && drop.row < (worldHeight - 1) && drop.row == row && (col >= drop.col && col < (drop.col + drop.symbol.length))) {
-          char = drop.symbol[col - drop.col];
+           char = drop.symbol[col - drop.col];
           if (originalChar != ' ') {
+            dropCaught = true;
+            currentDropCaught = drop;
+
+            if(!currentDropCaught.background) {
+              currentDropCaught.background = new Array(dims.width*dims.height);
+              let toFill = `${drop.hit}`;
+              let fillCounter = 0;
+              for(let j=0; j<currentDropCaught.background.length; j++) {
+                if(fillCounter > toFill.length-1) {
+                  fillCounter = 0;
+                }
+                currentDropCaught.background[j] = toFill[fillCounter];
+                ++fillCounter;
+              }
+            }
+
+            if(dropCaughtTimeoutId) {
+              clearTimeout(dropCaughtTimeoutId);
+            }
+            dropCaughtTimeoutId = setTimeout(() => {
+              dropCaught = false;
+            }, 2000);
+
             drop.caught = true;
             points += drop.points
             pointString.message = ` Points: ${points} `;
@@ -525,6 +602,12 @@ function updateDisplay(timestamp) {
             }
             
           }
+
+          if(dropCaught && isVoidlingCharacter(char)) {
+            
+            context.fillStyle = currentDropCaught.points < 0 ? "red" : "green";
+            char = currentDropCaught.background[i];            
+          }
           
           context.fillText(char, (currentX * cv.width), currentY);        
         }
@@ -556,11 +639,7 @@ function updateDisplay(timestamp) {
     }
 
     if (!isDisplayInitialized) {
-      let offsetTop = window.isMobile ? PORTFOLIO_OFFSET_TOP_MOBILE : PORTFOLIO_OFFSET_TOP;
-      let offsetLeft = window.isMobile ? PORTFOLIO_OFFSET_LEFT_MOBILE : PORTFOLIO_OFFSET_LEFT;
-
       let cv = getCharacterDimensions();
-
       let outputElement = document.getElementById('outputwrapper');
       const canvas = document.getElementById('cvas');
 

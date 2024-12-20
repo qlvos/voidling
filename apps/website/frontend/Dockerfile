@@ -20,7 +20,6 @@ RUN rm -rf /usr/share/nginx/html/*
 
 COPY --from=build ./build /usr/share/nginx/html
 COPY --from=build ./src/imports.js /usr/share/nginx/html/imports.js
-COPY --from=build ./src/*.wasm /usr/share/nginx/html
 COPY --from=build ./src/prophecies.js /usr/share/nginx/html
 COPY --from=build ./src/index.html /usr/share/nginx/html
 

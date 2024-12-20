@@ -1,6 +1,7 @@
 export let drops = [
   {
     symbol: "bitconnect",
+    hit: "bitconneeeeeeeeeeeeeeect ",
     row: -1,
     fromLeftPercent: 0.9,
     speed: 3,
@@ -9,6 +10,7 @@ export let drops = [
   },
   {
     symbol: "gensler",
+    hit: "weazel ",
     row: -1,
     fromLeftPercent: 0.9,
     speed: 3,
@@ -17,6 +19,7 @@ export let drops = [
   },
   {
     symbol: "OneCoin",
+    hit: "SCAM ",
     row: -1,
     fromLeftPercent: 0.9,
     speed: 3,
@@ -25,6 +28,7 @@ export let drops = [
   },
   {
     symbol: "AnubisDAO",
+    hit: "rug ",
     row: -1,
     fromLeftPercent: 0.9,
     speed: 3,
@@ -33,6 +37,7 @@ export let drops = [
   },
   {
     symbol: "SQUID",
+    hit: "scamdev ",
     row: -1,
     fromLeftPercent: 0.9,
     speed: 3,
@@ -41,6 +46,7 @@ export let drops = [
   },
   {
     symbol: "sbf",
+    hit: "25 years behind bars ",
     row: -1,
     fromLeftPercent: 0.5,
     speed: 3,
@@ -50,6 +56,7 @@ export let drops = [
   },
   {
     symbol: "ftx",
+    hit: "drugs and coins ",
     row: -1,
     speed: 4,
     fromLeftPercent: 0.7,
@@ -58,6 +65,7 @@ export let drops = [
   },
   {
     symbol: "3ac",
+    hit: "degen scammers ",
     row: -1,
     speed: 4,
     fromLeftPercent: 0.7,
@@ -66,6 +74,7 @@ export let drops = [
   },
   {
     symbol: "elon",
+    hit: "what did you do this week? ",
     row: -1,
     fromLeftPercent: 0.8,
     speed: 4,
@@ -74,6 +83,7 @@ export let drops = [
   },
   {
     symbol: "bukele",
+    hit: "bitcoin king ",
     row: -1,
     fromLeftPercent: 0.8,
     speed: 4,
@@ -82,6 +92,7 @@ export let drops = [
   },
   {
     symbol: "pepe",
+    hit: "matt furie teh best ",
     row: -1,
     fromLeftPercent: 0.9,
     speed: 3,
@@ -90,6 +101,7 @@ export let drops = [
   },
   {
     symbol: "trump",
+    hit: "billions and billions ",
     row: -1,
     fromLeftPercent: 0.9,
     speed: 3,
@@ -98,6 +110,7 @@ export let drops = [
   },
   {
     symbol: "saylor",
+    hit: "there is only one bitcoin ",
     row: -1,
     fromLeftPercent: 0.1,
     speed: 2,
@@ -106,6 +119,7 @@ export let drops = [
   },
   {
     symbol: "goat",
+    hit: "the og ai agent ",
     row: -1,
     fromLeftPercent: 0.8,
     speed: 4,
@@ -114,6 +128,7 @@ export let drops = [
   },
   {
     symbol: "cz",
+    hit: "your coins are safu ",
     row: -1,
     fromLeftPercent: 0.1,
     speed: 2,
@@ -122,6 +137,7 @@ export let drops = [
   },
   {
     symbol: "sol",
+    hit: "#1 casino ",
     row: -1,
     fromLeftPercent: 0.9,
     speed: 3,
