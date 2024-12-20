@@ -4,10 +4,12 @@ let socket;
 const EMOTION_LOAD_WAIT = 3000;
 let reconnectInterval = 2000;
 let keepAliveTimer;
+
 const currentUrl = window.location.href; // Create a new URL object 
 const url = new URL(currentUrl); // Get the base part of the URL 
 const baseUrl = `${url.hostname}${url.port ? ':' + url.port : ''}`;
-const WS_ADDRESS = `ws://${baseUrl}/ws`
+const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+const WS_ADDRESS = `${protocol}://${baseUrl}/ws`
 
 const scrollSettings = new Map();
 scrollSettings.set(assetBoxId, { top: 1, size: 4 })

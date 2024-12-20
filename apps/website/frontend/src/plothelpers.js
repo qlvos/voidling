@@ -220,7 +220,7 @@ function drawScene(scene, dims) {
 
   let background = scene.backgroundFromPrevious ? scene.previous.latestBackground : new Array(dims.width*dims.height);
   let partToFill = (scene.elapsedTime/1000) / scene.timeseconds;
-  let limit = Math.floor(partToFill*(dims.width*dims.height));
+  let limit = Math.ceil(partToFill*(dims.width*(dims.height+2)));
 
   if(!scene.backgroundFromPrevious) {
     background.fill(scene.background);
@@ -234,68 +234,19 @@ function drawScene(scene, dims) {
       scene.voidling = true;
     }
 
-    if(scene.content == "image") {
-      let startCol = Math.floor(scene.left * dims.width);
-      let startRow = Math.floor(dims.height * scene.top);
-      let startPos = (startRow-1)*dims.width + startCol;
-
-      let counter = 0;
-      let c = 0;
-      let r = 0;
-      while(counter <= limit) {
-        if(counter % dims.width == 0) {
-          ++r;
-          c = 0;
-        }
-
-        background[counter] = scene.background;
-
-        if(startPos >= limit) {
+    let counter = 0;
+    while(counter <= limit) {
+      for(let i=0; i<scene.text.length; i++) {
+        for(const char of scene.text[i]) {
+          background[counter] = char;
           ++counter;
-          continue;
         }
-
-        if(counter >= startPos) {
-          for(let i=0; i<scene.text.length; i++) {
-            let textRows = scene.text[i].split('\n');
-            for(let row of textRows) {
-              if((c >= startCol && c < (startCol+row.length)) && (r >= startRow && r < (startRow+textRows.length))) {
-                for(let j=0; j<row.length; j++) {
-                  // what is the start and end position in this row
-                  // check whether counter is between start and end position
-                  counter++;
-                  if(counter < (startPos+j)) {
-                    break;
-                  }
-                  background[(r*dims.width + c)] = row[j];
-                  ++c;
-                }
-              }
-            }
-
-            if(counter >= limit) {
-              break;
-            }
-          }
-        }
-
-        ++counter;
-        ++c;
-      }
-    } else {
-      let counter = 0;
-      while(counter <= limit) {
-        for(let i=0; i<scene.text.length; i++) {
-          for(const char of scene.text[i]) {
-            background[counter] = char;
-            ++counter;
-          }
-          if(counter >= limit) {
-            break;
-          }
+        if(counter >= limit) {
+          break;
         }
       }
     }
+    
   } else {
     background.fill(scene.text[0]);
   }
