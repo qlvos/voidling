@@ -16,7 +16,7 @@ export let drops = [
     speed: 3,
     caught: false,
     points: -200
-  },/*
+  },
   {
     symbol: "OneCoin",
     hit: "SCAM ",
@@ -143,7 +143,7 @@ export let drops = [
     speed: 3,
     caught: false,
     points: 100
-  }*/
+  }
 ]
 
 const END_GAME_EVALUATIONS = [
