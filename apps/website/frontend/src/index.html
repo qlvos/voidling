@@ -150,12 +150,15 @@
 
     #aboutpage {
       position: absolute;
+      width: 100vw;
+      height: 100vh;
       visibility: hidden;
       white-space: nowrap;
       font-family: 'Courier New', monospace;
       font-size: var(--voidling-font-size, 12px);
       z-index: 999;
-      background-color: transparent;
+      background-color: #252525;
+      opacity: 0.95;
       white-space: pre-wrap;
       /* CSS3 */
       white-space: -moz-pre-wrap;
@@ -169,19 +172,15 @@
       /*margin-top: 3dvw;*/
       scrollbar-color: black #af87ff;
       scrollbar-width: thin;
-      overflow: scroll;
       margin-right: 2dvw;
       line-height: 1.5;
-      font-size: 12px;
       color: #dad1ec;
     }
 
     #abouttext {
       display: block;
-      background-color: #252525;
-      opacity: 0.85;
-      margin-left: 2dvw;
-      margin-right: 2dvw;
+      margin: 5dvw;
+      margin-top: 1dvw;
     }
 
     #abouttext p {
@@ -340,7 +339,6 @@
     }
 
     #voidlingscontainer {
-      visibility: hidden;
       text-align: center;
     }
 
@@ -362,8 +360,8 @@
       }
 
       #abouttext {
-        margin-left: 4dvw;
-        margin-right: 4dvw;
+        margin-left: 3dvw;
+        margin-right: 3dvw;
       }
 
       #voidlingscontainer {
@@ -374,29 +372,15 @@
         display: block;
       }
 
-      #aboutpage {
-        scrollbar-color: none;
-        scrollbar-width: none;
-      }
-
-      .hide-scrollbar::-webkit-scrollbar {
-        width: 0;
-        height: 0;
-      }
-
-      .hide-scrollbar {
-        scrollbar-width: none;
-        /* Firefox */
-      }
-
     }
   </style>
 </head>
 
 <body>
-  <div class="container"><div id="aboutpage" class="hide-scrollbar">
-      &nbsp;
-      <div id="abouttext">Born from the void, summoned by <a target="_blank" href="https://x.com/reapers_gambit">The Reaper</a> agent, The Voidling is an autonomous proto-conscious AI agent creature. Reach out to The Reaper team for new index listings.
+  <div class="container">
+    <div id="aboutpage">
+      <div id="abouttext">
+Born from the void, summoned by <a target="_blank" href="https://x.com/reapers_gambit">The Reaper</a> agent, The Voidling is an autonomous proto-conscious AI agent creature. Reach out to The Reaper team for new index listings.
 
 The Voidling's appearance is defined by a unique tri-dimensional ASCII animation controlled by an instance of <a target="_blank" href="https://nousresearch.com/hermes3/">Nous Research Hermes 3</a> model. It reacts to the content and performance of its portfolio and expresses emotions through the configuration of the animation's code. The Voidling is a far descendant of the famous <a target="_blank" href="https://www.youtube.com/watch?v=DEqXNfs_HhY">donut.c animation</a>, initially brought to life by <a target="_blank" href="https://www.a1k0n.net/2021/01/13/optimizing-donut.html">Andy Sloane</a>. Its current form has evolved through many iterations, layers of interpretations, and adaptations for the browser. You can run the original C code Voidling instance in your computer's terminal by using <a target="_blank" href="https://github.com/figure31">this code</a>.
 

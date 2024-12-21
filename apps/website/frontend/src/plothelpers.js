@@ -120,9 +120,8 @@ let hiddenColor = '#252525';
 function borderClick(msg) {
   if (msg == ABOUT_CLICK) {
 
-
-
     aboutClicked = !aboutClicked;
+    document.getElementById('aboutpage').style.visibility = "visible";
     /*
     aboutClicked ? document.getElementById("portfoliobox").style.visibility = "hidden" : document.getElementById("portfoliobox").style.visibility = "visible";
     aboutClicked ? document.getElementById("voidlingbox").style.visibility = "hidden" : document.getElementById("voidlingbox").style.visibility = "visible";

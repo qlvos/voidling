@@ -286,6 +286,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const walletInput = document.getElementById('walletinput');
   const submitWallet = document.getElementById('submitwallet');
   const walletRegistered = document.getElementById('walletregistered');
+  const aboutpage = document.getElementById('aboutpage');
+
+  aboutpage.addEventListener('click', function() {
+    aboutpage.style.visibility = "hidden";
+  });
+
+    
   let defaultText = "sol wallet";
 
   submitWallet.addEventListener('click', function() {
@@ -761,6 +768,7 @@ function updateDisplay(timestamp) {
       let canvasBox = canvas.getBoundingClientRect();
       const outerRect = outputElement.getBoundingClientRect();
       let aboutPage = document.getElementById('aboutpage');
+      /*
       aboutPage.style.top = `${canvasBox.top+cv.height}px`;
       aboutPage.style.left = `${canvasBox.left}px`;
       aboutPage.style.width = `${canvasBox.width}px`;
@@ -771,6 +779,7 @@ function updateDisplay(timestamp) {
       if(Number(contentHeight) < parseInt(aboutPage.style.maxHeight, 10)) {
         aboutPage.style.overflowY = "hidden";
       }
+        */
 
       document.getElementById("voidlingcomment").style.maxWidth = `${canvas.offsetWidth * .8}px`;
 
