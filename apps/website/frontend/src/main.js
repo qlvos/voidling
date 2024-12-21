@@ -746,7 +746,7 @@ function updateDisplay(timestamp) {
             gameTeaserLastCheck = now;
           }
 
-          if(showGameTeaser) {
+          if(showGameTeaser && !window.isMobile) {
             background = drawText(`PRESS V TO PLAY`.toUpperCase(), 0.9, 0.1, dims.width, background);
           }
         }
