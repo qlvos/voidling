@@ -197,13 +197,13 @@ function setWorldDimensions(width, height) {
 }
 
 function getCharacterDimensions() {
-  const character = 'A';
+  const character = 'j';
   // Create a canvas element
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
 
   // Set the font
-  context.font = window.isMobile ? `24px ${font}` : `12px ${font}`;;
+  context.font = window.isMobile ? `24px ${font}` : `12px ${font}`;
 
   // Measure the width of the character
   const width = context.measureText(character).width;
