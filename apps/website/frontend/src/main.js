@@ -44,6 +44,9 @@ let rectangles = [];
 let mouseOverVoidling = false;
 
 let openingDone = false;
+let gameTeaserAnimLength = 700;
+let showGameTeaser = false;
+let gameTeaserLastCheck = Date.now();
 let voidlingSteps = 0;
 let voidlingStepRaising = true;
 let voidlingMaxSteps = 100;
@@ -734,7 +737,18 @@ function updateDisplay(timestamp) {
         if(gameStarted && !showGameStartText) {
           let seconds = Math.ceil((Date.now() - gameInitTime) / 1000);
           background = drawText(`${GAME_LENGTH+(GAME_START_TEXT_TIME/1000)-seconds}`.toUpperCase(), 0.1, 0.1, dims.width, background);
+        }
 
+        if(openingDone && !gameStarted && !gameOver) {
+          let now = Date.now();
+          if(now - gameTeaserLastCheck > gameTeaserAnimLength) {
+            showGameTeaser = !showGameTeaser;
+            gameTeaserLastCheck = now;
+          }
+
+          if(showGameTeaser) {
+            background = drawText(`PRESS V TO PLAY`.toUpperCase(), 0.9, 0.1, dims.width, background);
+          }
         }
 
         context.fillText(background[i], (currentX * cv.width), currentY);
@@ -1114,7 +1128,7 @@ document.addEventListener('wheel', (event) => {
 document.addEventListener('keydown', (event) => {
   let stepSize = 10;
   let firstMultiplier = 15.5;
-  if (event.key === 'ArrowRight') {
+  if (event.key.toLowerCase() === 'v') {
 
     if(!gameStarted && !gameOver) {
       document.getElementById("portfoliobox").style.visibility = "hidden";
