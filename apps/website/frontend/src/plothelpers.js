@@ -197,7 +197,7 @@ function setWorldDimensions(width, height) {
 }
 
 function getCharacterDimensions() {
-  const character = '$';
+  const character = 'A';
   // Create a canvas element
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
