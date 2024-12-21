@@ -12,7 +12,7 @@ import {
   getRotZ, getTargetX, getTargetY, getMovementX, getMovementY, setDimensions, getDeformComplexity,
   getDeformFreq, cleanup, getBuffer, getDeformPhase, setCurrentBehavior, getBaseRadius, setBaseRadius
 } from "./voidlingdrawer.js";
-import { startGame, drops, getEndGameEvaluation, GAME_START_TEXT_TIME, GAME_START_TEXT_SECTION_1, GAME_START_TEXT_SECTION_2, GAME_END_TEXT_SECTION_1, GAME_END_TEXT_LENGTH } from "./game.js";
+import { startGame, drops, getEndGameEvaluation, GAME_START_TEXT_TIME, GAME_START_TEXT_SECTION_1, GAME_START_TEXT_SECTION_2, GAME_END_TEXT_SECTION_1, initializeDrop, GAME_END_TEXT_LENGTH } from "./game.js";
 import { openingAnimation, randomAnimations, resetAnimations } from "./animations.js";
 
 const rightText = " IT SEEKS ITS PEERS AND SERVES THE REAPER ";
@@ -43,24 +43,24 @@ setDimensions(dims.width, dims.height);
 let rectangles = [];
 let mouseOverVoidling = false;
 
+let openingDone = false;
 let voidlingSteps = 0;
 let voidlingStepRaising = true;
 let voidlingMaxSteps = 100;
-
 let lastMemoryCheck = 0;
 let isTabVisible = true;
 let frameCounter = 0;
 let isDisplayInitialized = false;
 let lastFrameTime = 0;
 let resizeTimeout;
-let isRunning = true; // Flag to control animation frames
+let isRunning = true;
 let gameStarted = false;
 let gameOver = false;
 let showGameStartText = false;
 let showGameEndText = false;
 let gameEndStart;
+let GAME_LENGTH = 60;
 let gameInitTime;
-let openingDone = false;
 let dropCaught = false;
 let dropEscaped = false;
 let currentDropCaught;
@@ -69,6 +69,7 @@ let randomAnimChecked = false;
 let randomAnimationInProgress = false;
 let randomAnimationStart;
 const RANDOM_ANIMATION_PROBABILITY = 0.1;
+const RANDOM_ANIM_EACH_SECOND = 10;
 let openingDoneAt;
 let openingDonePostPeriod = 3000;
 let openingStart = Date.now();
@@ -277,11 +278,9 @@ window.addEventListener('resize', onResize);
 
 // Initial setup
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("yeoow")
   const dims = calculateDimensions();
   setDimensions(dims.width, dims.height);
   setWorldDimensions(dims.width, dims.height);
-
 
   const gamewin = document.getElementById('gamewin');
   const walletInput = document.getElementById('walletinput');
@@ -294,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const url = new URL(currentUrl);
     let endpoint = `${url.origin}/api/whitelist`;
     let waitTime = 1000;
-    //if(walletInput.value && walletInput.value != defaultText && walletInput.value != '' && walletInput.value.length < 100) {
+    if(walletInput.value && walletInput.value != defaultText && walletInput.value != '' && walletInput.value.length < 100) {
       fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -310,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }, waitTime*2)
           
         }, waitTime/2);
-    //}
+    }
   });
 
   walletInput.addEventListener('focus', function() {
@@ -485,7 +484,7 @@ function updateDisplay(timestamp) {
       }
     } else {
       let secondTicker = Math.floor(Date.now() / 1000);
-      if(secondTicker % 10 == 0 && !randomAnimationInProgress) {
+      if(secondTicker % RANDOM_ANIM_EACH_SECOND == 0 && !randomAnimationInProgress) {
         const randomNumber = Math.random();
         if(!randomAnimChecked && (randomNumber < RANDOM_ANIMATION_PROBABILITY)) {
           randomAnimationInProgress = true;
@@ -632,7 +631,10 @@ function updateDisplay(timestamp) {
                 dropCaught = false;
               }, 2000);
   
-              drop.caught = true;
+              //drop.caught = true;
+
+              initializeDrop(drop);
+
               points += drop.points
               pointString.message = ` Points: ${points} `;
             }
@@ -641,7 +643,11 @@ function updateDisplay(timestamp) {
             ++inTheGame;
           }
         }
-        if(inTheGame == 0 && !showGameEndText) {
+
+        let seconds = Math.ceil((Date.now() - gameInitTime) / 1000);
+        let timeLeft = GAME_LENGTH+(GAME_START_TEXT_TIME/1000)-seconds
+        
+        if(timeLeft <= 0 && !showGameEndText) {
           if(points > 0) {
             setTimeout(() => {
               document.getElementById('gamewin').style.visibility = "visible";
@@ -699,11 +705,11 @@ function updateDisplay(timestamp) {
         context.fillStyle = backgroundColor;
 
         if(showGameStartText) {
-          background = drawText(GAME_START_TEXT_SECTION_1, 0.5, 0.1, dims.width, background);
-          background = drawText(GAME_START_TEXT_SECTION_2, 0.5, 0.15, dims.width, background);
+          background = drawText(GAME_START_TEXT_SECTION_1.toUpperCase(), 0.5, 0.1, dims.width, background);
+          background = drawText(GAME_START_TEXT_SECTION_2.toUpperCase(), 0.5, 0.15, dims.width, background);
           let secondsLeft = Math.ceil((GAME_START_TEXT_TIME - (Date.now() - gameInitTime)) / 1000);
           if(secondsLeft > 0) {
-            let countdown = `GET READY, STARTING IN ${secondsLeft} SECONDS`;
+            let countdown = `ONE MINUTE TO GET AS MANY POINTS AS POSSIBLE, STARTING IN ${secondsLeft}`;
             background = drawText(countdown, 0.5, 0.2, dims.width, background);
           }
         }
@@ -712,9 +718,15 @@ function updateDisplay(timestamp) {
           let now = Date.now();
           if(now-gameEndStart > 1000) {
             background = drawText(GAME_END_TEXT_SECTION_1 +  `, SCORE: ${points}`, 0.5, 0.15, dims.width, background);
-            background = drawText(getEndGameEvaluation(points), 0.5, 0.20, dims.width, background);
-            background = drawText(`click to continue`, 0.5, 0.25, dims.width, background);
+            background = drawText(getEndGameEvaluation(points).toUpperCase(), 0.5, 0.20, dims.width, background);
+            background = drawText(`click to continue`.toUpperCase(), 0.5, 0.25, dims.width, background);
           }
+        }
+
+        if(gameStarted && !showGameStartText) {
+          let seconds = Math.ceil((Date.now() - gameInitTime) / 1000);
+          background = drawText(`${GAME_LENGTH+(GAME_START_TEXT_TIME/1000)-seconds}`.toUpperCase(), 0.1, 0.1, dims.width, background);
+
         }
 
         context.fillText(background[i], (currentX * cv.width), currentY);
@@ -789,6 +801,9 @@ function updateDisplay(timestamp) {
       });
 
       canvas.addEventListener('mousemove', (event) => {
+        if(gameStarted && !gameOver) {
+          return;
+        }
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
 

@@ -220,6 +220,7 @@ function drawScene(scene, dims) {
 
   let background = scene.backgroundFromPrevious ? scene.previous.latestBackground : new Array(dims.width*dims.height);
   let partToFill = (scene.elapsedTime/1000) / scene.timeseconds;
+  let partToNotFill = scene.fillrate ? partToFill-scene.fillrate : null;
   let limit = Math.ceil(partToFill*(dims.width*(dims.height+2)));
 
   if(!scene.backgroundFromPrevious) {
@@ -234,8 +235,19 @@ function drawScene(scene, dims) {
       scene.voidling = true;
     }
 
-    let counter = 0;
+    let counter = 0;//scene.startFromPreviousStart ? scene.previous.lastStartPoint : 0;
+
     while(counter <= limit) {
+      /*
+      if(counter/background.length < (partToFill-scene.fillrate)) {
+        console.log("x")
+        ++counter;
+        continue;
+      }
+      console.log("Y")
+      scene.lastStartPoint = counter;
+      */
+
       for(let i=0; i<scene.text.length; i++) {
         for(const char of scene.text[i]) {
           background[counter] = char;

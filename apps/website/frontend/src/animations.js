@@ -43,11 +43,13 @@ export let randomAnimations = [
     voidling: false,
     background: ' ',
     text : [' S&V '],
+    fillrate: 0.5,
     type: "fillprogressively",
     timeseconds: 2
   },
   {
     backgroundFromPrevious: true,
+    startFromPreviousStart: true,
     background: ' ',
     text : [' '],
     type: "fillprogressively",

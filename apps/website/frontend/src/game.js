@@ -1,3 +1,4 @@
+
 export let drops = [
   {
     symbol: "bitconnect",
@@ -149,23 +150,23 @@ export let drops = [
 const END_GAME_EVALUATIONS = [
   {
     pointsBelow: -500,
-    text: "What, are you even a degen? You're supposed to avoid the rugs."
+    text: "What, are you even a degen? You're supposed to avoid the rugs"
   },
   {
     pointsBelow: -250,
-    text: "That's weak."
+    text: "That's weak"
   },
   {
     pointsBelow: 0,
-    text: "I wouldnt trust your investment advice."
+    text: "I wouldnt trust your investment advice"
   },
   {
     pointsBelow: 250,
-    text: "At least you managed to avoid the worst rugs."
+    text: "At least you managed to avoid the worst rugs"
   },
   {
     pointsBelow: 500,
-    text: "Not bad, you could be an average index fund manager."
+    text: "Not bad, you could be an average index fund manager"
   },
   {
     pointsBelow: 99999,
@@ -182,23 +183,21 @@ export function getEndGameEvaluation(score) {
 }
 
 export const GAME_START_TEXT_SECTION_1 = "Avoid rugs and bad actors, collect gems and crypto supporters!"
-export const GAME_START_TEXT_SECTION_2 = "Use the arrow keys to control the Voidling and mouse-wheel or +/- to change his size."
+export const GAME_START_TEXT_SECTION_2 = "Use the arrow keys to control the Voidling and mouse wheel or +/- to change its size"
 export const GAME_END_TEXT_SECTION_1 = "GAME ENDED";
 let gameStart;
-export const GAME_START_TEXT_TIME = 10000;
+export const GAME_START_TEXT_TIME = 9000;
 export const GAME_END_TEXT_LENGTH = 10000;
+export const GROUND_CHARACTER = ".";
+
+const dropAnimations = new Map();
 
 export function startGame() {
   gameStart = Date.now();
   let firstDrop;
-  for (const drop of drops) {
-    drop.fromLeftPercent = Math.random();
-    drop.speed = Math.floor(Math.random() * 5) + 1;
-  
-    let min = drops.length * -8;
-    let max = -1;
-    drop.row = Math.floor(Math.random() * (max - min + 1)) + min;
 
+  for (const drop of drops) {
+    initializeDrop(drop)
     if(!firstDrop) {
       firstDrop = drop;
     }
@@ -206,15 +205,31 @@ export function startGame() {
     if(drop.row > firstDrop.row) {
       firstDrop = drop;
     }
-  
-    setInterval(() => {
-      if (drop.row >= worldHeight) {
-        drop.fromLeftPercent = Math.random();
-      }
-      ++drop.row;
-    }, drop.speed * 100)
+
   }
 
   //firstDrop.row = -1;
+}
+
+export function initializeDrop(drop) {
+  drop.fromLeftPercent = Math.random();
+  drop.speed = Math.floor(Math.random() * 6) + 1;
+  let min = drops.length * -8;
+  let max = -1;
+  drop.row = Math.floor(Math.random() * (max - min + 1)) + min;
+
+  let oldAnimation = dropAnimations.get(drop.symbol);
+  if(oldAnimation) {
+    clearInterval(oldAnimation);
+  }
+
+  let intervalId = setInterval(() => {
+    if (drop.row >= worldHeight) {
+      drop.fromLeftPercent = Math.random();
+    }
+    ++drop.row;
+  }, drop.speed * 100);
+
+  dropAnimations.set(drop.symbol, intervalId);
 
 }
