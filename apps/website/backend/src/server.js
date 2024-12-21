@@ -8,7 +8,7 @@ import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import { getPortfolioStats } from './chaindata.js';
 import { getRedisConnection } from './db/redismanager.js';
-//const router = express.Router();
+const router = express.Router();
 
 app.use(cors());
 app.use(express.json());
@@ -46,13 +46,12 @@ setInterval(async () => {
 
 setInterval(async () => { cachedChainData = await getPortfolioStats(); }, SLOW_CACHE_UPDATE_FREQUENCY);
 
-/*
+
 app.listen(config.VLINGSITE_REST_PORT, () => {
   logger.info('rest server running on port: ' + config.VLINGSITE_REST_PORT)
 });
-*/
 
-console.log("yoo")
+
 let wss = startWebsocketServer();
 
 async function handlePingPong(msg, ws) {
@@ -118,7 +117,7 @@ setInterval(() => {
 
 cachedChainData = await getPortfolioStats();
 
-/*
+
 app.get('/', (req, res) => {
   // default route
   res.json({
@@ -127,5 +126,9 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api', router);
-*/
+
+router.post('/whitelist', async (req, res) => {
+  res.json({ status: "ok" });
+});
+
 

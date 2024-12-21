@@ -289,8 +289,8 @@ function getBackground(width, height) {
   return background;
 }
 
-function drawText(text, left, top, width, height, buffer) {
-  let col = Math.floor(left*width);
+function drawText(text, left, top, width, buffer) {
+  let col = Math.floor(left*width - Math.floor(text.length/2));
   let row = Math.floor((buffer.length / width) * top);
   let newLines = 0;
   for(let i=0; i<text.length; i++) {

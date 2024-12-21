@@ -16,7 +16,7 @@ export let drops = [
     speed: 3,
     caught: false,
     points: -200
-  },
+  },/*
   {
     symbol: "OneCoin",
     hit: "SCAM ",
@@ -143,11 +143,53 @@ export let drops = [
     speed: 3,
     caught: false,
     points: 100
-  }
+  }*/
 ]
 
+const END_GAME_EVALUATIONS = [
+  {
+    pointsBelow: -500,
+    text: "What, are you even a degen? You're supposed to avoid the rugs."
+  },
+  {
+    pointsBelow: -250,
+    text: "That's weak."
+  },
+  {
+    pointsBelow: 0,
+    text: "I wouldnt trust your investment advice."
+  },
+  {
+    pointsBelow: 250,
+    text: "At least you managed to avoid the worst rugs."
+  },
+  {
+    pointsBelow: 500,
+    text: "Not bad, you could be an average index fund manager."
+  },
+  {
+    pointsBelow: 99999,
+    text: "That's how it's done!"
+  }
+];
+
+export function getEndGameEvaluation(score) {
+  for(const valuation of END_GAME_EVALUATIONS) {
+    if(score < valuation.pointsBelow) {
+      return valuation.text;
+    }
+  }
+}
+
+export const GAME_START_TEXT_SECTION_1 = "Avoid rugs and bad actors, collect gems and crypto supporters!"
+export const GAME_START_TEXT_SECTION_2 = "Use the arrow keys to control the Voidling and mouse-wheel or +/- to change his size."
+export const GAME_END_TEXT_SECTION_1 = "GAME ENDED";
+let gameStart;
+export const GAME_START_TEXT_TIME = 10000;
+export const GAME_END_TEXT_LENGTH = 10000;
 
 export function startGame() {
+  gameStart = Date.now();
   let firstDrop;
   for (const drop of drops) {
     drop.fromLeftPercent = Math.random();
@@ -173,8 +215,6 @@ export function startGame() {
     }, drop.speed * 100)
   }
 
-  firstDrop.row = -1;
-
-  
+  //firstDrop.row = -1;
 
 }

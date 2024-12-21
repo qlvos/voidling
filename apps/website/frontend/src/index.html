@@ -41,6 +41,10 @@
       line-height: 1;
     }
 
+    #about_page {
+      visibility:hidden;
+    }
+
     #voidlingexpression {
       visibility:hidden;
     }
@@ -103,6 +107,45 @@
       line-height: 1;
       z-index: 2;
       background-color: transparent;
+    }
+
+    #gamewin {
+      z-index:20;
+      position: absolute;
+      left:50%;
+      top:50%;
+      transform: translate(-50%, -50%);
+      visibility: hidden;      
+    }
+
+    #walletinput {
+      background-color: black;
+      border: 1px solid darkgrey;
+      border-radius: 5px;
+      color: darkgrey;
+      padding: 10px;
+    }
+
+    #walletregistered {
+      color: darkgrey;
+      position: absolute;
+      left:50%;
+      top:50%;
+      transform: translate(-50%, -50%);
+      padding: 10px;
+    }
+    #submitwallet {
+      background-color: black;
+      color: white;
+      border: 1px solid darkgrey;
+      border-radius: 5px;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+
+
+    #walletregistered {
+      visibility: hidden;
     }
 
     #aboutpage {
@@ -383,8 +426,12 @@ Follow daily Voidling updates here: <a target="_blank" href="https://x.com/reape
     </div>
     </div>
 
-
     <div id="outputwrapper">
+      <div id="gamewin">
+        <input type="text" size="45" id="walletinput" name="walletinput" value="sol wallet">
+        <button type="submit"id="submitwallet">submit</button>
+        <div id="walletregistered">wallet registered</div>
+      </div>
       <canvas id="cvas"></canvas>
       <span id="voidlingexpression">
       <div id="portfoliobox" class="voidling-world">
@@ -396,7 +443,6 @@ Follow daily Voidling updates here: <a target="_blank" href="https://x.com/reape
           <span class="portfolioheader">VOID INDEX</span>
           <span id="watchlistbox" class="assetboxclass">
           </span>
-
         </div>
       </div>
       <div id="voidlingbox" class="voidling-world2">
@@ -404,7 +450,6 @@ Follow daily Voidling updates here: <a target="_blank" href="https://x.com/reape
           <div>
                 <div class="stateheader">VOIDLING STATE</div>
                 <div class="statecontent" id="voidlingemotion"></div>
-
                 <div class="stateheader">VOIDLING COMMENT</div>
                 <div class="statecontent" id="voidlingcomment"></div>
           </div>
@@ -414,6 +459,7 @@ Follow daily Voidling updates here: <a target="_blank" href="https://x.com/reape
     </div>
   </div>
 
+  <script src="js-modal.js"></script>
   <script src="plothelpers.js"></script>
   <script type="module" src="imports.js"></script>
 

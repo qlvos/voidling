@@ -12,19 +12,68 @@ import {
   getRotZ, getTargetX, getTargetY, getMovementX, getMovementY, setDimensions, getDeformComplexity,
   getDeformFreq, cleanup, getBuffer, getDeformPhase, setCurrentBehavior, getBaseRadius, setBaseRadius
 } from "./voidlingdrawer.js";
-import { startGame, drops } from "./game.js";
+import { startGame, drops, getEndGameEvaluation, GAME_START_TEXT_TIME, GAME_START_TEXT_SECTION_1, GAME_START_TEXT_SECTION_2, GAME_END_TEXT_SECTION_1, GAME_END_TEXT_LENGTH } from "./game.js";
 import { openingAnimation, randomAnimations, resetAnimations } from "./animations.js";
 
 const rightText = " IT SEEKS ITS PEERS AND SERVES THE REAPER ";
 const bottomText = " A PROTO-CONSCIOUS AI CREATURE ";
 const leftText = " IT COMES FROM THE $VOID ";
-
 const backgroundColor = "#8787ff";
 
 window.isMobile = window.innerWidth <= 999;
 let lastMobileState = window.isMobile;
 let moduleInitialized = false;
 let cfg;
+
+let emotion = null;
+export const assetBoxId = "assetbox";
+export const tradeLogId = "tradelogbox";
+export const watchlistBoxId = "watchlistbox";
+
+// Configuration constants
+const FRAME_INTERVAL = 48;
+const CLEANUP_INTERVAL = 200;
+const MEMORY_THRESHOLD_MB = 200;
+const MEMORY_CHECK_INTERVAL = 2000;
+
+let hoverCycles = 1;
+const dims = calculateDimensions();
+setDimensions(dims.width, dims.height);
+
+let rectangles = [];
+let mouseOverVoidling = false;
+
+let voidlingSteps = 0;
+let voidlingStepRaising = true;
+let voidlingMaxSteps = 100;
+
+let lastMemoryCheck = 0;
+let isTabVisible = true;
+let frameCounter = 0;
+let isDisplayInitialized = false;
+let lastFrameTime = 0;
+let resizeTimeout;
+let isRunning = true; // Flag to control animation frames
+let gameStarted = false;
+let gameOver = false;
+let showGameStartText = false;
+let showGameEndText = false;
+let gameEndStart;
+let gameInitTime;
+let openingDone = false;
+let dropCaught = false;
+let dropEscaped = false;
+let currentDropCaught;
+let currentDropEscaped;
+let randomAnimChecked = false;
+let randomAnimationInProgress = false;
+let randomAnimationStart;
+const RANDOM_ANIMATION_PROBABILITY = 0.1;
+let openingDoneAt;
+let openingDonePostPeriod = 3000;
+let openingStart = Date.now();
+let dropCaughtTimeoutId;
+let dropEscapedTimeoutId;
 
 export function getModuleInitialized() {
   return moduleInitialized;
@@ -67,28 +116,6 @@ function updateVoidlingSize() {
 updateVoidlingSize();
 checkMobile();
 
-let emotion = null;
-export const assetBoxId = "assetbox";
-export const tradeLogId = "tradelogbox";
-export const watchlistBoxId = "watchlistbox";
-
-// Configuration constants
-const FRAME_INTERVAL = 48;
-const CLEANUP_INTERVAL = 200;
-const MEMORY_THRESHOLD_MB = 200;
-const MEMORY_CHECK_INTERVAL = 2000;
-
-let hoverCycles = 1;
-const dims = calculateDimensions();
-setDimensions(dims.width, dims.height);
-
-let rectangles = [];
-let mouseOverVoidling = false;
-
-let voidlingSteps = 0;
-let voidlingStepRaising = true;
-let voidlingMaxSteps = 100;
-
 export function getEmotion() {
   return emotion;
 }
@@ -96,27 +123,6 @@ export function getEmotion() {
 export function setEmotion(em) {
   emotion = em;
 }
-
-// Global variables
-let lastMemoryCheck = 0;
-let isTabVisible = true;
-let frameCounter = 0;
-let isDisplayInitialized = false;
-let lastFrameTime = 0;
-let resizeTimeout;
-let isRunning = true; // Flag to control animation frames
-let gameStarted = false;
-let openingDone = false;
-let dropCaught = false;
-let currentDropCaught;
-let randomAnimChecked = false;
-let randomAnimationInProgress = false;
-let randomAnimationStart;
-const RANDOM_ANIMATION_PROBABILITY = 0.3;
-let openingDoneAt;
-let openingDonePostPeriod = 3000;
-let openingStart = Date.now();
-let dropCaughtTimeoutId;
 
 function calculateDimensions() {
   try {
@@ -271,9 +277,50 @@ window.addEventListener('resize', onResize);
 
 // Initial setup
 document.addEventListener('DOMContentLoaded', () => {
+  console.log("yeoow")
   const dims = calculateDimensions();
   setDimensions(dims.width, dims.height);
   setWorldDimensions(dims.width, dims.height);
+
+
+  const gamewin = document.getElementById('gamewin');
+  const walletInput = document.getElementById('walletinput');
+  const submitWallet = document.getElementById('submitwallet');
+  const walletRegistered = document.getElementById('walletregistered');
+  let defaultText = "sol wallet";
+
+  submitWallet.addEventListener('click', function() {
+    const currentUrl = window.location.href;
+    const url = new URL(currentUrl);
+    let endpoint = `${url.origin}/api/whitelist`;
+    let waitTime = 1000;
+    //if(walletInput.value && walletInput.value != defaultText && walletInput.value != '' && walletInput.value.length < 100) {
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet: walletInput.value }) });
+        setTimeout(() => {
+          gamewin.style.visibility = "hidden";
+          walletRegistered.style.visibility = "visible";
+          setTimeout(() => {
+            walletRegistered.style.visibility = "hidden";
+            document.getElementById("portfoliobox").style.visibility = "visible";
+            document.getElementById("voidlingbox").style.visibility = "visible";
+            showGameEndText = false;
+          }, waitTime*2)
+          
+        }, waitTime/2);
+    //}
+  });
+
+  walletInput.addEventListener('focus', function() {
+    if (walletInput.value === defaultText) {
+      walletInput.value = '';
+    }
+  });
+
+  walletInput.addEventListener('blur', function() { if (walletInput.value === '') { walletInput.value = defaultText; } });
+
 });
 
 window.addEventListener('resize', onResize);
@@ -402,7 +449,6 @@ function updateDisplay(timestamp) {
 
     let col = 0;
     let row = 0;
-
     let background = getBackground(dims.width, dims.height);
     let currentScene;
     
@@ -488,6 +534,11 @@ function updateDisplay(timestamp) {
 
     for (let i = 0; i < bufferPtr.length; i++) {
       let char = bufferPtr[i];
+
+      if(showGameEndText && isVoidlingCharacter(char)) {
+        char = " ";
+      } 
+
       let c = colorScheme.get(scheme).voidling.get(char);
 
       if ((row === 0) || (row === (height - 1)) || (col === 0) || (col === (dims.width - 1))) {
@@ -535,38 +586,74 @@ function updateDisplay(timestamp) {
       context.fillStyle = c;
       let originalChar = char;
 
-      for (const drop of drops) {
-        drop.col = Math.ceil((drop.fromLeftPercent) * dims.width);
-        if (!drop.caught && drop.row > 0 && drop.row < (worldHeight - 1) && drop.row == row && (col >= drop.col && col < (drop.col + drop.symbol.length))) {
-           char = drop.symbol[col - drop.col];
-          if (originalChar != ' ') {
-            dropCaught = true;
-            currentDropCaught = drop;
-
-            if(!currentDropCaught.background) {
-              currentDropCaught.background = new Array(dims.width*dims.height);
-              let toFill = `${drop.hit}`;
-              let fillCounter = 0;
-              for(let j=0; j<currentDropCaught.background.length; j++) {
-                if(fillCounter > toFill.length-1) {
-                  fillCounter = 0;
-                }
-                currentDropCaught.background[j] = toFill[fillCounter];
-                ++fillCounter;
-              }
-            }
-
-            if(dropCaughtTimeoutId) {
-              clearTimeout(dropCaughtTimeoutId);
-            }
-            dropCaughtTimeoutId = setTimeout(() => {
-              dropCaught = false;
-            }, 2000);
-
+      if(!gameOver) {
+        let inTheGame = 0;
+        for (const drop of drops) {
+          drop.col = Math.ceil((drop.fromLeftPercent) * dims.width);
+          if(!drop.caught && drop.row == (worldHeight-1)) {
+            currentDropEscaped = drop;
+            dropEscaped = true;
             drop.caught = true;
-            points += drop.points
+            context.fillStyle = drop.points > 0 ? "red" : "green";
+            points += -1*drop.points;
             pointString.message = ` Points: ${points} `;
+  
+            if(dropEscapedTimeoutId) {
+              clearTimeout(dropEscapedTimeoutId);
+            }
+            dropEscapedTimeoutId = setTimeout(() => {
+              dropEscaped = false;
+            }, 1500);
+  
           }
+          if (!drop.caught && drop.row > 0 && drop.row < (worldHeight - 1) && drop.row == row && (col >= drop.col && col < (drop.col + drop.symbol.length))) {
+            char = drop.symbol[col - drop.col];
+            if (originalChar != ' ' && drop.row != 0) {
+              dropCaught = true;
+              currentDropCaught = drop;
+  
+              if(!currentDropCaught.background) {
+                currentDropCaught.background = new Array(dims.width*dims.height);
+                let toFill = `${drop.hit}`;
+                let fillCounter = 0;
+                for(let j=0; j<currentDropCaught.background.length; j++) {
+                  if(fillCounter > toFill.length-1) {
+                    fillCounter = 0;
+                  }
+                  currentDropCaught.background[j] = toFill[fillCounter];
+                  ++fillCounter;
+                }
+              }
+  
+              if(dropCaughtTimeoutId) {
+                clearTimeout(dropCaughtTimeoutId);
+              }
+              dropCaughtTimeoutId = setTimeout(() => {
+                dropCaught = false;
+              }, 2000);
+  
+              drop.caught = true;
+              points += drop.points
+              pointString.message = ` Points: ${points} `;
+            }
+          }
+          if(!drop.caught) {
+            ++inTheGame;
+          }
+        }
+        if(inTheGame == 0 && !showGameEndText) {
+          if(points > 0) {
+            setTimeout(() => {
+              document.getElementById('gamewin').style.visibility = "visible";
+            }, 1000);
+          }
+
+          gameOver = true;
+          gameStarted = false;
+          showGameStartText = false;
+          showGameEndText = true;
+          gameEndStart = Date.now();
+
         }
       }
 
@@ -597,17 +684,39 @@ function updateDisplay(timestamp) {
             
           }
 
-          if(dropCaught && isVoidlingCharacter(char)) {
-            
+          if(dropEscaped && isVoidlingCharacter(char) && row != 0 && row != (height - 1)) {
+            context.fillStyle = currentDropEscaped.points > 0 ? "red" : "green";
+          }
+
+          if(dropCaught && isVoidlingCharacter(char) && row != 0 && row != (height - 1)) {
             context.fillStyle = currentDropCaught.points < 0 ? "red" : "green";
             char = currentDropCaught.background[i];            
           }
-          
-          context.fillText(char, (currentX * cv.width), currentY);        
+          context.fillText(char, (currentX * cv.width), currentY);           
         }
 
       } else {
         context.fillStyle = backgroundColor;
+
+        if(showGameStartText) {
+          background = drawText(GAME_START_TEXT_SECTION_1, 0.5, 0.1, dims.width, background);
+          background = drawText(GAME_START_TEXT_SECTION_2, 0.5, 0.15, dims.width, background);
+          let secondsLeft = Math.ceil((GAME_START_TEXT_TIME - (Date.now() - gameInitTime)) / 1000);
+          if(secondsLeft > 0) {
+            let countdown = `GET READY, STARTING IN ${secondsLeft} SECONDS`;
+            background = drawText(countdown, 0.5, 0.2, dims.width, background);
+          }
+        }
+
+        if(showGameEndText) {
+          let now = Date.now();
+          if(now-gameEndStart > 1000) {
+            background = drawText(GAME_END_TEXT_SECTION_1 +  `, SCORE: ${points}`, 0.5, 0.15, dims.width, background);
+            background = drawText(getEndGameEvaluation(points), 0.5, 0.20, dims.width, background);
+            background = drawText(`click to continue`, 0.5, 0.25, dims.width, background);
+          }
+        }
+
         context.fillText(background[i], (currentX * cv.width), currentY);
       }
       currentX++;
@@ -663,6 +772,13 @@ function updateDisplay(timestamp) {
       let lastMouseY = null;
 
       canvas.addEventListener('click', (event) => {
+        document.getElementById('gamewin').style.visibility = "hidden";
+        if(showGameEndText) {
+          document.getElementById("portfoliobox").style.visibility = "visible";
+          document.getElementById("voidlingbox").style.visibility = "visible";
+        }
+
+        showGameEndText = false;
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
         for (const msg of topStrings) {
@@ -975,9 +1091,20 @@ document.addEventListener('keydown', (event) => {
   let firstMultiplier = 15.5;
   if (event.key === 'ArrowRight') {
 
-    if(!gameStarted) {
-      gameStarted = true;
-      startGame();
+    if(!gameStarted && !gameOver) {
+      document.getElementById("portfoliobox").style.visibility = "hidden";
+      document.getElementById("voidlingbox").style.visibility = "hidden";
+      setTimeout(() => {
+        gameStarted = true;
+        gameInitTime = Date.now();
+        showGameStartText = true;
+  
+        setTimeout(() => {
+          showGameStartText = false;
+          startGame();
+        }, GAME_START_TEXT_TIME);
+      }, 500);
+      
     }
 
     stepSize = rightProgression ? stepSize : firstMultiplier * 2;
