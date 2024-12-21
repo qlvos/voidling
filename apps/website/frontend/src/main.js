@@ -88,11 +88,12 @@ function checkMobile() {
   window.isMobile = window.innerWidth <= 999;
 
   if (window.isMobile) {
-    let fill = 90;
-    document.getElementById("cvas").style.width = `${fill}dvw`;
-    document.getElementById("outputwrapper").style.width = `${fill}dvw`;
-    document.getElementById("cvas").style.height = `${fill}dvh`;
-    document.getElementById("outputwrapper").style.height = `${fill}dvh`;
+    let w = 90;
+    let h = 96;
+    document.getElementById("cvas").style.width = `${w}dvw`;
+    document.getElementById("outputwrapper").style.width = `${w}dvw`;
+    document.getElementById("cvas").style.height = `${h}dvh`;
+    document.getElementById("outputwrapper").style.height = `${h}dvh`;
   }
 
   if (lastMobileState !== window.isMobile) {
