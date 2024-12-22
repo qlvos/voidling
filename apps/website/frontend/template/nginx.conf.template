@@ -3,7 +3,7 @@ server {
   server_name www.standardvoids.com *.standardvoids.com;
 
     auth_basic "standard and voids";
-    auth_basic_user_file /etc/apache2/.htpasswd;
+    auth_basic_user_file /etc/apache2/htpasswd;
 
   root /usr/share/nginx/html;
   index index.html index.htm;
