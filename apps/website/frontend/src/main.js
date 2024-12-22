@@ -1129,7 +1129,6 @@ document.addEventListener('keydown', (event) => {
   let stepSize = 10;
   let firstMultiplier = 15.5;
   if (event.key.toLowerCase() === 'v') {
-
     if(!gameStarted && !gameOver) {
       document.getElementById("portfoliobox").style.visibility = "hidden";
       document.getElementById("voidlingbox").style.visibility = "hidden";
@@ -1143,14 +1142,13 @@ document.addEventListener('keydown', (event) => {
           startGame();
         }, GAME_START_TEXT_TIME);
       }, 500);
-      
     }
-
+  } else if (event.key === 'ArrowRight') {
     stepSize = rightProgression ? stepSize : firstMultiplier * 2;
     setTargetX(getTargetX() + stepSize);
     rightProgression = true;
     leftProgression = false;
-  } else if (event.key === 'ArrowLeft') {
+   } else if (event.key === 'ArrowLeft') {
     stepSize = leftProgression ? stepSize : firstMultiplier * 2;
     setTargetX(getTargetX() - stepSize);
     rightProgression = false;
