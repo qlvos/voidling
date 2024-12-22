@@ -14,6 +14,7 @@ services:
       - VLING_FRONTEND_SERVICE_NAME=frontend
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /etc/apache2:/etc/apache2:ro
     depends_on:
       - backend
 
