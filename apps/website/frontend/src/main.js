@@ -29,7 +29,7 @@ export const assetBoxId = "assetbox";
 export const tradeLogId = "tradelogbox";
 export const watchlistBoxId = "watchlistbox";
 
-let openingDone = true;
+let openingDone = false;
 
 const FRAME_INTERVAL = 48;
 const CLEANUP_INTERVAL = 200;
