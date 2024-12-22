@@ -37,3 +37,8 @@ export async function getWatchlist() {
   let res = await db.raw(`select * from "watchlist" order by address desc`);
   return res && res.rows.length > 0 ? res.rows : null;
 }
+
+export async function isFeatureActive(key) {
+  let res = await db.raw(`select value from "featureflags" where key=? limit 1`, [key]);
+  return res && res.rows.length > 0 ? Boolean(res.rows[0].value) : false;
+}

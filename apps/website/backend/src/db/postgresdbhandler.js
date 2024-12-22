@@ -37,3 +37,7 @@ export async function getSells() {
   let res = await db.raw(`select s.*, b.toaddress, b.receivedamount as boughtamount, b.tokenusdvalue as boughtusdvalue from "sells" s inner join "buys" b on s.buyid=b.id order by s.timestamp desc`);
   return res && res.rows.length > 0 ? res.rows : null;
 }
+
+export async function whitelistWallet(wallet) {
+  await db.raw(`INSERT INTO "whitelist" ("wallet") VALUES (?)`, [wallet]);
+}

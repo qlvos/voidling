@@ -40,6 +40,7 @@ const GAME_TEASER_ANIM_LENGTH = 1250;
 const GAME_TEASER_MAX_LENGTH = 60000;
 const GAME_INSTRUCTIONS_WAIT_TIME = 1000;
 const GAME_LENGTH = 60;
+const POINTS_MIN_WHITELIST = 0;
 const RANDOM_ANIMATION_PROBABILITY = 0.1;
 const RANDOM_ANIM_EACH_SECOND = 15;
 
@@ -667,7 +668,7 @@ function updateDisplay(timestamp) {
         let timeLeft = GAME_LENGTH+(GAME_START_TEXT_TIME/1000)-seconds
         
         if(timeLeft <= 0 && !showGameEndText) {
-          if(points > 0) {
+          if(points > POINTS_MIN_WHITELIST) {
             setTimeout(() => {
               document.getElementById('gamewin').style.visibility = "visible";
             }, 1000);

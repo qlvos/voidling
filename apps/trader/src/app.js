@@ -26,5 +26,4 @@ export async function init() {
 
   startCatTrader(redisPublisher);
 }
-
 init();

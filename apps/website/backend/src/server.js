@@ -8,6 +8,7 @@ import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import { getPortfolioStats } from './chaindata.js';
 import { getRedisConnection } from './db/redismanager.js';
+import { whitelistWallet } from './db/postgresdbhandler.js';
 const router = express.Router();
 
 app.use(cors());
@@ -127,8 +128,39 @@ app.get('/', (req, res) => {
 
 app.use('/api', router);
 
+// basic spam control
+let walletsAdded = 0;
+const SPAM_CHECK_INTERVAL = 5000;
+const WALLET_ADD_SPAM_CHECK_PERIOD = 60000;
+const MAX_WALLETS_ADDED = 150;
+let spamStop = false;
+setInterval(() => { spamStop = walletsAdded > MAX_WALLETS_ADDED }, SPAM_CHECK_INTERVAL);
+setInterval(() => { walletsAdded = 0; }, WALLET_ADD_SPAM_CHECK_PERIOD);
+
 router.post('/whitelist', async (req, res) => {
-  res.json({ status: "ok" });
+  try {
+    if(spamStop) {
+      res.json({ status: "ko" });
+      return;
+    }
+  
+    if(req.body.wallet) {
+      if(!validateWallet(req.body.wallet.trim())) {
+        res.json({ status: "ko" });
+        return;
+      }
+      ++walletsAdded;
+      await whitelistWallet(req.body.wallet.trim());
+      res.json({ status: "ok" });
+    }
+  } catch(err) {
+    logger.error("failed to whitelist: " + err);
+  }  
 });
+
+function validateWallet(wallet) {
+  const solanaWalletRegex = /^[A-Za-z0-9]{1,44}$/;
+  return solanaWalletRegex.test(wallet);
+}
 
 

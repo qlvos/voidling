@@ -3,12 +3,14 @@ import { EventSource } from 'eventsource';
 import { CAT_BOUGHT_TOKEN, CAT_SOLD_TOKEN } from "./config/eventkeys.js";
 import { config } from './config/config.js';
 import { buyToken, sellToken } from './services/solana.service.js';
-import { getWatchlist, addCatEvent, getLastOpenTrade, getOpenTrades, addSell } from './db/postgresdbhandler.js';
+import { getWatchlist, addCatEvent, getOpenTrades, addSell, isFeatureActive } from './db/postgresdbhandler.js';
 import bent from 'bent';
 const getJSON = bent('json');
 
 const TOKEN_PRICE_URL = 'https://public-api.dextools.io/trial/v2/token/solana';
 const sseUrl = 'https://api.thecatdoor.com/sse/v1/events';
+
+const PEPITO_TRADING = "pepitotrading";
 
 let eventSource = new EventSource(sseUrl);
 
@@ -81,7 +83,7 @@ export function startCatTrader(redis) {
         catEvent.time = Date.now();
         // https://github.com/Clement87/Pepito-API
         await addCatEvent(catEvent.type, catEvent.img, catEvent.time);
-        if(catEvent.type == "in" || catEvent.type == "out") {
+        if(await isFeatureActive(PEPITO_TRADING) && (catEvent.type == "in" || catEvent.type == "out")) {
           await manageCatEvent(redis);
         }
       }
