@@ -36,7 +36,8 @@ colorScheme.set("daemon",
     hoverColors: ['#c3b7df', '#cabfe3', '#cfc2ec', '#ccbbf0', '#cdc3e3', '#c6b9e1', '#c2b3e1', '#bbaadf'],
     background: '#1f1e28',
     sideColor: '#8787ff',
-    topBottomColor: '#ff8700'
+    topBottomColor: '#ff8700',
+    textColor: '#8787ff'
   });
 
 colorScheme.set("gray", 
@@ -44,7 +45,8 @@ colorScheme.set("gray",
     hoverColors: ['#e0dede', '#dbdbdb', '#c6c6c6', '#bfbfbf', '#9e9e9e', '#909090', '#808080', '#858585'],
     background: '#212124',
     sideColor: '#9e9e9e',
-    topBottomColor: '#9e9e9e'
+    topBottomColor: '#9e9e9e',
+    textColor: '#9e9e9e'
   });
 
 let scheme = "daemon";
@@ -119,16 +121,8 @@ let hiddenColor = '#252525';
 
 function borderClick(msg) {
   if (msg == ABOUT_CLICK) {
-
     aboutClicked = !aboutClicked;
     document.getElementById('aboutpage').style.visibility = "visible";
-    /*
-    aboutClicked ? document.getElementById("portfoliobox").style.visibility = "hidden" : document.getElementById("portfoliobox").style.visibility = "visible";
-    aboutClicked ? document.getElementById("voidlingbox").style.visibility = "hidden" : document.getElementById("voidlingbox").style.visibility = "visible";
-    aboutClicked ? document.getElementById("aboutpage").style.visibility = "visible" : document.getElementById("aboutpage").style.visibility = "hidden";
-    aboutClicked ? document.getElementById("voidlingscontainer").style.visibility = "visible" : document.getElementById("voidlingscontainer").style.visibility = "hidden";
-    */
-
   } else if (msg == VOIDLING_ONLY_CLICK) {
     voidlingOnly = !voidlingOnly;
     voidlingOnly ? document.getElementById("portfoliobox").style.visibility = "hidden" : document.getElementById("portfoliobox").style.visibility = "visible";
@@ -148,6 +142,7 @@ function borderClick(msg) {
     schemeCounter = (schemeCounter == (schemes.length - 1)) ? 0 : ++schemeCounter;
     scheme = schemes[schemeCounter]
     document.body.style.backgroundColor = colorScheme.get(scheme).background;
+    document.documentElement.style.setProperty('--text-color', colorScheme.get(scheme).textColor);
   }
 
 }
@@ -217,9 +212,8 @@ function getCharacterDimensions() {
 
 function drawScene(scene, dims) {
 
-  let background = scene.backgroundFromPrevious ? scene.previous.latestBackground : new Array(dims.width*dims.height);
+  let background = (scene.backgroundFromPrevious && scene.previous) ? scene.previous.latestBackground : new Array(dims.width*dims.height);
   let partToFill = (scene.elapsedTime/1000) / scene.timeseconds;
-  let partToNotFill = scene.fillrate ? partToFill-scene.fillrate : null;
   let limit = Math.ceil(partToFill*(dims.width*(dims.height+2)));
 
   if(!scene.backgroundFromPrevious) {
@@ -234,22 +228,11 @@ function drawScene(scene, dims) {
       scene.voidling = true;
     }
 
-    let counter = 0;//scene.startFromPreviousStart ? scene.previous.lastStartPoint : 0;
-
+    let counter = 0;
     while(counter <= limit) {
-      /*
-      if(counter/background.length < (partToFill-scene.fillrate)) {
-        console.log("x")
-        ++counter;
-        continue;
-      }
-      console.log("Y")
-      scene.lastStartPoint = counter;
-      */
-
       for(let i=0; i<scene.text.length; i++) {
         for(const char of scene.text[i]) {
-          background[counter] = char;
+          background[counter] = char.toUpperCase();
           ++counter;
         }
         if(counter >= limit) {
@@ -280,7 +263,7 @@ function generateRandomText(scene, background, startPos=0) {
     if(pos < startPos) {
       continue;
     }
-    let item = scene.text[Math.floor(Math.random() * scene.text.length)];
+    let item = scene.text[Math.floor(Math.random() * scene.text.length)].toUpperCase();
     item = ` ${item} `;
     for (let i = 0; i < item.length; i++) {
       if (pos + i < background.length - 1) {
@@ -295,8 +278,6 @@ function generateRandomText(scene, background, startPos=0) {
 function getBackground(width, height) {
   let background = new Array(width*height);
   background.fill(" ")
-  //drawText("hello", 0.7, 0.5, width, height, background);
-  //drawText("How are you today", 0.1, 0.9, width, height, background);
   return background;
 }
 

@@ -18,7 +18,6 @@ import { openingAnimation, randomAnimations, resetAnimations } from "./animation
 const rightText = " IT SEEKS ITS PEERS AND SERVES THE REAPER ";
 const bottomText = " A PROTO-CONSCIOUS AI CREATURE ";
 const leftText = " IT COMES FROM THE $VOID ";
-const backgroundColor = "#8787ff";
 
 window.isMobile = window.innerWidth <= 999;
 let lastMobileState = window.isMobile;
@@ -30,11 +29,19 @@ export const assetBoxId = "assetbox";
 export const tradeLogId = "tradelogbox";
 export const watchlistBoxId = "watchlistbox";
 
-// Configuration constants
+let openingDone = false;
+
 const FRAME_INTERVAL = 48;
 const CLEANUP_INTERVAL = 200;
 const MEMORY_THRESHOLD_MB = 200;
 const MEMORY_CHECK_INTERVAL = 2000;
+const OPENING_DONE_POST_PERIOD = 3000;
+const GAME_TEASER_ANIM_LENGTH = 1250;
+const GAME_TEASER_MAX_LENGTH = 60000;
+const GAME_INSTRUCTIONS_WAIT_TIME = 1000;
+const GAME_LENGTH = 60;
+const RANDOM_ANIMATION_PROBABILITY = 0.1;
+const RANDOM_ANIM_EACH_SECOND = 15;
 
 let hoverCycles = 1;
 const dims = calculateDimensions();
@@ -43,9 +50,8 @@ setDimensions(dims.width, dims.height);
 let rectangles = [];
 let mouseOverVoidling = false;
 
-let openingDone = false;
-let gameTeaserAnimLength = 700;
 let showGameTeaser = false;
+let stopGameTeaser = false;
 let gameTeaserLastCheck = Date.now();
 let voidlingSteps = 0;
 let voidlingStepRaising = true;
@@ -62,7 +68,6 @@ let gameOver = false;
 let showGameStartText = false;
 let showGameEndText = false;
 let gameEndStart;
-let GAME_LENGTH = 60;
 let gameInitTime;
 let dropCaught = false;
 let dropEscaped = false;
@@ -71,10 +76,7 @@ let currentDropEscaped;
 let randomAnimChecked = false;
 let randomAnimationInProgress = false;
 let randomAnimationStart;
-const RANDOM_ANIMATION_PROBABILITY = 0.1;
-const RANDOM_ANIM_EACH_SECOND = 10;
 let openingDoneAt;
-let openingDonePostPeriod = 3000;
 let openingStart = Date.now();
 let dropCaughtTimeoutId;
 let dropEscapedTimeoutId;
@@ -291,6 +293,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const submitWallet = document.getElementById('submitwallet');
   const walletRegistered = document.getElementById('walletregistered');
   const aboutpage = document.getElementById('aboutpage');
+
+  setTimeout(() => {
+    stopGameTeaser = true;
+  }, GAME_TEASER_MAX_LENGTH);
 
   aboutpage.addEventListener('click', function() {
     aboutpage.style.visibility = "hidden";
@@ -547,12 +553,14 @@ function updateDisplay(timestamp) {
 
       if(showGameEndText && isVoidlingCharacter(char)) {
         char = " ";
-      } 
+      }
 
-      let c = colorScheme.get(scheme).voidling.get(char);
+
+      let cscheme = colorScheme.get(scheme);
+      let c = cscheme.voidling.get(char);
 
       if ((row === 0) || (row === (height - 1)) || (col === 0) || (col === (dims.width - 1))) {
-        c = "#af87ff";
+        c = cscheme.voidling.get(char);
       }
 
       if (row === 0) {
@@ -562,7 +570,7 @@ function updateDisplay(timestamp) {
               msg.box = { startx: (currentX * cv.width), endx: ((currentX * cv.width) + (cv.width * msg.message.length)), starty: 0, endy: cv.height }
             }
             char = msg.message[col - msg.startCol];
-            c = colorScheme.get(scheme).topBottomColor;
+            c = cscheme.topBottomColor;
             break;
           }
         }
@@ -576,7 +584,7 @@ function updateDisplay(timestamp) {
           
           if (col >= msg.startCol && col < (msg.startCol + msg.message.length)) {
             char = msg.message[col - msg.startCol];
-            c = colorScheme.get(scheme).topBottomColor;
+            c = cscheme.topBottomColor;
             break;
           }
         }
@@ -584,13 +592,13 @@ function updateDisplay(timestamp) {
 
       if (row === height - 1 && col >= bottomStart && col < bottomStart + bottomText.length) {
         char = bottomText[col - bottomStart];
-        c = colorScheme.get(scheme).topBottomColor;
+        c = cscheme.topBottomColor;
       } else if (col === 0 && row >= leftStart && row < leftStart + leftText.length) {
         char = leftText[row - leftStart];
-        c = colorScheme.get(scheme).sideColor;
+        c = cscheme.sideColor;
       } else if (col === dims.width - 1 && row >= rightStart && row < rightStart + rightText.length) {
         char = rightText[row - rightStart];
-        c = colorScheme.get(scheme).sideColor;
+        c = cscheme.sideColor;
       }
 
       context.fillStyle = c;
@@ -687,16 +695,16 @@ function updateDisplay(timestamp) {
         if (!(tradingOnly && isVoidlingCharacter(char))) {
           if(!openingDone && !currentScene.voidling && isVoidlingCharacter(char)) {
             char = background[i];
-            context.fillStyle = backgroundColor;
+            context.fillStyle = cscheme.textColor;
           } else if(!openingDone && currentScene.voidling && isVoidlingCharacter(char)) {
-            context.fillStyle = backgroundColor;
+            context.fillStyle = cscheme.textColor;
           }
 
           let now = Date.now();
-          if(now-openingDoneAt < openingDonePostPeriod) {
-            let ratio = ((now-openingDoneAt) / openingDonePostPeriod);
+          if(now-openingDoneAt < OPENING_DONE_POST_PERIOD) {
+            let ratio = ((now-openingDoneAt) / OPENING_DONE_POST_PERIOD);
             if(Math.random() >  ratio) {
-              context.fillStyle = backgroundColor;
+              context.fillStyle = cscheme.textColor;
             }
             
           }
@@ -713,7 +721,7 @@ function updateDisplay(timestamp) {
         }
 
       } else {
-        context.fillStyle = backgroundColor;
+        context.fillStyle = cscheme.textColor;
 
         if(showGameStartText) {
           background = drawText(GAME_START_TEXT_SECTION_1.toUpperCase(), 0.5, 0.1, dims.width, background);
@@ -739,9 +747,9 @@ function updateDisplay(timestamp) {
           background = drawText(`${GAME_LENGTH+(GAME_START_TEXT_TIME/1000)-seconds}`.toUpperCase(), 0.1, 0.1, dims.width, background);
         }
 
-        if(openingDone && !gameStarted && !gameOver) {
+        if(openingDone && !gameStarted && !gameOver && !stopGameTeaser) {
           let now = Date.now();
-          if(now - gameTeaserLastCheck > gameTeaserAnimLength) {
+          if(now - gameTeaserLastCheck > GAME_TEASER_ANIM_LENGTH) {
             showGameTeaser = !showGameTeaser;
             gameTeaserLastCheck = now;
           }
@@ -776,26 +784,9 @@ function updateDisplay(timestamp) {
     }
 
     if (!isDisplayInitialized) {
-      let cv = getCharacterDimensions();
       let outputElement = document.getElementById('outputwrapper');
       const canvas = document.getElementById('cvas');
-
-      let canvasBox = canvas.getBoundingClientRect();
       const outerRect = outputElement.getBoundingClientRect();
-      let aboutPage = document.getElementById('aboutpage');
-      /*
-      aboutPage.style.top = `${canvasBox.top+cv.height}px`;
-      aboutPage.style.left = `${canvasBox.left}px`;
-      aboutPage.style.width = `${canvasBox.width}px`;
-      aboutPage.style.maxWidth = `${canvasBox.width-(cv.width/2)}px`;
-      aboutPage.style.maxHeight = `${canvasBox.height-(cv.height*2.5)}px`;
-      const contentHeight = aboutPage.scrollHeight;
-
-      if(Number(contentHeight) < parseInt(aboutPage.style.maxHeight, 10)) {
-        aboutPage.style.overflowY = "hidden";
-      }
-        */
-
       document.getElementById("voidlingcomment").style.maxWidth = `${canvas.offsetWidth * .8}px`;
 
       const dims = calculateDimensions();
@@ -818,7 +809,7 @@ function updateDisplay(timestamp) {
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
         for (const msg of topStrings) {
-          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box)) {
+          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box, true, false, true)) {
             borderClick(msg.onclick);
           }
         }
@@ -833,7 +824,7 @@ function updateDisplay(timestamp) {
 
         let isPointer = false;
         for (const msg of topStrings) {
-          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box)) {
+          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box, true, false, true)) {
             isPointer = true;
           }
         }
@@ -893,10 +884,16 @@ function isVoidlingCharacter(char) {
   return colorScheme.get(scheme).voidling.has(char) && char != '$';
 }
 
-function isMouseOverRect(mouseX, mouseY, rect) {
+function isMouseOverRect(mouseX, mouseY, rect, extendXleft = false, extendXright = false, extendY = false) {
   let yMargin = 1;
-  let xCondition = mouseX > rect.startx && mouseX < rect.endx;
-  let yCondition = mouseY > (rect.starty - yMargin) && mouseY < (rect.endy + yMargin);
+  let xFuzziness = 10;
+  let yFuzziness = 5;
+  let startX = extendXleft ? rect.startx-xFuzziness : rect.startx;
+  let endX = extendXright ? rect.endx+xFuzziness : rect.endx;
+  let startY = extendY ? rect.starty-yFuzziness : rect.starty;
+  let endY = extendY ? rect.endy+yFuzziness : rect.endy;
+  let xCondition = mouseX > startX && mouseX < endX;
+  let yCondition = mouseY > (startY - yMargin) && mouseY < (endY + yMargin);
   return xCondition && yCondition
 }
 
@@ -1141,7 +1138,7 @@ document.addEventListener('keydown', (event) => {
           showGameStartText = false;
           startGame();
         }, GAME_START_TEXT_TIME);
-      }, 500);
+      }, GAME_INSTRUCTIONS_WAIT_TIME);
     }
   } else if (event.key === 'ArrowRight') {
     stepSize = rightProgression ? stepSize : firstMultiplier * 2;

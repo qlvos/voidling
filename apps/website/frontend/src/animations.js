@@ -7,7 +7,7 @@ export let openingAnimation = [
   },
   {
     background: '$',
-    text : ["wif" , "goat", "www" , "pepito", "rg" , "sendai"],
+    text : ["wif" , "goat", "www" , "pepito", "rg" , "sendai", "cents", "fartcoin", "zerebro", "ongo", "ai16z", "degenai", "shoggoth", "shegen", "gnon", "lola", "luna", "yousim", "project89", "bully", "pippin", "rex"],
     type: "randomtext",
     timeseconds: 2,
     overlapNext: true
