@@ -29,7 +29,7 @@ export const assetBoxId = "assetbox";
 export const tradeLogId = "tradelogbox";
 export const watchlistBoxId = "watchlistbox";
 
-let openingDone = false;
+let openingDone = true;
 
 const FRAME_INTERVAL = 48;
 const CLEANUP_INTERVAL = 200;
@@ -1027,7 +1027,7 @@ function displayInnerThoughtsv2() {
     let c = colorScheme.get(scheme).voidling.get(char);
 
     if ((row === 0) || (row === (height - 1)) || (col === 0) || (col === (dims.width - 1))) {
-      c = "#af87ff";
+      c = colorScheme.get(scheme).voidling.get(char);
     }
 
     if (row === 0) {
