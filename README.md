@@ -1,5 +1,5 @@
 # voidling
-This is a mono repository containing all the components that makes up the Voidling agentic memecoin index manager. The Voidling is a character within the wider Voidlings universe, initially spawned by the Reaper of the Reaper's Gambit project (https://www.reapersgambit.com).
+This is a mono repository containing all the components that makes up the Voidling agentic memecoin index manager. The Voidling is a character within the wider Voidlings universe, initially spawned by the Reaper from the Reaper's Gambit project (https://www.reapersgambit.com).
 
 The application is dockerized and consists of the following services:
 
