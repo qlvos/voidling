@@ -193,7 +193,6 @@ export const GROUND_CHARACTER = ".";
 const dropAnimations = new Map();
 
 export function startGame() {
-  gameStart = Date.now();
   let firstDrop;
 
   for (const drop of drops) {
