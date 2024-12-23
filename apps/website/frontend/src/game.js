@@ -186,7 +186,6 @@ export const GAME_START_TEXT_SECTION_1 = "Avoid rugs and bad actors, collect gem
 export const GAME_START_TEXT_SECTION_2 = "Use the arrow keys to control the Voidling and mouse wheel or +/- to change its size"
 export const GAME_START_TEXT_SECTION_3 = "The Reaper will evaluate your score to see if you are worthy a membership"
 export const GAME_END_TEXT_SECTION_1 = "GAME ENDED";
-let gameStart;
 export const GAME_START_TEXT_TIME = 12000;
 export const GAME_END_TEXT_LENGTH = 10000;
 export const GROUND_CHARACTER = ".";
