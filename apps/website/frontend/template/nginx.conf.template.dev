@@ -18,6 +18,10 @@ server {
       proxy_pass http://${VLING_BACKEND_SERVICE_NAME}:47900/api/whitelist;
   }
 
+  location /api/evaluation {
+      proxy_pass http://${VLING_BACKEND_SERVICE_NAME}:47900/api/evaluation;
+  }
+
   location /ws {
       proxy_pass http://${VLING_BACKEND_SERVICE_NAME}:47901;
       proxy_http_version 1.1;

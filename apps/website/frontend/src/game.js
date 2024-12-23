@@ -184,9 +184,10 @@ export function getEndGameEvaluation(score) {
 
 export const GAME_START_TEXT_SECTION_1 = "Avoid rugs and bad actors, collect gems and crypto supporters!"
 export const GAME_START_TEXT_SECTION_2 = "Use the arrow keys to control the Voidling and mouse wheel or +/- to change its size"
+export const GAME_START_TEXT_SECTION_3 = "The Reaper will evaluate your score to see if you are worthy a membership"
 export const GAME_END_TEXT_SECTION_1 = "GAME ENDED";
 let gameStart;
-export const GAME_START_TEXT_TIME = 9000;
+export const GAME_START_TEXT_TIME = 12000;
 export const GAME_END_TEXT_LENGTH = 10000;
 export const GROUND_CHARACTER = ".";
 
@@ -232,4 +233,21 @@ export function initializeDrop(drop) {
 
   dropAnimations.set(drop.symbol, intervalId);
 
+}
+
+const END_GAME_EVALUATION_MAX_LENGTH = 75;
+
+export function getEvaluation(points, processEvaluation) {
+  const currentUrl = window.location.href;
+  const url = new URL(currentUrl);
+  let endpoint = `${url.origin}/api/evaluation`;
+  fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ points: points }) 
+  }).then(response => response.json())
+  .then(data => { 
+    processEvaluation(data);
+  })
+  .catch(error => { console.error('Error:', error); });
 }

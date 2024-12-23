@@ -12,7 +12,7 @@ import {
   getRotZ, getTargetX, getTargetY, getMovementX, getMovementY, setDimensions, getDeformComplexity,
   getDeformFreq, cleanup, getBuffer, getDeformPhase, setCurrentBehavior, getBaseRadius, setBaseRadius
 } from "./voidlingdrawer.js";
-import { startGame, drops, getEndGameEvaluation, GAME_START_TEXT_TIME, GAME_START_TEXT_SECTION_1, GAME_START_TEXT_SECTION_2, GAME_END_TEXT_SECTION_1, initializeDrop, GAME_END_TEXT_LENGTH } from "./game.js";
+import { startGame, drops, getEndGameEvaluation, GAME_START_TEXT_TIME, GAME_START_TEXT_SECTION_1, GAME_START_TEXT_SECTION_2, GAME_START_TEXT_SECTION_3, GAME_END_TEXT_SECTION_1, initializeDrop, GAME_END_TEXT_LENGTH, getEvaluation } from "./game.js";
 import { openingAnimation, randomAnimations, resetAnimations } from "./animations.js";
 
 const rightText = " IT SEEKS ITS PEERS AND SERVES THE REAPER ";
@@ -29,7 +29,7 @@ export const assetBoxId = "assetbox";
 export const tradeLogId = "tradelogbox";
 export const watchlistBoxId = "watchlistbox";
 
-let openingDone = false;
+let openingDone = true;
 
 const FRAME_INTERVAL = 48;
 const CLEANUP_INTERVAL = 200;
@@ -39,8 +39,11 @@ const OPENING_DONE_POST_PERIOD = 3000;
 const GAME_TEASER_ANIM_LENGTH = 1250;
 const GAME_TEASER_MAX_LENGTH = 60000;
 const GAME_INSTRUCTIONS_WAIT_TIME = 1000;
-const GAME_LENGTH = 60;
-const POINTS_MIN_WHITELIST = 0;
+const GAME_LENGTH = 1;
+let endGameEvaluation;
+let waitingForEndGameEvaluation = false;
+const END_GAME_EVALUATION_MAX_LENGTH = 75;
+const POINTS_MIN_WHITELIST = -10000;
 const RANDOM_ANIMATION_PROBABILITY = 0.1;
 const RANDOM_ANIM_EACH_SECOND = 15;
 
@@ -668,11 +671,17 @@ function updateDisplay(timestamp) {
         let timeLeft = GAME_LENGTH+(GAME_START_TEXT_TIME/1000)-seconds
         
         if(timeLeft <= 0 && !showGameEndText) {
-          if(points > POINTS_MIN_WHITELIST) {
-            setTimeout(() => {
-              document.getElementById('gamewin').style.visibility = "visible";
-            }, 1000);
-          }
+          waitingForEndGameEvaluation = true;
+          getEvaluation(points, (evaluation) => {
+            endGameEvaluation = splitStringIntoChunks(evaluation.comment);
+            waitingForEndGameEvaluation = false;
+            if(evaluation.approved) {
+              setTimeout(() => {
+                document.getElementById('gamewin').style.visibility = "visible";
+              }, 1000);
+            }
+
+          });
 
           gameOver = true;
           gameStarted = false;
@@ -727,10 +736,11 @@ function updateDisplay(timestamp) {
         if(showGameStartText) {
           background = drawText(GAME_START_TEXT_SECTION_1.toUpperCase(), 0.5, 0.1, dims.width, background);
           background = drawText(GAME_START_TEXT_SECTION_2.toUpperCase(), 0.5, 0.15, dims.width, background);
+          background = drawText(GAME_START_TEXT_SECTION_3.toUpperCase(), 0.5, 0.2, dims.width, background);
           let secondsLeft = Math.ceil((GAME_START_TEXT_TIME - (Date.now() - gameInitTime)) / 1000);
           if(secondsLeft > 0) {
             let countdown = `ONE MINUTE TO GET AS MANY POINTS AS POSSIBLE, STARTING IN ${secondsLeft}`;
-            background = drawText(countdown, 0.5, 0.2, dims.width, background);
+            background = drawText(countdown, 0.5, 0.25, dims.width, background);
           }
         }
 
@@ -738,8 +748,29 @@ function updateDisplay(timestamp) {
           let now = Date.now();
           if(now-gameEndStart > 1000) {
             background = drawText(GAME_END_TEXT_SECTION_1 +  `, SCORE: ${points}`, 0.5, 0.15, dims.width, background);
-            background = drawText(getEndGameEvaluation(points).toUpperCase(), 0.5, 0.20, dims.width, background);
-            background = drawText(`click to continue`.toUpperCase(), 0.5, 0.25, dims.width, background);
+            let heightOffset = 0.2;
+
+            if(!endGameEvaluation) {
+              drawText("Evaluating performance, please hold on...".toUpperCase(), 0.5, heightOffset, dims.width, background);
+            }
+
+            if(endGameEvaluation) {
+              background = drawText("THE REAPER EVALUATION", 0.5, heightOffset, dims.width, background);
+              heightOffset += 0.08;
+              for(let j=0; j<endGameEvaluation.length; j++) {
+                let str = endGameEvaluation[j];
+                if(j==0) {
+                  str = '"' + str;
+                }
+                if(j==endGameEvaluation.length-1) {
+                  str += '"';
+                }
+                background = drawText(str, 0.5, heightOffset, dims.width, background);
+                heightOffset += (0.03)
+              }
+              
+            }
+            background = drawText(`click to continue`.toUpperCase(), 0.5, heightOffset+0.1, dims.width, background);
           }
         }
 
@@ -1166,3 +1197,22 @@ document.addEventListener('keydown', (event) => {
     cfg.baseRadius = newRadius;
   }
 });
+
+function splitStringIntoChunks(str) {
+  const chunkSize = END_GAME_EVALUATION_MAX_LENGTH;
+  const chunks = [];
+  let start = 0;
+
+  while (start < str.length) {
+    let end = start + chunkSize;
+    if (end < str.length) {
+      while (end < str.length && str[end] !== ' ') {
+        end++;
+      }
+    }
+    chunks.push(str.slice(start, end).trim());
+    start = end + 1;
+  }
+
+  return chunks;
+}

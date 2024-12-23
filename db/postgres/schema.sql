@@ -50,8 +50,17 @@ CREATE TABLE "public"."watchlist" (
     CONSTRAINT "watchlist_address" UNIQUE ("address")
 ) WITH (oids = false);
 
+DROP TABLE IF EXISTS "featureflags";
+CREATE TABLE "public"."featureflags" (
+    "key" character varying NOT NULL,
+    "value" boolean NOT NULL,
+    CONSTRAINT "featureflags_key" UNIQUE ("key")
+) WITH (oids = false);
 
--- 2024-12-05 22:56:26.835145+00
+DROP TABLE IF EXISTS "whitelist";
+CREATE TABLE "public"."whitelist" (
+    "wallet" character varying NOT NULL
+) WITH (oids = false);
 
 CREATE ROLE voidling_db_user WITH LOGIN PASSWORD 'REPLACE_ME';
 

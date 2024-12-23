@@ -9,6 +9,7 @@ import { WebSocketServer } from 'ws';
 import { getPortfolioStats } from './chaindata.js';
 import { getRedisConnection } from './db/redismanager.js';
 import { whitelistWallet } from './db/postgresdbhandler.js';
+import { callReaper } from './aimodel.js';
 const router = express.Router();
 
 app.use(cors());
@@ -158,9 +159,33 @@ router.post('/whitelist', async (req, res) => {
   }  
 });
 
+router.post('/evaluation', async (req, res) => {
+  try {
+    if(req.body.points != undefined) {
+      if(!validatePoints(req.body.points)) {
+        res.json({ status: "ko" });
+        return;
+      }
+      let evaluation = await callReaper(req.body.points);
+      res.json({ status: "ok", approved: evaluation && evaluation.includes("YES"), comment: evaluation });
+    } else {
+      res.json({ status: "ko" });
+    }
+  } catch(err) {
+    logger.error("failed to whitelist: " + err);
+  }  
+});
+
 function validateWallet(wallet) {
   const solanaWalletRegex = /^[A-Za-z0-9]{1,44}$/;
   return solanaWalletRegex.test(wallet);
+}
+
+function validatePoints(points) {
+  if(points && points.length > 15) {
+    return false;
+  }
+  return !isNaN(points)
 }
 
 
