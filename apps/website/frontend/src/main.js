@@ -29,7 +29,7 @@ export const assetBoxId = "assetbox";
 export const tradeLogId = "tradelogbox";
 export const watchlistBoxId = "watchlistbox";
 
-let openingDone = true;
+let openingDone = false;
 
 const FRAME_INTERVAL = 48;
 const CLEANUP_INTERVAL = 200;
@@ -41,9 +41,7 @@ const GAME_TEASER_MAX_LENGTH = 60000;
 const GAME_INSTRUCTIONS_WAIT_TIME = 1000;
 const GAME_LENGTH = 1;
 let endGameEvaluation;
-let waitingForEndGameEvaluation = false;
 const END_GAME_EVALUATION_MAX_LENGTH = 75;
-const POINTS_MIN_WHITELIST = -10000;
 const RANDOM_ANIMATION_PROBABILITY = 0.1;
 const RANDOM_ANIM_EACH_SECOND = 15;
 
