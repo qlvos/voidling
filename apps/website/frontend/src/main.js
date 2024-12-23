@@ -669,10 +669,8 @@ function updateDisplay(timestamp) {
         let timeLeft = GAME_LENGTH+(GAME_START_TEXT_TIME/1000)-seconds
         
         if(timeLeft <= 0 && !showGameEndText) {
-          waitingForEndGameEvaluation = true;
           getEvaluation(points, (evaluation) => {
             endGameEvaluation = splitStringIntoChunks(evaluation.comment);
-            waitingForEndGameEvaluation = false;
             if(evaluation.approved) {
               setTimeout(() => {
                 document.getElementById('gamewin').style.visibility = "visible";

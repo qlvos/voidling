@@ -13,7 +13,7 @@ const WS_ADDRESS = `${protocol}://${baseUrl}/ws`
 
 const scrollSettings = new Map();
 scrollSettings.set(assetBoxId, { top: 1, size: window.isMobile ? 4 : 5 })
-scrollSettings.set(watchlistBoxId, { top: 1, size: window.isMobile ? 4 : 10 })
+scrollSettings.set(watchlistBoxId, { top: 1, size: window.isMobile ? 4 : 9 })
 scrollSettings.set(tradeLogId, { top: 1, size: 4 })
 
 const dexScreenerUrl = function (address) {
