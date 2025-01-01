@@ -39,7 +39,7 @@ const GAME_LENGTH = 60; // in seconds
 let endGameEvaluation;
 const END_GAME_EVALUATION_MAX_LENGTH = 75;
 const RANDOM_ANIMATION_PROBABILITY = 0.1;
-const RANDOM_ANIM_EACH_SECOND = 15;
+const RANDOM_ANIM_EACH_SECOND = 20;
 
 let hoverCycles = 1;
 const dims = calculateDimensions();
