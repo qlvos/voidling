@@ -460,6 +460,10 @@ export function setBaseRadius(value) {
   config.baseRadius = value;
 }
 
+export function setBaseRadiusUnlimited(value) {
+  config.baseRadius = value;
+}
+
 export function getBaseRadius() {
   return config.baseRadius;
 }

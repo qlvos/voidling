@@ -10,14 +10,10 @@ import {
   initializeTrigCache, animationFrame, initVoidlingWithConfig, setDeformFreq, setDeformPhase, setCurrentTime, setTargetX, setTargetY, setMovementX, setMovementY, setRotX, setRotY, setRotZ, getHorizontalPersistenceTimer, getStuckCounter, getBehaviorTimer, getCurrentBehavior, getCurrentTime, getLastTargetX,
   getLastTargetY, getRotationSpeed, getTargetRotX, getTargetRotY, getTargetRotZ, getRotX, getRotY,
   getRotZ, getTargetX, getTargetY, getMovementX, getMovementY, setDimensions, getDeformComplexity,
-  getDeformFreq, cleanup, getBuffer, getDeformPhase, setCurrentBehavior, getBaseRadius, setBaseRadius
+  getDeformFreq, cleanup, getBuffer, getDeformPhase, setCurrentBehavior, getBaseRadius, setBaseRadius, setBaseRadiusUnlimited
 } from "./voidlingdrawer.js";
 import { startGame, drops, getEndGameEvaluation, GAME_START_TEXT_TIME, GAME_START_TEXT_SECTION_1, GAME_START_TEXT_SECTION_2, GAME_START_TEXT_SECTION_3, GAME_END_TEXT_SECTION_1, initializeDrop, GAME_END_TEXT_LENGTH, getEvaluation } from "./game.js";
 import { openingAnimation, randomAnimations, resetAnimations } from "./animations.js";
-
-const rightText = " IT SEEKS ITS PEERS AND SERVES THE REAPER ";
-const bottomText = " A PROTO-CONSCIOUS AI CREATURE ";
-const leftText = " IT COMES FROM THE $VOID ";
 
 window.isMobile = window.innerWidth <= 999;
 let lastMobileState = window.isMobile;
@@ -460,10 +456,7 @@ function updateDisplay(timestamp) {
     let lastChar;
 
     // Calculate center positions
-    const bottomStart = Math.floor((dims.width - bottomText.length) / 2);
     const height = Math.floor(bufferPtr.length / dims.width);
-    const leftStart = Math.floor((height - leftText.length) / 2);
-    const rightStart = Math.floor((height - rightText.length) / 2);
 
     let col = 0;
     let row = 0;
@@ -495,6 +488,9 @@ function updateDisplay(timestamp) {
       }
       
       if(currentScene) {
+        if(currentScene.customVoidling && !currentScene.customVoidlingInitialized) {
+          currentScene.customVoidlingInitialized = true;
+        }
         background = drawScene(currentScene, dims);
         if(nextScene) {
           currentScene.latestBackground = background;
@@ -552,7 +548,6 @@ function updateDisplay(timestamp) {
 
     for (let i = 0; i < bufferPtr.length; i++) {
       let char = bufferPtr[i];
-
       if(showGameEndText && isVoidlingCharacter(char)) {
         char = " ";
       }
@@ -566,41 +561,13 @@ function updateDisplay(timestamp) {
       }
 
       if (row === 0) {
-        for (let msg of topStrings) {
-          if (col >= msg.startCol && col < (msg.startCol + msg.message.length)) {
-            if (!msg.box) {
-              msg.box = { startx: (currentX * cv.width), endx: ((currentX * cv.width) + (cv.width * msg.message.length)), starty: 0, endy: cv.height }
-            }
-            char = msg.message[col - msg.startCol];
-            c = cscheme.topBottomColor;
-            break;
-          }
-        }
-      }
-
-      if (row === height - 1) {
-        for (let msg of bottomStrings) {
-          if(msg.type == "game" && !gameStarted) {
-            continue;
-          }
-          
-          if (col >= msg.startCol && col < (msg.startCol + msg.message.length)) {
-            char = msg.message[col - msg.startCol];
-            c = cscheme.topBottomColor;
-            break;
-          }
-        }
-      }
-
-      if (row === height - 1 && col >= bottomStart && col < bottomStart + bottomText.length) {
-        char = bottomText[col - bottomStart];
-        c = cscheme.topBottomColor;
-      } else if (col === 0 && row >= leftStart && row < leftStart + leftText.length) {
-        char = leftText[row - leftStart];
-        c = cscheme.sideColor;
-      } else if (col === dims.width - 1 && row >= rightStart && row < rightStart + rightText.length) {
-        char = rightText[row - rightStart];
-        c = cscheme.sideColor;
+        ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, topStrings));
+      } else if (row === height - 1) {
+        ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, bottomStrings));
+      } else if (col === 0) {
+        ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, leftStrings, true));
+      } else if (col === dims.width - 1) {
+        ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, rightStrings, true));
       }
 
       context.fillStyle = c;
@@ -836,11 +803,21 @@ function updateDisplay(timestamp) {
         showGameEndText = false;
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
-        for (const msg of topStrings) {
-          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box, true, false, true)) {
+
+        let horizontalLinkCandidates = [...topStrings, ...bottomStrings];
+        for (const msg of horizontalLinkCandidates) {
+          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box, horizontalFuzziness, true, false, true)) {
             borderClick(msg.onclick);
           }
         }
+
+        let verticalLinkCandidates = [...leftStrings, ...rightStrings];
+        for (const msg of verticalLinkCandidates) {
+          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box, verticalFuzziness, true, true, true)) {
+            borderClick(msg.onclick);
+          }
+        }
+
       });
 
       canvas.addEventListener('mousemove', (event) => {
@@ -851,8 +828,16 @@ function updateDisplay(timestamp) {
         const mouseY = event.clientY - rect.top;
 
         let isPointer = false;
-        for (const msg of topStrings) {
-          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box, true, false, true)) {
+        let horizontalLinkCandidates = [...topStrings, ...bottomStrings];
+        for (const msg of horizontalLinkCandidates) {
+          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box, horizontalFuzziness, true, false, true)) {
+            isPointer = true;
+          }
+        }
+
+        let verticalLinkCandidates = [...leftStrings, ...rightStrings];
+        for (const msg of verticalLinkCandidates) {
+          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box, verticalFuzziness, true, true, true)) {
             isPointer = true;
           }
         }
@@ -860,7 +845,7 @@ function updateDisplay(timestamp) {
 
         let mOver = false;
         for (const rectangle of rectangles) {
-          if (isMouseOverRect(mouseX, mouseY, rectangle)) {
+          if (isMouseOverRect(mouseX, mouseY, rectangle, horizontalFuzziness)) {
             mOver = true;
             break;
           }
@@ -908,23 +893,74 @@ function updateDisplay(timestamp) {
   requestAnimationFrame(updateDisplay);
 };
 
+function borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, strings, vertical = false) {
+  let bc = getBorderCharacter(col, row, currentX, currentY, cv, char, strings, vertical);
+  if (bc) {
+    char = bc.char;
+    c = bc.link ? cscheme.linkColor : vertical ? cscheme.sideColor : cscheme.topBottomColor;
+  }
+  return { char, c };
+}
+
+function getBorderCharacter(col, row, currentX, currentY, cv, char, strings, vertical = false) {
+  for (let msg of strings) {
+    if(msg.type == "game" && !gameStarted) {
+      continue;
+    }
+
+    if(vertical) {
+      if (row >= msg.startRow && row < (msg.startRow + msg.message.length)) {
+        if (!msg.box) {
+          msg.box = { startx: (currentX * cv.width), endx: ((currentX * cv.width) + (cv.width)), starty: currentY, endy: currentY + msg.message.length };
+          //console.log(msg.box)
+        }
+        return { char: msg.message[row - msg.startRow], link: msg.onclick != null };
+      }
+
+    } else {
+      if (col >= msg.startCol && col < (msg.startCol + msg.message.length)) {
+        if (!msg.box) {
+          msg.box = { startx: (currentX * cv.width), endx: ((currentX * cv.width) + (cv.width * msg.message.length)), starty: 0, endy: cv.height };
+        }
+        return { char: msg.message[col - msg.startCol], link: msg.onclick != null };
+      }
+
+    }
+
+  }
+}
+
 function isVoidlingCharacter(char) {
   return colorScheme.get(scheme).voidling.has(char) && char != '$';
 }
 
-function isMouseOverRect(mouseX, mouseY, rect, extendXleft = false, extendXright = false, extendY = false) {
+function isMouseOverRect(mouseX, mouseY, rect, calculateBox, extendXleft = false, extendXright = false, extendY = false) {
   let yMargin = 1;
-  let xFuzziness = 10;
-  let yFuzziness = 5;
-  let startX = extendXleft ? rect.startx-xFuzziness : rect.startx;
-  let endX = extendXright ? rect.endx+xFuzziness : rect.endx;
-  let startY = extendY ? rect.starty-yFuzziness : rect.starty;
-  let endY = extendY ? rect.endy+yFuzziness : rect.endy;
+  let { startX, endX, startY, endY } = calculateBox(extendXleft, rect, extendXright, extendY);
   let xCondition = mouseX > startX && mouseX < endX;
   let yCondition = mouseY > (startY - yMargin) && mouseY < (endY + yMargin);
   return xCondition && yCondition
 }
 
+function verticalFuzziness(extendXleft, rect, extendXright, extendY) {
+  let xFuzziness = 20;
+  let yFuzziness = 15;
+  let startX = extendXleft ? rect.startx - xFuzziness : rect.startx;
+  let endX = extendXright ? rect.endx + xFuzziness : rect.endx;
+  let startY = extendY ? rect.starty - yFuzziness : rect.starty;
+  let endY = extendY ? rect.endy + yFuzziness : rect.endy;
+  return { startX, endX, startY, endY };
+}
+
+function horizontalFuzziness(extendXleft, rect, extendXright, extendY) {
+  let xFuzziness = 10;
+  let yFuzziness = 5;
+  let startX = extendXleft ? rect.startx - xFuzziness : rect.startx;
+  let endX = extendXright ? rect.endx + xFuzziness : rect.endx;
+  let startY = extendY ? rect.starty - yFuzziness : rect.starty;
+  let endY = extendY ? rect.endy + yFuzziness : rect.endy;
+  return { startX, endX, startY, endY };
+}
 
 function onRuntimeInitialized() {
   try {
@@ -1040,43 +1076,31 @@ function displayInnerThoughtsv2() {
   let dims = calculateDimensions();
 
   // Calculate center positions
-  const bottomStart = Math.floor((dims.width - bottomText.length) / 2);
   const height = Math.floor(bufferPtr.length / dims.width);
-  const leftStart = Math.floor((height - leftText.length) / 2);
-  const rightStart = Math.floor((height - rightText.length) / 2);
 
   let col = 0;
   let row = 0;
+
+  let cscheme = colorScheme.get(scheme);
 
   // First pass: calculate new rectangles from updated animation frame, and draw borders
   for (let i = 0; i < bufferPtr.length; i++) {
     let isBorder = (row === 0) || (row === (height - 1)) || (col === 0) || (col === (dims.width - 1));
     let char = bufferPtr[i];
-    let c = colorScheme.get(scheme).voidling.get(char);
+    let c = cscheme.voidling.get(char);
 
     if ((row === 0) || (row === (height - 1)) || (col === 0) || (col === (dims.width - 1))) {
-      c = colorScheme.get(scheme).voidling.get(char);
+      c = cscheme.voidling.get(char);
     }
 
     if (row === 0) {
-      for (let msg of topStrings) {
-        if (col >= msg.startCol && col < (msg.startCol + msg.message.length)) {
-          char = msg.message[col - msg.startCol];
-          c = colorScheme.get(scheme).topBottomColor;
-          break;
-        }
-      }
-    }
-
-    if (row === height - 1 && col >= bottomStart && col < bottomStart + bottomText.length) {
-      char = bottomText[col - bottomStart];
-      c = colorScheme.get(scheme).topBottomColor;
-    } else if (col === 0 && row >= leftStart && row < leftStart + leftText.length) {
-      char = leftText[row - leftStart];
-      c = colorScheme.get(scheme).sideColor;
-    } else if (col === dims.width - 1 && row >= rightStart && row < rightStart + rightText.length) {
-      char = rightText[row - rightStart];
-      c = colorScheme.get(scheme).sideColor;
+      ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, topStrings));
+    } else if (row === height - 1) {
+      ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, bottomStrings));
+    } else if (col === 0) {
+      ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, leftStrings, true));
+    } else if (col === dims.width - 1) {
+      ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, rightStrings, true));
     }
 
     if (char != ' ') {

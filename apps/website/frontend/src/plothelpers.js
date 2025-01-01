@@ -37,6 +37,7 @@ colorScheme.set("daemon",
     background: '#1f1e28',
     sideColor: '#8787ff',
     topBottomColor: '#ff8700',
+    linkColor: '#ff8700',
     textColor: '#8787ff'
   });
 
@@ -81,7 +82,8 @@ let topStrings = [
   {
     fromLeftPercent: 0.126,
     message: " ? ",
-    color: "#ff8700",
+    //color: "#ff8700",
+    color: "#000000",
     onclick: ABOUT_CLICK
   },
   {
@@ -116,7 +118,35 @@ let pointString = {
   color: "#ff8700"
 }
 
-let bottomStrings = [pointString];
+let bottomStrings = [
+  {
+    fromLeftPercent: 0.5,
+    message: " A PROTO-CONSCIOUS AI CREATURE "
+  },
+  pointString
+];
+
+let leftStrings = [
+  {
+    fromLeftPercent: 0.5,
+    message: " IT COMES FROM THE $VOID "
+  }
+];
+
+let rightStrings = [
+  {
+    fromLeftPercent: 0.1,
+    message: " chart ",
+    color: "#ff8700",
+    onclick: COLOR_CLICK,
+    vertical: true
+  },
+  {
+    fromLeftPercent: 0.5,
+    message: " IT SEEKS ITS PEERS AND SERVES THE REAPER "
+  }
+];
+
 let hiddenColor = '#252525';
 
 function borderClick(msg) {
@@ -159,6 +189,19 @@ function initStringPositions(width, height) {
     msg.startCol = Math.ceil((msg.fromLeftPercent - (w / 2)) * width);
     msg.startRow = 0;
   }
+
+  for (let msg of leftStrings) {
+    let h = (msg.message.length) / height;
+    msg.startCol = 0;
+    msg.startRow = Math.ceil((msg.fromLeftPercent - (h / 2)) * height);
+  }
+
+  for (let msg of rightStrings) {
+    let h = (msg.message.length) / height;
+    msg.startCol = 0;
+    msg.startRow = Math.ceil((msg.fromLeftPercent - (h / 2)) * height);
+  }
+
 }
 
 function getSpecialString(col, row, candidates, defCharacter = " ", defClass = 'hidden-character') {

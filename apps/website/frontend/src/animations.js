@@ -1,10 +1,15 @@
 
 export let openingAnimation = [
-  {
+  /*{
     background: '$',
     text: ['$'],
-    timeseconds: 1
-  },
+    timeseconds: 1,
+    voidling: true,
+    customVoidling: {
+      height: 1300,
+      width: 1300
+    }
+  },*/
   {
     background: '$',
     text : ["wif" , "goat", "www" , "pepito", "rg" , "sendai", "cents", "fartcoin", "zerebro", "ongo", "ai16z", "degenai", "shoggoth", "shegen", "gnon", "lola", "luna", "yousim", "project89", "bully", "pippin", "rex"],
