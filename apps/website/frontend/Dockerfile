@@ -22,7 +22,6 @@ COPY --from=build ./build /usr/share/nginx/html
 COPY --from=build ./src/imports.js /usr/share/nginx/html/imports.js
 COPY --from=build ./src/prophecies.js /usr/share/nginx/html
 COPY --from=build ./src/index.html /usr/share/nginx/html
-COPY ./misc/pitch.mp4 /usr/share/nginx/html
 
 EXPOSE 80
 EXPOSE 443
