@@ -217,6 +217,7 @@
     }
 
     .voidling-world {
+      visibility: hidden;
       position: absolute;
       top: 5%;
       left: 2.5%;
@@ -235,6 +236,7 @@
     }
 
     .voidling-world2 {
+      visibility: hidden;
       position: absolute;
       bottom: 3%;
       right: 2.5%;
@@ -416,10 +418,10 @@ Follow daily Voidling updates here: <a target="_blank" href="https://x.com/reape
       <div id="voidlingbox" class="voidling-world2">
         <div>
           <div>
-                <div class="stateheader">VOIDLING STATE</div>
-                <div class="statecontent" id="voidlingemotion"></div>
-                <div class="stateheader">VOIDLING COMMENT</div>
-                <div class="statecontent" id="voidlingcomment"></div>
+            <div class="stateheader">VOIDLING STATE</div>
+            <div class="statecontent" id="voidlingemotion"></div>
+            <div class="stateheader">VOIDLING COMMENT</div>
+            <div class="statecontent" id="voidlingcomment"></div>
           </div>
         </div>
       </div>
@@ -427,6 +429,7 @@ Follow daily Voidling updates here: <a target="_blank" href="https://x.com/reape
     </div>
   </div>
 
+  <script src="featureflags.js"></script>
   <script src="plothelpers.js"></script>
   <script type="module" src="imports.js"></script>
 

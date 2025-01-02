@@ -11,7 +11,7 @@ daemonColors.set("!", "#8787ff");
 daemonColors.set("*", "#8787ff");
 daemonColors.set("#", "#d75f00");
 daemonColors.set("@", "#ff8700");
-daemonColors.set("$", "#af87ff");
+daemonColors.set("$", "#875fff");
 
 let grayColors = new Map();
 grayColors.set(".", "#3a3a3a");
@@ -29,7 +29,6 @@ grayColors.set("$", "#767676");
 
 let colorScheme = new Map();
 let font = '"Courier New", monospace';
-let gameActive = false;
 
 colorScheme.set("daemon", 
   { voidling: daemonColors,
@@ -90,7 +89,8 @@ let topStrings = [
     fromLeftPercent: 0.293,
     message: " % ",
     color: "#ff8700",
-    onclick: TRADING_ONLY_CLICK
+    onclick: TRADING_ONLY_CLICK,
+    activation: tradingActive
   },
   {
     fromLeftPercent: 0.5,
@@ -101,13 +101,15 @@ let topStrings = [
     fromLeftPercent: 0.706,
     message: " V ",
     color: "#ff8700",
-    onclick: VOIDLING_ONLY_CLICK
+    onclick: VOIDLING_ONLY_CLICK,
+    activation: tradingActive
   },
   {
     fromLeftPercent: 0.873,
     message: " C ",
     color: "#ff8700",
-    onclick: COLOR_CLICK
+    onclick: COLOR_CLICK,
+    activation: tradingActive
   }
 ]
 
@@ -134,13 +136,6 @@ let leftStrings = [
 ];
 
 let rightStrings = [
-  {
-    fromLeftPercent: 0.1,
-    message: " chart ",
-    color: "#ff8700",
-    onclick: COLOR_CLICK,
-    vertical: true
-  },
   {
     fromLeftPercent: 0.5,
     message: " IT SEEKS ITS PEERS AND SERVES THE REAPER "

@@ -12,6 +12,7 @@ module.exports = function(grunt) {
           'build/chaindata.js': ['src/chaindata.js'],
           'build/animations.js': ['src/animations.js'],
           'build/voidlingdrawer.js': ['src/voidlingdrawer.js'],
+          'build/featureflags.js': ['src/featureflags.js'],
           'build/game.js': ['src/game.js'],
           'build/prophecies.js': ['src/prophecies.js'],
           'build/plothelpers.js': ['src/plothelpers.js'],

@@ -749,7 +749,7 @@ function updateDisplay(timestamp) {
             gameTeaserLastCheck = now;
           }
 
-          if(showGameTeaser && !window.isMobile) {
+          if(gameActive && showGameTeaser && !window.isMobile) {
             background = drawText(`PRESS V TO PLAY`.toUpperCase(), 0.9, 0.1, dims.width, background);
           }
         }
@@ -904,6 +904,10 @@ function borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, str
 
 function getBorderCharacter(col, row, currentX, currentY, cv, char, strings, vertical = false) {
   for (let msg of strings) {
+    if(msg.activation != undefined && !msg.activation) {
+      continue;
+    }
+
     if(msg.type == "game" && !gameStarted) {
       continue;
     }
@@ -964,6 +968,10 @@ function horizontalFuzziness(extendXleft, rect, extendXright, extendY) {
 
 function onRuntimeInitialized() {
   try {
+    if(tradingActive) {
+      document.getElementById("portfoliobox").style.visibility = "visible";
+      document.getElementById("voidlingbox").style.visibility = "visible";
+    }   
     initializeTrigCache();
     initVoidlingConfig();
 
@@ -1174,49 +1182,51 @@ document.addEventListener('wheel', (event) => {
 });
 
 
-document.addEventListener('keydown', (event) => {
-  let stepSize = 10;
-  let firstMultiplier = 15.5;
-  if (event.key.toLowerCase() === 'v') {
-    if(!gameStarted && !gameOver) {
-      document.getElementById("portfoliobox").style.visibility = "hidden";
-      document.getElementById("voidlingbox").style.visibility = "hidden";
-      setTimeout(() => {
-        gameStarted = true;
-        gameInitTime = Date.now();
-        showGameStartText = true;
-  
+if(gameActive) {
+  document.addEventListener('keydown', (event) => {
+    let stepSize = 10;
+    let firstMultiplier = 15.5;
+    if (event.key.toLowerCase() === 'v') {
+      if(!gameStarted && !gameOver) {
+        document.getElementById("portfoliobox").style.visibility = "hidden";
+        document.getElementById("voidlingbox").style.visibility = "hidden";
         setTimeout(() => {
-          showGameStartText = false;
-          startGame();
-        }, GAME_START_TEXT_TIME);
-      }, GAME_INSTRUCTIONS_WAIT_TIME);
+          gameStarted = true;
+          gameInitTime = Date.now();
+          showGameStartText = true;
+    
+          setTimeout(() => {
+            showGameStartText = false;
+            startGame();
+          }, GAME_START_TEXT_TIME);
+        }, GAME_INSTRUCTIONS_WAIT_TIME);
+      }
+    } else if (event.key === 'ArrowRight') {
+      stepSize = rightProgression ? stepSize : firstMultiplier * 2;
+      setTargetX(getTargetX() + stepSize);
+      rightProgression = true;
+      leftProgression = false;
+     } else if (event.key === 'ArrowLeft') {
+      stepSize = leftProgression ? stepSize : firstMultiplier * 2;
+      setTargetX(getTargetX() - stepSize);
+      rightProgression = false;
+      leftProgression = true;
+    } else if (event.key === 'ArrowDown') {
+      let t = getTargetY() + stepSize;
+      setTargetY(t);
+    } else if (event.key === 'ArrowUp') {
+      setTargetY(getTargetY() - stepSize);
+    } else if (event.key === '+') {
+      let newRadius = getBaseRadius() + radiusStepSize;
+      setBaseRadius(newRadius);
+      cfg.baseRadius = newRadius;
+    } else if (event.key === '-') {
+      let newRadius = getBaseRadius() - radiusStepSize;
+      setBaseRadius(newRadius);
+      cfg.baseRadius = newRadius;
     }
-  } else if (event.key === 'ArrowRight') {
-    stepSize = rightProgression ? stepSize : firstMultiplier * 2;
-    setTargetX(getTargetX() + stepSize);
-    rightProgression = true;
-    leftProgression = false;
-   } else if (event.key === 'ArrowLeft') {
-    stepSize = leftProgression ? stepSize : firstMultiplier * 2;
-    setTargetX(getTargetX() - stepSize);
-    rightProgression = false;
-    leftProgression = true;
-  } else if (event.key === 'ArrowDown') {
-    let t = getTargetY() + stepSize;
-    setTargetY(t);
-  } else if (event.key === 'ArrowUp') {
-    setTargetY(getTargetY() - stepSize);
-  } else if (event.key === '+') {
-    let newRadius = getBaseRadius() + radiusStepSize;
-    setBaseRadius(newRadius);
-    cfg.baseRadius = newRadius;
-  } else if (event.key === '-') {
-    let newRadius = getBaseRadius() - radiusStepSize;
-    setBaseRadius(newRadius);
-    cfg.baseRadius = newRadius;
-  }
-});
+  });
+}
 
 function splitStringIntoChunks(str) {
   const chunkSize = END_GAME_EVALUATION_MAX_LENGTH;
