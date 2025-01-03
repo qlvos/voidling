@@ -15,7 +15,6 @@ RUN npm run grunt
 FROM nginx:latest
 RUN rm /etc/nginx/conf.d/default.conf
 COPY ./template/nginx.conf.template /etc/nginx/templates/nginx.conf.template
-COPY ./src/favicon.png /usr/share/nginx/html
 
 RUN rm -rf /usr/share/nginx/html/*
 
@@ -23,6 +22,7 @@ COPY --from=build ./build /usr/share/nginx/html
 COPY --from=build ./src/imports.js /usr/share/nginx/html/imports.js
 COPY --from=build ./src/prophecies.js /usr/share/nginx/html
 COPY --from=build ./src/index.html /usr/share/nginx/html
+COPY --from=build ./src/favicon.png /usr/share/nginx/html
 
 EXPOSE 80
 EXPOSE 443
