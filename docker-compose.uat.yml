@@ -1,33 +1,23 @@
 
 services:
 
-  frontend:
+  frontend-uat:
     build:
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.uat
       context: ./apps/website/frontend
-    ports:
-      - "80:80"
-      - "443:443"
     environment:
       - WDS_SOCKET_HOST=127.0.0.1
       - VLING_BACKEND_SERVICE_NAME=backend
       - VLING_FRONTEND_SERVICE_NAME=frontend
-      - VLING_FRONTEND_SERVICE_NAME_UAT=frontend-uat
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /etc/apache2:/etc/apache2:ro
     depends_on:
-      - backend
+      - backend-uat
     networks:
       - vling-network
 
-  backend:
+  backend-uat:
     build:
       dockerfile: Dockerfile
       context: ./apps/website/backend
-    ports:
-      - "47900:47900"
-      - "47901:47901"
     environment:
       - WDS_SOCKET_HOST=127.0.0.1
       - VLING_POSTGRES_URL=postgres
@@ -37,12 +27,12 @@ services:
       - VLING_HELIUS_API_KEY
       - VLING_HYPERBOLIC_API_KEY
     depends_on:
-      - redis
-      - postgres
+      - redis-uat
+      - postgres-uat
     networks:
       - vling-network
 
-  trader:
+  trader-uat:
     build:
       dockerfile: Dockerfile
       context: ./apps/trader
@@ -56,12 +46,12 @@ services:
       - VLING_WALLET_PRIVATE_KEY
       - DEXTOOLS_API_KEY
     depends_on:
-      - postgres
-      - redis
+      - postgres-uat
+      - redis-uat
     networks:
       - vling-network
 
-  telegrambot:
+  telegrambot-uat:
     build:
       dockerfile: Dockerfile
       context: ./apps/telegrambot
@@ -80,19 +70,17 @@ services:
     networks:
       - vling-network
 
-  postgres:
+  postgres-uat:
     image: timescale/timescaledb-ha:pg16
     restart: always
     environment:
       - POSTGRES_PASSWORD=${VLING_ADMIN_POSTGRES_PASSWORD}
-    ports:
-      - "5433:5432"
     volumes:
      - vling-postgres-data:/home/postgres/pgdata/data
     networks:
       - vling-network
 
-  adminer:
+  adminer-uat:
     image: adminer
     restart: always
     ports:
@@ -102,14 +90,11 @@ services:
     networks:
       - vling-network
 
-  redis:
+  redis-uat:
     build:
       context: ./db/redis
       dockerfile: Dockerfile
     restart: always
-    ports:
-      - "6380:6379"
-      - "8001:8001"
     volumes:
       - vling-redis-data:/data
     environment:

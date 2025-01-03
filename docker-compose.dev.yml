@@ -15,6 +15,8 @@ services:
       - VLING_FRONTEND_SERVICE_NAME=frontend
     depends_on:
       - backend
+    networks:
+      - vling-network
 
   backend:
     build:
@@ -30,12 +32,15 @@ services:
       - VLING_POSTGRES_URL=postgres
       - VLING_POSTGRES_CREDENTIALS
       - VLING_REDIS_URL=redis
-      - DEXTOOLS_API_KEY
-      - VLING_HELIUS_API_KEY
-      - VLING_HYPERBOLIC_API_KEY
+      - DEXTOOLS_API_KEY=Tf0SATnwMb6ESXd9z6sxb8XLxd1MaZaT7cGJD5dU
+      - VLING_HELIUS_API_KEY=f5964166-843c-4b11-a108-337d7e8ab6d3
+      - VLING_HYPERBOLIC_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJsb3VjYX
+      - VLING_ALCHEMY_API_KEY
     depends_on:
       - redis
       - postgres
+    networks:
+      - vling-network
 
   trader:
     build:
@@ -53,6 +58,8 @@ services:
     depends_on:
       - postgres
       - redis
+    networks:
+      - vling-network
 
   telegrambot:
     build:
@@ -70,6 +77,8 @@ services:
       - VLING_POSTGRES_URL=postgres
       - VLING_POSTGRES_CREDENTIALS
       - VLING_REDIS_URL=redis
+    networks:
+      - vling-network
 
   postgres:
     image: timescale/timescaledb-ha:pg16
@@ -80,6 +89,8 @@ services:
       - "5432:5432"
     volumes:
      - vling-postgres-data:/home/postgres/pgdata/data
+    networks:
+      - vling-network
 
   adminer:
     image: adminer
@@ -88,6 +99,8 @@ services:
       - "8083:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      - vling-network
 
   redis:
     build:
@@ -102,7 +115,12 @@ services:
     environment:
       - REDIS_PORT=6379
       - REDIS_DATABASES=16
+    networks:
+      - vling-network
 
 volumes:
   vling-postgres-data:
   vling-redis-data:
+
+networks:
+  vling-network:
