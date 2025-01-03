@@ -483,7 +483,11 @@ function updateDisplay(timestamp) {
         } else if(i==(openingAnimation.length-1) && elapsed > sceneTiming) {
           openingDone = true;
           openingDoneAt = Date.now();
-          document.getElementById("voidlingexpression").style.visibility = "visible";
+          if(tradingActive) {
+            document.getElementById("portfoliobox").style.visibility = "visible";
+            document.getElementById("voidlingbox").style.visibility = "visible";
+            document.getElementById("voidlingexpression").style.visibility = "visible";
+          } 
         }
       }
       
@@ -967,11 +971,7 @@ function horizontalFuzziness(extendXleft, rect, extendXright, extendY) {
 }
 
 function onRuntimeInitialized() {
-  try {
-    if(tradingActive) {
-      document.getElementById("portfoliobox").style.visibility = "visible";
-      document.getElementById("voidlingbox").style.visibility = "visible";
-    }   
+  try {  
     initializeTrigCache();
     initVoidlingConfig();
 
