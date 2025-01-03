@@ -84,7 +84,7 @@ services:
     image: adminer
     restart: always
     ports:
-      - "8084:8080"
+      - "8085:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
