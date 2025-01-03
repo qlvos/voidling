@@ -15,7 +15,7 @@ RUN npm run grunt
 FROM nginx:latest
 RUN rm /etc/nginx/conf.d/default.conf
 COPY ./template/nginx.conf.template /etc/nginx/templates/nginx.conf.template
-COPY ./src/*.png /usr/share/nginx/html
+ADD ./src/*.png /usr/share/nginx/html
 
 RUN rm -rf /usr/share/nginx/html/*
 
@@ -26,6 +26,4 @@ COPY --from=build ./src/index.html /usr/share/nginx/html
 
 EXPOSE 80
 EXPOSE 443
-
-
 
