@@ -848,10 +848,12 @@ function updateDisplay(timestamp) {
         canvas.style.cursor = isPointer ? 'pointer' : 'default';
 
         let mOver = false;
-        for (const rectangle of rectangles) {
-          if (isMouseOverRect(mouseX, mouseY, rectangle, horizontalFuzziness)) {
-            mOver = true;
-            break;
+        if(openingDone) {
+          for (const rectangle of rectangles) {
+            if (isMouseOverRect(mouseX, mouseY, rectangle, horizontalFuzziness)) {
+              mOver = true;
+              break;
+            }
           }
         }
 
