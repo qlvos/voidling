@@ -20,7 +20,7 @@ services:
       - backend
     networks:
       - vling-network
-      - vling-uat-network
+      - vling-network-uat
 
   backend:
     build:
