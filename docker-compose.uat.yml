@@ -109,3 +109,4 @@ volumes:
 
 networks:
   vling-network:
+    name: vling-uat-network

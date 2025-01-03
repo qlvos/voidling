@@ -124,3 +124,6 @@ volumes:
 
 networks:
   vling-network:
+  vling-network-uat:
+    name: vling-uat-network
+    external: true
