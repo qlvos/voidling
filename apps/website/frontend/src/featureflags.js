@@ -1,4 +1,4 @@
 
-let gameActive = false;
-let tradingActive = false;
-let indexActive = false;
+let gameActive = true;
+let tradingActive = true;
+let indexActive = true;
