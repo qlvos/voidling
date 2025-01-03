@@ -37,7 +37,7 @@ colorScheme.set("daemon",
     sideColor: '#8787ff',
     topBottomColor: '#ff8700',
     linkColor: '#ff8700',
-    textColor: '#8787ff'
+    textColor: '#875fff'
   });
 
 colorScheme.set("gray", 
