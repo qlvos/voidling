@@ -11,7 +11,7 @@ const TOKEN_PRICE_URL = 'https://public-api.dextools.io/trial/v2/token/solana';
 const ALCHEMY_API_URL = `https://api.g.alchemy.com/prices/v1/${config.VLING_ALCHEMY_API_KEY}/tokens/historical`
 const HELIUS_API_URL = "https://mainnet.helius-rpc.com/?api-key=" + config.VLING_HELIUS_API_KEY;
 const API_CALL_WAIT = 3500;
-const ALCHEMY_API_CALL_WAIT = 1500;
+const ALCHEMY_API_CALL_WAIT = 300;
 const MAIN_INDEX = "mainindex";
 const NOMINEE_INDEX = "nominees";
 
@@ -111,6 +111,7 @@ function getMood(moodMatrix, value) {
 
 export async function getIndexStats(indexName, cache) {
   let assets = await getIndexTokens(indexName);
+  
   if(!assets) {
     return;
   }
@@ -135,7 +136,6 @@ export async function getIndexStats(indexName, cache) {
       continue;
     }
 
-    ++counter
     let params = { 
       network: asset.network,
       address: asset.address,
@@ -158,21 +158,25 @@ export async function getIndexStats(indexName, cache) {
 
     logger.info("calling " + ALCHEMY_API_URL + " for " + params.address);
     let res = await response.json();
-    if(res.data && res.data.length > 0) {
 
-      let obj = {
-        name: asset.name,
-        symbol: asset.symbol,
-        created: asset.created,
-        xprofile: asset.xprofile,
-        github: asset.github,
-        totalSupply: asset.totalsupply,
-        ...res
-      }
-
-      cache.set(asset.address, {data: obj,  timestamp: new Date() });
-      assetData.push(obj);
+    let obj = {
+      name: asset.name,
+      address: asset.address,
+      symbol: asset.symbol,
+      created: asset.created,
+      xprofile: asset.xprofile,
+      github: asset.github,
+      totalSupply: asset.totalsupply,
     }
+
+    if(res && !res.error) {
+      obj.currency = res.currency,
+      obj.data = res.data
+    }
+
+    cache.set(asset.address, {data: obj,  timestamp: new Date() });
+    assetData.push(obj);
+    ++counter;
     await new Promise(resolve => setTimeout(resolve, ALCHEMY_API_CALL_WAIT));
   }
 

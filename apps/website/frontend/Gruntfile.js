@@ -20,6 +20,7 @@ module.exports = function(grunt) {
           'build/indexpage.js': ['src/indexpage.js'],
           'build/nomineespage.js': ['src/nomineespage.js'],
           'build/tokenvoting.js': ['src/tokenvoting.js'],
+          'build/plothelpers.js': ['src/plothelpers.js'],
           'build/voidling-config-agitated.js': ['src/voidling-config-agitated.js'],
           'build/voidling-config-cautious.js': ['src/voidling-config-cautious.js'],
           'build/voidling-config-curious.js': ['src/voidling-config-curious.js'],

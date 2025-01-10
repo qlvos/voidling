@@ -80,6 +80,10 @@ class IndexChart {
       throw new Error(`Asset ${symbol} not found in configuration`);
     }
 
+    if(!asset.data) {
+      return;
+    }
+
       const priceValues = asset.data.map(item => {
         const price = parseFloat(item.value);
         return price;

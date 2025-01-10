@@ -75,16 +75,14 @@ CREATE TABLE "public"."asset" (
     CONSTRAINT "asset_address" PRIMARY KEY ("address")
 ) WITH (oids = false);
 
-
 DROP TABLE IF EXISTS "indexassets";
 CREATE TABLE "public"."indexassets" (
     "index" character varying NOT NULL,
-    "asset" character varying NOT NULL
+    "asset" character varying NOT NULL,
+    CONSTRAINT "indexassets_index_asset" UNIQUE ("index", "asset")
 ) WITH (oids = false);
 
-
 ALTER TABLE ONLY "public"."indexassets" ADD CONSTRAINT "indexassets_asset_fkey" FOREIGN KEY (asset) REFERENCES asset(address) NOT DEFERRABLE;
-
 CREATE ROLE voidling_db_user WITH LOGIN PASSWORD 'REPLACE_ME';
 
 -- Grant privileges
