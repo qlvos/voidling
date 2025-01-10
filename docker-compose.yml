@@ -37,6 +37,7 @@ services:
       - DEXTOOLS_API_KEY
       - VLING_HELIUS_API_KEY
       - VLING_HYPERBOLIC_API_KEY
+      - VLING_ALCHEMY_API_KEY
     depends_on:
       - redis
       - postgres
