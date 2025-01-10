@@ -28,6 +28,11 @@ export async function getWatchlist() {
   return res && res.rows.length > 0 ? res.rows : null;
 }
 
+export async function getIndexTokens(indexName) {
+  let res = await db.raw(`select * from "indexassets" ia inner join "asset" a on a.address=ia.asset where ia.index=? order by ia.asset desc`, [indexName]);
+  return res && res.rows.length > 0 ? res.rows : null;
+}
+
 export async function getBuys() {
   let res = await db.raw(`select * from "buys" order by timestamp desc`);
   return res && res.rows.length > 0 ? res.rows : null;

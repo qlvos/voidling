@@ -2,7 +2,7 @@
 export let drops = [
   {
     symbol: "bitconnect",
-    hit: "bitconneeeeeeeeeeeeeeect ",
+    hit: "bitconneeeeeeeeeeeeeeect",
     row: -1,
     fromLeftPercent: 0.9,
     speed: 3,

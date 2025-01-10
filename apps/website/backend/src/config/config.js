@@ -14,6 +14,13 @@ config.VLING_HYPERBOLIC_API_KEY = get({
   default: process.env.VLING_HYPERBOLIC_API_KEY
 });
 
+config.VLING_ALCHEMY_API_KEY = get({
+  dev: null,
+  test: null,
+  prod: null,
+  default: process.env.VLING_ALCHEMY_API_KEY
+});
+
 config.VLING_HELIUS_API_KEY = get({
   dev: null,
   test: null,
@@ -46,14 +53,14 @@ config.VLING_POSTGRES_URL = get({
   dev: null,
   test: null,
   prod: null,
-  default: process.env.VLING_POSTGRES_URL,
+  default: process.env.VLING_POSTGRES_URL, 
 });
 
 config.VLING_POSTGRES_CREDENTIALS = get({
   dev: null,
   test: null,
   prod: null,
-  default: process.env.VLING_POSTGRES_CREDENTIALS,
+  default: process.env.VLING_POSTGRES_CREDENTIALS
 });
 
 config.VLING_REDIS_URL = get({
@@ -75,4 +82,11 @@ config.RG_API_BACKEND = get({
   test: null,
   prod: null,
   default: process.env.RG_API_BACKEND_IP
+});
+
+config.INDEX_MAX_ASSETS = get({
+  dev: 3,
+  test: null,
+  prod: null,
+  default: null
 });

@@ -1,6 +1,6 @@
 import { config } from './config/config.js';
 import { logger } from './logger.js';
-import { getWatchlist, getBuys, getSells } from './db/postgresdbhandler.js';
+import { getWatchlist, getBuys, getSells, getIndexTokens } from './db/postgresdbhandler.js';
 import { getVoidlingEmotion } from './aimodel.js';
 import { getVoidlingUserPrompt } from './prompts.js';
 import { SERENE, AGITATED, EXCITED, CURIOUS, CAUTIOUS } from './prompts.js';
@@ -8,10 +8,18 @@ import bent from 'bent';
 const getJSON = bent('json');
 
 const TOKEN_PRICE_URL = 'https://public-api.dextools.io/trial/v2/token/solana';
+const ALCHEMY_API_URL = `https://api.g.alchemy.com/prices/v1/${config.VLING_ALCHEMY_API_KEY}/tokens/historical`
 const HELIUS_API_URL = "https://mainnet.helius-rpc.com/?api-key=" + config.VLING_HELIUS_API_KEY;
 const API_CALL_WAIT = 3500;
+const ALCHEMY_API_CALL_WAIT = 1500;
+const MAIN_INDEX = "mainindex";
+const NOMINEE_INDEX = "nominees";
 
 const walletAddress = '5KjM3kBNii6kuNaRWr8f74PguuQ44qpxS1RKw2YKERSM';
+
+const indexCache = new Map();
+const nomineeCache = new Map();
+const INDEX_CACHE_MAX_AGE = 1000 * 60 * 60; // 60 minutes
 
 async function fetchTokenBalances() {
   try {
@@ -25,7 +33,11 @@ async function fetchTokenBalances() {
   
     let assetData = [];
     let counter = 0;
+    let maxAssets = config.INDEX_MAX_ASSETS;
     for (const asset of tokenBalances) {
+      if(maxAssets && counter >= maxAssets) {
+        break;
+      }
       ++counter;
       let url = `${TOKEN_PRICE_URL}/${asset.tokenMint}/price`;
       logger.info("calling " + url);
@@ -97,7 +109,79 @@ function getMood(moodMatrix, value) {
   }
 }
 
+export async function getIndexStats(indexName, cache) {
+  let assets = await getIndexTokens(indexName);
+  if(!assets) {
+    return;
+  }
+
+  const TIME_RANGE_HOURS = 168;
+  const interval = '1h';
+  const endTime = new Date();
+  const startTime = new Date(endTime - TIME_RANGE_HOURS * 60 * 60 * 1000);
+
+  let assetData = [];
+
+  let counter = 0;
+  let maxAssets = config.INDEX_MAX_ASSETS;
+  for(const asset of assets) {
+    if(maxAssets && counter >= maxAssets) {
+      break;
+    }
+
+    let cached = cache.get(asset.address);
+    if(cached && cached.timestamp && (new Date() - cached.timestamp) < INDEX_CACHE_MAX_AGE) {
+      assetData.push(cached.data);
+      continue;
+    }
+
+    ++counter
+    let params = { 
+      network: asset.network,
+      address: asset.address,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      interval: interval
+    }
+    const response = await fetch(ALCHEMY_API_URL, {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        "jsonrpc": "2.0",
+        "id": "text",
+        "method": "getAsset",
+        ...params
+      }),
+    });
+
+    logger.info("calling " + ALCHEMY_API_URL + " for " + params.address);
+    let res = await response.json();
+    if(res.data && res.data.length > 0) {
+
+      let obj = {
+        name: asset.name,
+        symbol: asset.symbol,
+        created: asset.created,
+        xprofile: asset.xprofile,
+        github: asset.github,
+        totalSupply: asset.totalsupply,
+        ...res
+      }
+
+      cache.set(asset.address, {data: obj,  timestamp: new Date() });
+      assetData.push(obj);
+    }
+    await new Promise(resolve => setTimeout(resolve, ALCHEMY_API_CALL_WAIT));
+  }
+
+  return assetData; 
+
+}
+
 export async function getPortfolioStats() {
+
   let assets = await fetchTokenBalances();
   if(!assets) {
     return;
@@ -137,10 +221,16 @@ export async function getPortfolioStats() {
   let wList = await getWatchlist();
   let watchList = wList ? wList.map((asset) => { return { token: { name: asset.name, symbol: asset.symbol }, address: asset.address } }) : null;
 
+
+  let indexData = await getIndexStats(MAIN_INDEX, indexCache);
+  let nomineeData = await getIndexStats(NOMINEE_INDEX, nomineeCache);
+
   return {
     assets: assets,
     stats: normalized,
     watchlist: watchList,
+    indexdata: indexData,
+    nominees: nomineeData,
     tradelog: tradeLog,
     ...emotion
   }

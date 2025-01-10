@@ -14,6 +14,7 @@ import {
 } from "./voidlingdrawer.js";
 import { startGame, drops, getEndGameEvaluation, GAME_START_TEXT_TIME, GAME_START_TEXT_SECTION_1, GAME_START_TEXT_SECTION_2, GAME_START_TEXT_SECTION_3, GAME_END_TEXT_SECTION_1, initializeDrop, GAME_END_TEXT_LENGTH, getEvaluation } from "./game.js";
 import { openingAnimation, randomAnimations, resetAnimations } from "./animations.js";
+import { calculateDimensions, getCharacterDimensions, manageBorderMouseClick, manageMouseMove, isMouseOverRect, currentState, STATE_INDEX_PAGE, STATE_VOIDLING_PAGE } from "./canvashelper.js";
 
 window.isMobile = window.innerWidth <= 999;
 let lastMobileState = window.isMobile;
@@ -50,6 +51,7 @@ let mouseOverVoidling = false;
 
 let showGameTeaser = false;
 let stopGameTeaser = false;
+let showClickToContinue = true;
 let gameTeaserLastCheck = Date.now();
 let voidlingSteps = 0;
 let voidlingStepRaising = true;
@@ -93,10 +95,10 @@ function checkMobile() {
   if (window.isMobile) {
     let w = 90;
     let h = 96;
-    document.getElementById("cvas").style.width = `${w}dvw`;
-    document.getElementById("outputwrapper").style.width = `${w}dvw`;
-    document.getElementById("cvas").style.height = `${h}dvh`;
-    document.getElementById("outputwrapper").style.height = `${h}dvh`;
+    document.getElementById(VOIDLING_CANVAS).style.width = `${w}dvw`;
+    document.getElementById(OUTPUT_WRAPPER).style.width = `${w}dvw`;
+    document.getElementById(VOIDLING_CANVAS).style.height = `${h}dvh`;
+    document.getElementById(OUTPUT_WRAPPER).style.height = `${h}dvh`;
   }
 
   if (lastMobileState !== window.isMobile) {
@@ -127,33 +129,6 @@ export function getEmotion() {
 
 export function setEmotion(em) {
   emotion = em;
-}
-
-function calculateDimensions() {
-  try {
-    let wrapper = document.getElementById('outputwrapper');
-    let wh = wrapper.offsetHeight;
-    let ww = wrapper.offsetWidth;
-    let cv = getCharacterDimensions();
-
-    // Calculate exact dimensions
-    const exactWidth = ww / (cv.width);
-    const exactHeight = wh / (cv.height);
-
-    // Round down to ensure full characters
-    const width = Math.floor(exactWidth);
-    const height = Math.floor(exactHeight);
-
-    return {
-      width: width,
-      height: height,
-      charWidth: cv.width,
-      charHeight: cv.height
-    }
-  } catch (e) {
-    console.error('Error calculating dimensions:', e);
-    return { width: 190, height: 61 };
-  }
 }
 
 function resetDimensions() {
@@ -231,27 +206,8 @@ function restoreVoidlingState(state) {
   }
 }
 
-function checkMemoryUsage() {
-  if (performance.memory) {
-    const jsHeapSize = performance.memory.usedJSHeapSize / (1024 * 1024);
-    const totalHeapSize = performance.memory.totalJSHeapSize / (1024 * 1024);
-    // Count all DOM elements
-    let allElements = document.getElementsByTagName('*');
-    let count = allElements.length;
-
-    console.log(`Memory usage: JS Heap ${jsHeapSize.toFixed(2)}MB / Total Heap ${totalHeapSize.toFixed(2)}MB, DOM count: ${count}`);
-
-    if (jsHeapSize > MEMORY_THRESHOLD_MB) {
-      console.warn(`High memory usage: ${jsHeapSize.toFixed(2)}MB`);
-      forceCleanup();
-    }
-  }
-}
-
-
 export function forceCleanup() {
   try {
-    //console.log('forceCleanup: Starting cleanup process...');
 
     const state = preserveVoidlingState(); // Save the current voidling state
     cleanup();
@@ -267,7 +223,6 @@ export function forceCleanup() {
     // Reset other global variables
     frameCounter = 0;
     lastFrameTime = 0;
-    //console.log('forceCleanup: All buffers cleared');
 
   } catch (e) {
     console.error('forceCleanup: An error occurred during cleanup:', e);
@@ -281,7 +236,8 @@ function onResize() {
 window.addEventListener('resize', onResize);
 
 // Initial setup
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadFonts();
   const dims = calculateDimensions();
   setDimensions(dims.width, dims.height);
   setWorldDimensions(dims.width, dims.height);
@@ -318,8 +274,9 @@ document.addEventListener('DOMContentLoaded', () => {
           walletRegistered.style.visibility = "visible";
           setTimeout(() => {
             walletRegistered.style.visibility = "hidden";
-            document.getElementById("portfoliobox").style.visibility = "visible";
-            document.getElementById("voidlingbox").style.visibility = "visible";
+            if(currentState != STATE_INDEX_PAGE);
+            document.getElementById(PORTFOLIOBOX).style.visibility = "visible";
+            document.getElementById(VOIDLINGBOX).style.visibility = "visible";
             showGameEndText = false;
           }, waitTime*2)
           
@@ -429,22 +386,24 @@ function updateDisplay(timestamp) {
 
     let dims = calculateDimensions();
 
-    let cvs = document.getElementById('cvas');
+    let cvs = document.getElementById(VOIDLING_CANVAS);
     let context = cvs.getContext('2d');
     // Get device pixel ratio
     const dpr = window.devicePixelRatio || 1;
 
     // Set actual canvas dimensions accounting for device pixel ratio
-    cvs.width = 10 + cvs.offsetWidth * dpr;
-    cvs.height = cvs.offsetHeight * dpr;
+
+    let cvd = getCanvasDimensions(VOIDLING_CANVAS)
+    cvs.width = cvd.width;
+    cvs.height = cvd.height;
 
     // Scale context based on device pixel ratio
     context.scale(dpr, dpr);
     context.clearRect(0, 0, cvs.offsetWidth, cvs.offsetHeight);
 
     // Set the font
-    context.font = window.isMobile ? `24px ${font}` : `12px ${font}`;
-    context.textAlign = 'center'
+    context.font = getFont();
+    context.textAlign = getCanvasTextAlign();
     let cv = getCharacterDimensions();
 
     let lineHeight = cv.height;
@@ -483,9 +442,9 @@ function updateDisplay(timestamp) {
         } else if(i==(openingAnimation.length-1) && elapsed > sceneTiming) {
           openingDone = true;
           openingDoneAt = Date.now();
-          if(tradingActive) {
-            document.getElementById("portfoliobox").style.visibility = "visible";
-            document.getElementById("voidlingbox").style.visibility = "visible";
+          if(tradingActive && currentState == STATE_VOIDLING_PAGE) {
+            document.getElementById(PORTFOLIOBOX).style.visibility = "visible";
+            document.getElementById(VOIDLINGBOX).style.visibility = "visible";
             document.getElementById("voidlingexpression").style.visibility = "visible";
           } 
         }
@@ -556,7 +515,6 @@ function updateDisplay(timestamp) {
         char = " ";
       }
 
-
       let cscheme = colorScheme.get(scheme);
       let c = cscheme.voidling.get(char);
 
@@ -565,13 +523,13 @@ function updateDisplay(timestamp) {
       }
 
       if (row === 0) {
-        ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, topStrings));
+        ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, [...voidlingStrings.top], false, gameStarted));
       } else if (row === height - 1) {
-        ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, bottomStrings));
+        ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, [...voidlingStrings.bottom], false, gameStarted));
       } else if (col === 0) {
-        ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, leftStrings, true));
+        ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, [...voidlingStrings.left], true, gameStarted));
       } else if (col === dims.width - 1) {
-        ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, rightStrings, true));
+        ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, [...voidlingStrings.right], true, gameStarted));
       }
 
       context.fillStyle = c;
@@ -641,13 +599,13 @@ function updateDisplay(timestamp) {
         
         if(timeLeft <= 0 && !showGameEndText) {
           getEvaluation(points, (evaluation) => {
-            endGameEvaluation = splitStringIntoChunks(evaluation.comment);
-            if(evaluation.approved) {
-              setTimeout(() => {
-                document.getElementById('gamewin').style.visibility = "visible";
-              }, 1000);
-            }
-
+            setTimeout(() => {
+              endGameEvaluation = splitStringIntoChunks(evaluation.comment);
+              if(evaluation.approved) {
+                showClickToContinue = false;
+                document.getElementById('gamewin').style.visibility = "visible";                
+              }
+            }, 3500);
           });
 
           gameOver = true;
@@ -737,7 +695,10 @@ function updateDisplay(timestamp) {
               }
               
             }
-            background = drawText(`click to continue`.toUpperCase(), 0.5, heightOffset+0.1, dims.width, background);
+
+            if(showClickToContinue) {
+              background = drawText(`click to continue`.toUpperCase(), 0.5, heightOffset+0.1, dims.width, background);
+            }
           }
         }
 
@@ -783,8 +744,8 @@ function updateDisplay(timestamp) {
     }
 
     if (!isDisplayInitialized) {
-      let outputElement = document.getElementById('outputwrapper');
-      const canvas = document.getElementById('cvas');
+      let outputElement = document.getElementById(OUTPUT_WRAPPER);
+      const canvas = document.getElementById(VOIDLING_CANVAS);
       const outerRect = outputElement.getBoundingClientRect();
       document.getElementById("voidlingcomment").style.maxWidth = `${canvas.offsetWidth * .8}px`;
 
@@ -800,27 +761,15 @@ function updateDisplay(timestamp) {
       canvas.addEventListener('click', (event) => {
         document.getElementById('gamewin').style.visibility = "hidden";
         if(showGameEndText) {
-          document.getElementById("portfoliobox").style.visibility = "visible";
-          document.getElementById("voidlingbox").style.visibility = "visible";
+          document.getElementById(PORTFOLIOBOX).style.visibility = "visible";
+          document.getElementById(VOIDLINGBOX).style.visibility = "visible";
         }
 
         showGameEndText = false;
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
 
-        let horizontalLinkCandidates = [...topStrings, ...bottomStrings];
-        for (const msg of horizontalLinkCandidates) {
-          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box, horizontalFuzziness, true, false, true)) {
-            borderClick(msg.onclick);
-          }
-        }
-
-        let verticalLinkCandidates = [...leftStrings, ...rightStrings];
-        for (const msg of verticalLinkCandidates) {
-          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box, verticalFuzziness, true, true, true)) {
-            borderClick(msg.onclick);
-          }
-        }
+        manageBorderMouseClick(mouseX, mouseY, [...voidlingStrings.top, ...voidlingStrings.bottom], [...voidlingStrings.left, ...voidlingStrings.right]);
 
       });
 
@@ -828,24 +777,10 @@ function updateDisplay(timestamp) {
         if(gameStarted && !gameOver) {
           return;
         }
+        manageMouseMove(event, rect, [...voidlingStrings.top, ...voidlingStrings.bottom], [...voidlingStrings.left, ...voidlingStrings.right], canvas);
+
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
-
-        let isPointer = false;
-        let horizontalLinkCandidates = [...topStrings, ...bottomStrings];
-        for (const msg of horizontalLinkCandidates) {
-          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box, horizontalFuzziness, true, false, true)) {
-            isPointer = true;
-          }
-        }
-
-        let verticalLinkCandidates = [...leftStrings, ...rightStrings];
-        for (const msg of verticalLinkCandidates) {
-          if (msg.box && msg.onclick && isMouseOverRect(mouseX, mouseY, msg.box, verticalFuzziness, true, true, true)) {
-            isPointer = true;
-          }
-        }
-        canvas.style.cursor = isPointer ? 'pointer' : 'default';
 
         let mOver = false;
         if(openingDone) {
@@ -899,77 +834,8 @@ function updateDisplay(timestamp) {
   requestAnimationFrame(updateDisplay);
 };
 
-function borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, strings, vertical = false) {
-  let bc = getBorderCharacter(col, row, currentX, currentY, cv, char, strings, vertical);
-  if (bc) {
-    char = bc.char;
-    c = bc.link ? cscheme.linkColor : vertical ? cscheme.sideColor : cscheme.topBottomColor;
-  }
-  return { char, c };
-}
-
-function getBorderCharacter(col, row, currentX, currentY, cv, char, strings, vertical = false) {
-  for (let msg of strings) {
-    if(msg.activation != undefined && !msg.activation) {
-      continue;
-    }
-
-    if(msg.type == "game" && !gameStarted) {
-      continue;
-    }
-
-    if(vertical) {
-      if (row >= msg.startRow && row < (msg.startRow + msg.message.length)) {
-        if (!msg.box) {
-          msg.box = { startx: (currentX * cv.width), endx: ((currentX * cv.width) + (cv.width)), starty: currentY, endy: currentY + msg.message.length };
-          //console.log(msg.box)
-        }
-        return { char: msg.message[row - msg.startRow], link: msg.onclick != null };
-      }
-
-    } else {
-      if (col >= msg.startCol && col < (msg.startCol + msg.message.length)) {
-        if (!msg.box) {
-          msg.box = { startx: (currentX * cv.width), endx: ((currentX * cv.width) + (cv.width * msg.message.length)), starty: 0, endy: cv.height };
-        }
-        return { char: msg.message[col - msg.startCol], link: msg.onclick != null };
-      }
-
-    }
-
-  }
-}
-
 function isVoidlingCharacter(char) {
   return colorScheme.get(scheme).voidling.has(char) && char != '$';
-}
-
-function isMouseOverRect(mouseX, mouseY, rect, calculateBox, extendXleft = false, extendXright = false, extendY = false) {
-  let yMargin = 1;
-  let { startX, endX, startY, endY } = calculateBox(extendXleft, rect, extendXright, extendY);
-  let xCondition = mouseX > startX && mouseX < endX;
-  let yCondition = mouseY > (startY - yMargin) && mouseY < (endY + yMargin);
-  return xCondition && yCondition
-}
-
-function verticalFuzziness(extendXleft, rect, extendXright, extendY) {
-  let xFuzziness = 20;
-  let yFuzziness = 15;
-  let startX = extendXleft ? rect.startx - xFuzziness : rect.startx;
-  let endX = extendXright ? rect.endx + xFuzziness : rect.endx;
-  let startY = extendY ? rect.starty - yFuzziness : rect.starty;
-  let endY = extendY ? rect.endy + yFuzziness : rect.endy;
-  return { startX, endX, startY, endY };
-}
-
-function horizontalFuzziness(extendXleft, rect, extendXright, extendY) {
-  let xFuzziness = 10;
-  let yFuzziness = 5;
-  let startX = extendXleft ? rect.startx - xFuzziness : rect.startx;
-  let endX = extendXright ? rect.endx + xFuzziness : rect.endx;
-  let startY = extendY ? rect.starty - yFuzziness : rect.starty;
-  let endY = extendY ? rect.endy + yFuzziness : rect.endy;
-  return { startX, endX, startY, endY };
 }
 
 function onRuntimeInitialized() {
@@ -1005,7 +871,6 @@ function clearDeformHistory() {
       setDeformFreq(i, 1.0);
     }
   }
-  //console.log("Deform history cleared.");
 }
 
 
@@ -1033,13 +898,10 @@ window.addEventListener('pagehide', function () {
   document.removeEventListener('visibilitychange', onVisibilityChange);
   window.removeEventListener('resize', onResize);
   window.removeEventListener('error', onError);
-
-  //console.log('Page unloaded: all resources released.');
 });
 
 window.addEventListener('pageshow', function (event) {
   if (event.persisted) {
-    //console.log('Page was restored from bfcache');
     window.location.reload();
   }
 });
@@ -1061,7 +923,7 @@ function displayInnerThoughtsv2() {
 
   let prophecies = (hoverCycles % 2 == 0) ? specialProphecies1 : prophecyTexts[randomIndex];
 
-  let cvs = document.getElementById('cvas');
+  let cvs = document.getElementById(VOIDLING_CANVAS);
   let context = cvs.getContext('2d');
 
   // Get device pixel ratio
@@ -1074,7 +936,7 @@ function displayInnerThoughtsv2() {
   let cv = getCharacterDimensions();
 
   context.clearRect(0, 0, cvs.offsetWidth, cvs.offsetHeight);
-  context.font = window.isMobile ? `24px ${font}` : `12px ${font}`;
+  context.font = getFont();
   context.textAlign = 'left';
 
   // Reset rectangles array since animation has updated
@@ -1104,13 +966,13 @@ function displayInnerThoughtsv2() {
     }
 
     if (row === 0) {
-      ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, topStrings));
+      ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, voidlingStrings.top, false, gameStarted));
     } else if (row === height - 1) {
-      ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, bottomStrings));
+      ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, voidlingStrings.bottom, false, gameStarted));
     } else if (col === 0) {
-      ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, leftStrings, true));
+      ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, voidlingStrings.left, true, gameStarted));
     } else if (col === dims.width - 1) {
-      ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, rightStrings, true));
+      ({ char, c } = borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, voidlingStrings.right, true, gameStarted));
     }
 
     if (char != ' ') {
@@ -1190,8 +1052,8 @@ if(gameActive) {
     let firstMultiplier = 15.5;
     if (event.key.toLowerCase() === 'v') {
       if(!gameStarted && !gameOver) {
-        document.getElementById("portfoliobox").style.visibility = "hidden";
-        document.getElementById("voidlingbox").style.visibility = "hidden";
+        document.getElementById(PORTFOLIOBOX).style.visibility = "hidden";
+        document.getElementById(VOIDLINGBOX).style.visibility = "hidden";
         setTimeout(() => {
           gameStarted = true;
           gameInitTime = Date.now();

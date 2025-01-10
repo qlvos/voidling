@@ -20,6 +20,17 @@ const dexScreenerUrl = function (address) {
   return "https://dexscreener.com/solana/" + address;
 }
 
+let indexAssets;
+let nomineeAssets;
+
+export function getIndexAssets() {
+  return indexAssets;
+}
+
+export function getNomineeAssets() {
+  return nomineeAssets;
+}
+
 export function connectWebSocket() {
   // Open a WebSocket connection
   socket = new WebSocket(WS_ADDRESS);
@@ -38,6 +49,8 @@ export function connectWebSocket() {
             setTimeout(() => { forceCleanup(); }, emotionChangeTimeout)
           }
           setEmotion(msg.emotion);
+          indexAssets = msg.indexdata;
+          nomineeAssets = msg.nominees;
   
           if (msg.comment) {
             document.getElementById("voidlingcomment").innerHTML = msg.comment;           
@@ -52,6 +65,7 @@ export function connectWebSocket() {
         }
       } catch (err) {
         console.log("wrong json data, could parse it");
+        console.log(err)
       }
     };
 
