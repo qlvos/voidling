@@ -162,6 +162,7 @@ export async function getIndexStats(indexName, cache) {
     let obj = {
       name: asset.name,
       address: asset.address,
+      network: asset.network,
       symbol: asset.symbol,
       created: asset.created,
       xprofile: asset.xprofile,
