@@ -62,6 +62,29 @@ CREATE TABLE "public"."whitelist" (
     "wallet" character varying NOT NULL
 ) WITH (oids = false);
 
+DROP TABLE IF EXISTS "asset";
+CREATE TABLE "public"."asset" (
+    "address" character varying NOT NULL,
+    "network" character varying NOT NULL,
+    "totalsupply" bigint,
+    "name" character varying,
+    "symbol" character varying,
+    "created" character varying,
+    "xprofile" character varying,
+    "github" character varying,
+    CONSTRAINT "asset_address" PRIMARY KEY ("address")
+) WITH (oids = false);
+
+
+DROP TABLE IF EXISTS "indexassets";
+CREATE TABLE "public"."indexassets" (
+    "index" character varying NOT NULL,
+    "asset" character varying NOT NULL
+) WITH (oids = false);
+
+
+ALTER TABLE ONLY "public"."indexassets" ADD CONSTRAINT "indexassets_asset_fkey" FOREIGN KEY (asset) REFERENCES asset(address) NOT DEFERRABLE;
+
 CREATE ROLE voidling_db_user WITH LOGIN PASSWORD 'REPLACE_ME';
 
 -- Grant privileges
