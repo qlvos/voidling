@@ -1,23 +1,5 @@
 server {
 
-  server_name beta.standardvoids.com, uat.standardvoids.com;
-
-  root /usr/share/nginx/html;
-  index index.html index.htm;
-  location / {
-    proxy_pass http://${VLING_FRONTEND_SERVICE_NAME_UAT};
-  }
-
-   listen 443 ssl; # managed by Certbot
-   ssl_certificate /etc/letsencrypt/live/standardvoids.com/fullchain.pem; # mana                                                                                                                                                             ged by Certbot
-   ssl_certificate_key /etc/letsencrypt/live/standardvoids.com/privkey.pem; # ma                                                                                                                                                             naged by Certbot
-   #include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-   #ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
-
-}
-
-server {
-
   server_name standardvoids.com, www.standardvoids.com;
 
   auth_basic "standard and voids";
@@ -58,6 +40,24 @@ server {
       proxy_redirect off;
       proxy_cache_bypass $http_upgrade;
       proxy_set_header   X-Forwarded-Proto $scheme;
+  }
+
+   listen 443 ssl; # managed by Certbot
+   ssl_certificate /etc/letsencrypt/live/standardvoids.com/fullchain.pem; # mana                                                                                                                                                             ged by Certbot
+   ssl_certificate_key /etc/letsencrypt/live/standardvoids.com/privkey.pem; # ma                                                                                                                                                             naged by Certbot
+   #include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+   #ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+server {
+
+  server_name beta.standardvoids.com, uat.standardvoids.com;
+
+  root /usr/share/nginx/html;
+  index index.html index.htm;
+  location / {
+    proxy_pass http://${VLING_FRONTEND_SERVICE_NAME_UAT};
   }
 
    listen 443 ssl; # managed by Certbot
