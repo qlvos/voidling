@@ -49,6 +49,7 @@ async function drawChart() {
 function handleCanvasClick(event) {
   if (!indexChart) return;
 
+  const dims = calculateDimensions();
   const cvs = document.getElementById(INDEX_CANVAS);
   const rect = cvs.getBoundingClientRect();
 
@@ -56,10 +57,27 @@ function handleCanvasClick(event) {
   const mouseX = event.clientX - rect.left;
   const mouseY = event.clientY - rect.top;
 
+  const charX = Math.floor(mouseX / dims.charWidth);
+  const charY = Math.floor(mouseY / dims.charHeight);
+
   let actions = manageBorderMouseClick(mouseX, mouseY, [...indexStrings.top, ...indexStrings.bottom], [...indexStrings.left, ...indexStrings.right]);
   if (actions) {
     indexChart.showUnderlying = actions.activateTable
   }
+
+  if (indexChart.showUnderlying) {
+    // Check for column header clicks first
+    if (indexChart.handleColumnClick(charX, charY)) {
+        drawChart();
+        return;
+    }
+    
+    // Then check for table navigation
+    if (indexChart.handleTableClick(charX, charY)) {
+        drawChart();
+        return;
+    }
+}
 
   drawChart();
 
@@ -91,4 +109,17 @@ let canvas = document.getElementById(INDEX_CANVAS);
 canvas.addEventListener('click', handleCanvasClick);
 canvas.addEventListener('mousemove', (event) => {
   manageMouseMove(event, canvas.getBoundingClientRect(), [...indexStrings.top, ...indexStrings.bottom], [...indexStrings.left, ...indexStrings.right], canvas);
+
+  const dims = calculateDimensions();
+  const cvs = document.getElementById(INDEX_CANVAS);
+  const rect = cvs.getBoundingClientRect();
+
+  // Calculate click position relative to canvas
+  const mouseX = event.clientX - rect.left;
+  const mouseY = event.clientY - rect.top;
+
+  const charX = Math.floor(mouseX / dims.charWidth);
+  const charY = Math.floor(mouseY / dims.charHeight);
+  canvas.style.cursor = indexChart.isHoveringColumn(charX, charY) ? 'pointer' : 'default';
+
 });
