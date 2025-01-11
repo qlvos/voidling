@@ -1,6 +1,6 @@
 server {
 
-  server_name beta.standardvoids.com, uat.standardvoids.com;
+  server_name beta.standardvoids.com uat.standardvoids.com;
 
   root /usr/share/nginx/html;
   index index.html index.htm;
@@ -18,7 +18,7 @@ server {
 
 server {
 
-  server_name standardvoids.com, www.standardvoids.com;
+  server_name standardvoids.com www.standardvoids.com *.standardvoids.com;
 
   auth_basic "standard and voids";
   auth_basic_user_file /etc/apache2/htpasswd;
