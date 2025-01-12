@@ -1,4 +1,4 @@
-import { initIndexPage } from './indexpage.js';
+import { initIndexPage, toggleIndexHelp } from './indexpage.js';
 import { initNomineesPage } from './nomineespage.js';
 
 export function calculateDimensions() {
@@ -50,7 +50,11 @@ export function borderClick(msg) {
   if (msg.onclick == ABOUT_CLICK) {
     aboutClicked = !aboutClicked;
     document.getElementById('aboutpage').style.visibility = "visible";
-  } else if (msg.onclick == VOIDLING_ONLY_CLICK) {
+  } else if (msg.onclick == INDEX_ABOUT_CLICK) {
+    toggleIndexHelp();
+  }
+  
+  else if (msg.onclick == VOIDLING_ONLY_CLICK) {
     voidlingOnly = !voidlingOnly;
     voidlingOnly ? document.getElementById(PORTFOLIOBOX).style.visibility = "hidden" : document.getElementById("portfoliobox").style.visibility = "visible";
     voidlingOnly ? document.getElementById(VOIDLINGBOX).style.visibility = "hidden" : document.getElementById("voidlingbox").style.visibility = "visible";

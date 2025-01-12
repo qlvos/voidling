@@ -80,6 +80,7 @@ let sideOffset = 0;
 let columnsToAdd = 0;
 let rowsToAdd = 0;
 let ABOUT_CLICK = "a";
+let INDEX_ABOUT_CLICK = "ia";
 let VOIDLING_ONLY_CLICK = "v";
 let VOIDLING_PAGE_CLICK = "vp";
 let TRADING_ONLY_CLICK = "t";
@@ -183,15 +184,7 @@ let voidlingStrings = {
       color: "#ff8700",
       onclick: NOMINEES_CLICK,
       activation: tradingActive
-    },
-
-    /* {
-       fromLeftPercent: 0.873,
-       message: " C ",
-       color: "#ff8700",
-       onclick: COLOR_CLICK,
-       activation: tradingActive
-     }*/
+    }
   ],
   left: [
     {
@@ -222,7 +215,7 @@ let indexStrings = {
     {
       fromLeftPercent: 0.126,
       message: " ? ",
-      onclick: ABOUT_CLICK
+      onclick: INDEX_ABOUT_CLICK
     },
     {
       fromLeftPercent: 0.293,

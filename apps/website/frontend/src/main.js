@@ -238,6 +238,10 @@ window.addEventListener('resize', onResize);
 // Initial setup
 document.addEventListener('DOMContentLoaded', async () => {
   await loadFonts();
+  checkMobile();
+  updateVoidlingSize();
+  connectWebSocket();
+  onRuntimeInitialized();
   const dims = calculateDimensions();
   setDimensions(dims.width, dims.height);
   setWorldDimensions(dims.width, dims.height);
@@ -295,13 +299,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 window.addEventListener('resize', onResize);
-
-document.addEventListener('DOMContentLoaded', function () {
-  checkMobile();
-  updateVoidlingSize();
-  connectWebSocket();
-  onRuntimeInitialized();
-});
 
 function initVoidlingConfig() {
   cfg = voidlingConfigSerene;

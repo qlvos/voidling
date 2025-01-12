@@ -69,7 +69,7 @@ class IndexChart {
     this.currentSort = null;
     this.sortAscending = false;
     this.timeLabelsConfig = {
-      bottomMargin: 1  // Distance from bottom border
+      bottomMargin: 0  // Distance from bottom border (meaning bottom border of the grid above the time labels)
     };
 
 
@@ -162,14 +162,10 @@ class IndexChart {
   }
 
   initializeHelpLinks() {
+    // the keys all need to be in lower case here
     this.links = new Map([
-      ['nominees', 'https://standardvoids.com/'],
-      ['X', 'https://x.com/standardvoids'],
-      ['Telegram', 'https://t.me/reaper_agent'],
-      ['github', 'https://github.com/your-repo'],
-      ['documentation', 'https://docs.your-site.com'],
-      ['telegram', 'https://t.me/your-group']
-      // Add more links as needed
+      ['x', 'https://x.com/standardvoids'],
+      ['telegram', 'https://t.me/reaper_agent']
     ]);
   }
 
@@ -296,12 +292,73 @@ class IndexChart {
     console.log("Toggled help view:", this.showHelp);
   }
 
+  drawHelp() {
+    this.buffer.fill(' ');
+    this.colorBuffer.fill(null);
+    this.linkPositions = [];
+    this.initializeHelpLinks();
+
+    // Draw border
+    const { plotStartX, plotWidth, plotStartY, plotHeight } = this.drawBorder();
+
+    // Content start position
+    let currentY = plotStartY + 4;
+    const contentX = plotStartX + 5;
+    const maxWidth = plotWidth - 10;  // Leave margin on both sides
+
+    // Define help content sections
+    const helpSections = [
+      {
+        title: "S&V AI INDEX",
+        content: "This is a beta version of the S&V AI69 index. It is a work in progress while we catalogue as many projects as possible from all chains. You can personnally contribute to this process by visiting the [nominees] page and vote for different projects or submit new ones. The goal of this index is to track the development of the AI-crypto sector in a transparent and decentralized manner. The current beta version of the index you see on this page is curated by the S&V team from the [nominees] list. It does not include all projects. To see the list of projects included in the index, use the TABLE view."
+      },
+      {
+        title: "CALCULATIONS",
+        content: "The index tracks the combined market capitalization of selected projects. We use circulating supply to reflect tokens directly available on public markets (excluding any tokens that are locked or have never left allocation wallets). The total index market cap is normalized to start at 100, allowing the index to measure percentage changes in the sector's overall value. Each token's contribution to the index is proportional to its market cap, with larger projects having greater impact on the index movement. In its current form, the index is normalized every generation (7-day total range, 1h intervals) until the selection becomes final. If you represent a project and wish to modify or correct your token's circulating supply, please reach out to the S&V team on [X] or [Telegram]."
+      },
+      {
+        title: "TABLE VIEW/UNDERLYING DATA",
+        content: "On TABLE view, click column headers to sort. You can find direct links to individual projects social and token chart pages on the [nominees] page. Our historical price data is synced every hour + 5 min."
+      }
+    ];
+
+    // Draw sections
+    helpSections.forEach((section, index) => {
+      // Draw section title
+      this.drawText(section.title, contentX, currentY, '#ff8700');
+      currentY += 3;
+
+      // Draw section content and get number of lines used
+      const linesUsed = this.drawText(section.content, contentX, currentY, '#5f5fff', maxWidth);
+      currentY += linesUsed + 3;  // Add spacing after content
+    });
+  }
+
+  handleHelpClick(x, y) {
+    // Check for link clicks when in help view
+    for (const link of this.linkPositions) {
+      if (y === link.y && x >= link.startX && x < link.endX) {
+        window.open(link.url, '_blank');
+        return true;
+      }
+    }
+    return false;
+  }
+
+  isHoveringHelpLink(x, y) {
+    for (const link of this.linkPositions) {
+      if (y === link.y && x >= link.startX && x < link.endX) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   toggleUnderlying() {
     this.showUnderlying = !this.showUnderlying;
   }
 
   drawChart() {
-    console.log("drawChart, buffer length: " + this.buffer.length)
     this.initializeBuffer();
 
     if (this.isLoading) {
@@ -347,7 +404,6 @@ class IndexChart {
     // ---------------------------
     const { plotStartX, plotWidth, plotStartY, plotHeight } = this.drawBorder();
 
-
     // 2) Define data region
     const TOP_OFFSET = 2;
     const LEFT_OFFSET = 3;
@@ -389,18 +445,17 @@ class IndexChart {
       }
     }
 
-
     const timeLabelsY = dataStartY + dataHeight + this.timeLabelsConfig.bottomMargin;
     for (let hour = 0; hour <= timeIntervals; hour++) {
-        if (hour % TIMESTAMP_INTERVAL_HOURS === 0) {
-            // Skip first (0h) and last (168h) labels
-            if (hour !== 0 && hour !== timeIntervals) {
-                const x = dataStartX + Math.round(hour * intervalWidth);
-                const label = `${hour}h`;
-                const labelX = x - Math.floor(label.length / 2);  // Center the label
-                this.drawText(label, labelX, timeLabelsY, this.colors.blue);
-            }
+      if (hour % TIMESTAMP_INTERVAL_HOURS === 0) {
+        // Skip first (0h) and last (168h) labels
+        if (hour !== 0 && hour !== timeIntervals) {
+          const x = dataStartX + Math.round(hour * intervalWidth);
+          const label = `${hour}h`;
+          const labelX = x - Math.floor(label.length / 2);  // Center the label
+          this.drawText(label, labelX, timeLabelsY, this.colors.blue);
         }
+      }
     }
 
     const priceSteps = Math.min(10, dataHeight - 1);
@@ -425,8 +480,8 @@ class IndexChart {
         const label = stepValue.toFixed(0);
         priceLabels.push({
           text: label,
-          x: dataStartX + dataWidth - label.length + 5,
-          y: screenY,
+          x: dataStartX + dataWidth - label.length + 4,
+          y: screenY - 2,
           color: '#5f5fff'
         });
       }
@@ -472,7 +527,6 @@ class IndexChart {
     }
   }
 
-  // YOU ARE HERE/ SEEMS LIKE BUFFER GETS ONE ROW (at least) TOO BIG SOMEWHERE !!
   drawBorder() {
     const plotStartX = 0;
     const plotStartY = 0;
@@ -486,8 +540,6 @@ class IndexChart {
     const height = Math.floor(this.buffer.length / dims.width);
     initStringPositions(dims.width, height);
     let char, c = null;
-
-    console.log("current length: " + this.buffer.length)
 
     for (let x = plotStartX; x < plotStartX + plotWidth; x++) {
       const topIndex = x;
@@ -518,7 +570,6 @@ class IndexChart {
         this.buffer[leftIndex] = char;
         this.colorBuffer[leftIndex] = c;
       }
-
 
       this.buffer[rightIndex] = '$';
       ({ char, c } = borderCharacter(plotStartX + plotWidth, y, plotStartX + plotWidth, y, cv, null, null, cscheme, [...indexStrings.right], true));
@@ -559,7 +610,6 @@ class IndexChart {
           x === headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price + 1 + colWidths.pct1h ||
           x === headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price + 1 + colWidths.pct1h + 1 + colWidths.pct24h ||
           x === headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price + 1 + colWidths.pct1h + 1 + colWidths.pct24h + 1 + colWidths.pct7d) {
-          console.log(x)
           this.buffer[idx] = '+';
           this.colorBuffer[idx] = this.plusColor;
         } else {
@@ -829,7 +879,7 @@ class IndexChart {
         x += 1;
       }
 
-      if (inLink && this.links.has(currentLink)) {
+      if (inLink && this.links.has(currentLink.toLowerCase())) {
         const linkStart = { x, y };
         for (let i = 0; i < word.length; i++) {
           const idx = (x + i) + (y * this.width);

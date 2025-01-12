@@ -1,5 +1,5 @@
 import { IndexChart } from './indexchart.js';
-import { getCharacterDimensions, calculateDimensions, manageBorderMouseClick, manageMouseMove } from './canvashelper.js';
+import { getCharacterDimensions, calculateDimensions, manageBorderMouseClick, manageMouseMove, currentState, STATE_INDEX_PAGE } from './canvashelper.js';
 
 let indexChart;
 window.isMobile = window.innerWidth <= 999;
@@ -68,19 +68,24 @@ function handleCanvasClick(event) {
   if (indexChart.showUnderlying) {
     // Check for column header clicks first
     if (indexChart.handleColumnClick(charX, charY)) {
-        drawChart();
-        return;
+      drawChart();
+      return;
     }
-    
+
     // Then check for table navigation
     if (indexChart.handleTableClick(charX, charY)) {
-        drawChart();
-        return;
+      drawChart();
+      return;
     }
+  }
+
+  indexChart.handleHelpClick(charX, charY);
+  drawChart();
+  
 }
 
-  drawChart();
-
+export function toggleIndexHelp() {
+  indexChart.toggleHelp();
 }
 
 export async function initIndexPage() {
@@ -107,8 +112,15 @@ window.addEventListener('resize', onResize);
 
 let canvas = document.getElementById(INDEX_CANVAS);
 canvas.addEventListener('click', handleCanvasClick);
+
+window.onfocus = function () {
+  if (currentState == STATE_INDEX_PAGE) {
+    drawChart();
+  }
+};
+
 canvas.addEventListener('mousemove', (event) => {
-  if(manageMouseMove(event, canvas.getBoundingClientRect(), [...indexStrings.top, ...indexStrings.bottom], [...indexStrings.left, ...indexStrings.right], canvas)) {
+  if (manageMouseMove(event, canvas.getBoundingClientRect(), [...indexStrings.top, ...indexStrings.bottom], [...indexStrings.left, ...indexStrings.right], canvas)) {
     return;
   }
 
@@ -122,6 +134,9 @@ canvas.addEventListener('mousemove', (event) => {
 
   const charX = Math.floor(mouseX / dims.charWidth);
   const charY = Math.floor(mouseY / dims.charHeight);
-  canvas.style.cursor = indexChart.isHoveringColumn(charX, charY) ? 'pointer' : 'default';
+  let hover = indexChart.isHoveringColumn(charX, charY) || indexChart.isHoveringHelpLink(charX, charY);
+  canvas.style.cursor = hover ? 'pointer' : 'default';
+
+  
 
 });
