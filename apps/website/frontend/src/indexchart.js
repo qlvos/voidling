@@ -7,9 +7,22 @@ const HEADER_Y = 6;
 
 class IndexChart {
   constructor(width, height) {
-    this.colors = {
-      blue: "#5f5fff"
-    }
+
+    this.colors = { ... GRID_COLORS }
+    this.starColor = this.colors.darkorange;
+    this.atColor = this.colors.orange;
+    this.plusColor = this.colors.blue;
+    this.gridColor = this.colors.darkblue;
+    this.colors.labels = this.colors.blue;
+    this.colors.tabletitles = this.colors.blue;
+    this.colors.svtable = this.colors.orange;
+    this.colors.mktcaptable = this.colors.darkorange;
+    this.colors.symboltablecontent = this.colors.orange;
+    this.colors.mktcaptablecontent = this.colors.darkorange;
+    this.colors.scroll = this.colors.orange;
+    this.colors.links = this.colors.darkorange;
+    this.colors.tablecontent = this.colors.purple;
+
     this.width = width;
     this.height = height;
     this.buffer = new Array(width * height).fill(' ');
@@ -30,10 +43,6 @@ class IndexChart {
     this.indexPct24h = 'N/A';
     this.indexPct7d = 'N/A';
     this.DATA_POINTS = TIME_RANGE_HOURS + 1;
-    this.starColor = '#d75f00';
-    this.atColor = '#ff8700';
-    this.plusColor = '#5f5fff';
-    this.gridColor = '#302360';
     this.showHelp = false;
     this.helpButton = {
       text: ' HELP ',
@@ -482,7 +491,7 @@ class IndexChart {
           text: label,
           x: dataStartX + dataWidth - label.length + 4,
           y: screenY - 2,
-          color: '#5f5fff'
+          color: this.colors.labels
         });
       }
     }
@@ -634,7 +643,7 @@ class IndexChart {
 
     let currentX = headerX;
     headers.forEach(header => {
-      this.drawText(header, currentX, headerY, '#5f5fff');
+      this.drawText(header, currentX, headerY, this.colors.tabletitles);
       currentX += header.length + 1;
     });
 
@@ -651,24 +660,24 @@ class IndexChart {
     currentX = headerX;
 
     // Symbol (orange)
-    this.drawText("S&V AI INDEX".padEnd(colWidths.symbol), currentX, headerY, '#ff8700');
+    this.drawText("S&V AI INDEX".padEnd(colWidths.symbol), currentX, headerY, this.colors.svtable);
     currentX += colWidths.symbol + 1;
 
     // Market Cap (darker orange)
     const totalMarketCapStr = this.latestTotalMarketCap ?
       this.latestTotalMarketCap.toLocaleString('en-US', { maximumFractionDigits: 0 }) : 'N/A';
-    this.drawText(totalMarketCapStr.padEnd(colWidths.marketCap), currentX, headerY, '#d75f00');
+    this.drawText(totalMarketCapStr.padEnd(colWidths.marketCap), currentX, headerY, this.colors.mktcaptable);
     currentX += colWidths.marketCap + 1;
 
     // Index Value
-    this.drawText(this.latestIndexValue.padEnd(colWidths.price), currentX, headerY);
+    this.drawText(this.latestIndexValue.padEnd(colWidths.price), currentX, headerY, this.colors.svindexcontent);
     currentX += colWidths.price + 1;
 
     // Percentages
     const indexPercentages = [this.indexPct1h, this.indexPct24h, this.indexPct7d];
     const colWidthsArray = [colWidths.pct1h, colWidths.pct24h, colWidths.pct7d];
     indexPercentages.forEach((pct, idx) => {
-      this.drawText(pct.padEnd(colWidthsArray[idx]), currentX, headerY);
+      this.drawText(pct.padEnd(colWidthsArray[idx]), currentX, headerY, this.colors.svindexcontent);
       currentX += colWidthsArray[idx] + 1;
     });
 
@@ -737,19 +746,18 @@ class IndexChart {
 
       // Market Cap (darker orange)
       this.drawText((latestCap ? latestCap.toLocaleString('en-US', { maximumFractionDigits: 0 }) : 'N/A').padEnd(colWidths.marketCap),
-        currentX, headerY, '#d75f00');
+        currentX, headerY, this.colors.mktcaptablecontent);
       currentX += colWidths.marketCap + 1;
 
       // Price
-      this.drawText((latestPrice ? latestPrice.toFixed(6) : 'N/A').padEnd(colWidths.price),
-        currentX, headerY);
+      this.drawText((latestPrice ? latestPrice.toFixed(6) : 'N/A').padEnd(colWidths.price), currentX, headerY, this.colors.tablecontent);
       currentX += colWidths.price + 1;
 
       // Percentages
       const percentages = [pct1h, pct24h, pct7d];
       const widths = [colWidths.pct1h, colWidths.pct24h, colWidths.pct7d];
       percentages.forEach((pct, idx) => {
-        this.drawText(pct.padEnd(widths[idx]), currentX, headerY);
+        this.drawText(pct.padEnd(widths[idx]), currentX, headerY, this.colors.tablecontent);
         currentX += widths[idx] + 1;
       });
 
@@ -767,7 +775,7 @@ class IndexChart {
     if (this.topIndex > 0) {
       const upArrowY = plotStartY + 6;
       const upText = '▲ scroll up';
-      this.drawText(upText, navigationX, upArrowY, '#ff8700');
+      this.drawText(upText, navigationX, upArrowY, this.colors.scroll);
       this.upArrowPosition = {
         x: navigationX,
         y: upArrowY,
@@ -781,7 +789,7 @@ class IndexChart {
     if (this.topIndex + this.pageSize < Object.values(getIndexAssets()).length) {
       const downArrowY = plotStartY + 8;
       const downText = '▼ scroll down';
-      this.drawText(downText, navigationX, downArrowY, '#ff8700');
+      this.drawText(downText, navigationX, downArrowY, this.colors.scroll);
       this.downArrowPosition = {
         x: navigationX,
         y: downArrowY,
@@ -812,7 +820,7 @@ class IndexChart {
       if (this.isInBounds(x1, y1)) {
         const idx = x1 + y1 * this.width;
         if (this.buffer[idx] !== '@' && this.buffer[idx] !== '+') {
-          this.buffer[idx] = '*';
+          this.buffer[idx] = '×';
           this.colorBuffer[idx] = this.starColor;
         }
       }
@@ -885,7 +893,7 @@ class IndexChart {
           const idx = (x + i) + (y * this.width);
           if (idx >= 0 && idx < this.buffer.length) {
             this.buffer[idx] = word[i];
-            this.colorBuffer[idx] = '#d75f00';
+            this.colorBuffer[idx] = this.colors.links;
           }
         }
         this.linkPositions.push({

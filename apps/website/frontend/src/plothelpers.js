@@ -14,24 +14,34 @@ daemonColors.set("@", "#ff8700");
 daemonColors.set("$", "#875fff");
 
 let grayColors = new Map();
-grayColors.set(".", "#3a3a3a");
-grayColors.set(",", "#3a3a3a");
-grayColors.set("-", "#585858");
-grayColors.set("~", "#585858");
-grayColors.set(":", "#585858");
-grayColors.set(";", "#585858");
-grayColors.set("=", "#808080");
-grayColors.set("!", "#808080");
-grayColors.set("*", "#808080");
-grayColors.set("#", "#9e9e9e");
-grayColors.set("@", "#c6c6c6");
-grayColors.set("$", "#767676");
+grayColors.set(".", "#211e3a");
+grayColors.set(",", "#211e3a");
+grayColors.set("-", "#211e3a");
+grayColors.set("~", "#211e3a");
+grayColors.set(":", "#211e3a");
+grayColors.set(";", "#211e3a");
+grayColors.set("=", "#211e3a"); 
+grayColors.set("!", "#c0b0ff"); 
+grayColors.set("*", "#c0b0ff");
+grayColors.set("#", "#e06b04");
+grayColors.set("@", "#ff8700");
+grayColors.set("$", "#211e3a");
 
 let colorScheme = new Map();
+
+const GRID_COLORS = {
+  blue: "#5f5fff",
+  darkblue: "#302360",
+  darkorange: "#d75f00",
+  orange: "#ff8700",
+  purple: "#875fff"
+}
+
 let font = "ProtoMono, monospace";
 
 const PORTFOLIOBOX = "portfoliobox";
 const VOIDLINGBOX = "voidlingbox";
+const VOIDLINGEXPRESSION = "voidlingexpression";
 const VOIDLING_CANVAS = "voidling-canvas";
 const INDEX_CANVAS = "index-canvas";
 const NOMINEES_CANVAS = "nominees-canvas";
@@ -57,10 +67,10 @@ colorScheme.set("gray",
   {
     voidling: grayColors,
     hoverColors: ['#e0dede', '#dbdbdb', '#c6c6c6', '#bfbfbf', '#9e9e9e', '#909090', '#808080', '#858585'],
-    background: '#212124',
-    sideColor: '#9e9e9e',
-    topBottomColor: '#9e9e9e',
-    textColor: '#9e9e9e'
+    background: '#875fff',
+    sideColor: '#c0b0ff',
+    topBottomColor: '#ff8700',
+    textColor: '#c0b0ff'
   });
 
 let scheme = "daemon";
@@ -74,6 +84,50 @@ let worldY = 0;
 
 let tradingOnly = false;
 let voidlingOnly = false;
+
+function saveColorScheme(newScheme) {
+  scheme = newScheme;
+  localStorage.setItem('selectedColorScheme', newScheme);
+  
+  // Update scheme counter to match the new scheme
+  schemeCounter = schemes.indexOf(newScheme);
+  if (schemeCounter === -1) schemeCounter = 0;
+
+  // Notify all components of color scheme change
+  document.dispatchEvent(new Event('colorSchemeChange'));
+}
+
+function initColorScheme() {
+  const savedScheme = localStorage.getItem('selectedColorScheme');
+  if (savedScheme && schemes.includes(savedScheme)) {
+      scheme = savedScheme;
+      schemeCounter = schemes.indexOf(savedScheme);
+  }
+}
+
+function getStringColor(stringType) {
+  const currentScheme = colorScheme.get(scheme);
+  if (!currentScheme) return '#ff8700'; // fallback color
+  
+  switch(stringType) {
+      case 'navigation':
+          return currentScheme.linkColor;
+      case 'border':
+          return currentScheme.topBottomColor;
+      case 'side':
+          return currentScheme.sideColor;
+      default:
+          return currentScheme.textColor;
+  }
+}
+
+function applyStringColor(stringObj) {
+  if (!stringObj) return getStringColor('default');
+  const color = typeof stringObj.color === 'function' 
+      ? stringObj.color() 
+      : stringObj.color;
+  return color || getStringColor('default');
+}
 
 let topOffset = 0;
 let sideOffset = 0;
@@ -119,6 +173,11 @@ function getCanvasDimensions(id) {
   return { width: 10 + cvs.offsetWidth * dpr, height: cvs.offsetHeight * dpr }
 }
 
+function applyCurrentColorScheme() {
+  const currentScheme = colorScheme.get(scheme);
+  document.body.style.backgroundColor = currentScheme.background;
+  document.documentElement.style.setProperty('--text-color', currentScheme.textColor);
+}
 
 function isAboutClicked() {
   return aboutClicked;
@@ -140,7 +199,7 @@ let pointString = {
 let colorString = {
   fromLeftPercent: 0.25,
   message: " COLOR ",
-  color: "#ff8700",
+  color: () => getStringColor('navigation'),
   onclick: COLOR_CLICK,
   activation: tradingActive
 }
@@ -155,26 +214,26 @@ let voidlingStrings = {
     {
       fromLeftPercent: 0.293,
       message: " VOIDLING ",
-      color: "#ff8700",
+          color: () => getStringColor('navigation'),
       onclick: VOIDLING_ONLY_CLICK,
       activation: tradingActive
     },
     {
       fromLeftPercent: 0.5,
       message: TOP_TEXT,
-      color: "#ff8700"
+          color: () => getStringColor('border')
     },
     {
       fromLeftPercent: 0.293,
       message: " TRADES ",
-      color: "#ff8700",
+          color: () => getStringColor('navigation'),
       onclick: TRADING_ONLY_CLICK,
       activation: tradingActive
     },
     {
       fromLeftPercent: 0.666,
       message: " INDEX ",
-      color: "#ff8700",
+          color: () => getStringColor('navigation'),
       onclick: INDEX_CLICK,
       activation: tradingActive
     },
@@ -189,20 +248,23 @@ let voidlingStrings = {
   left: [
     {
       fromLeftPercent: 0.5,
-      message: LEFT_TEXT
+          message: LEFT_TEXT,
+          color: () => getStringColor('side')
     }
   ],
   right: [
     {
       fromLeftPercent: 0.5,
-      message: RIGHT_TEXT
+          message: RIGHT_TEXT,
+          color: () => getStringColor('side')
     }
   ],
   bottom: [
     colorString,
     {
       fromLeftPercent: 0.5,
-      message: BOTTOM_TEXT
+          message: BOTTOM_TEXT,
+          color: () => getStringColor('border')
     },
     pointString
   ]
@@ -220,14 +282,14 @@ let indexStrings = {
     {
       fromLeftPercent: 0.293,
       message: " VOIDLING ",
-      color: "#ff8700",
+      color: () => getStringColor('navigation'),
       onclick: VOIDLING_PAGE_CLICK,
       activation: tradingActive
     },
     {
       fromLeftPercent: 0.5,
       message: TOP_TEXT,
-      color: "#ff8700"
+      color: () => getStringColor('border')
     },
     {
       toggle: true,
@@ -238,13 +300,13 @@ let indexStrings = {
         {
           display: true,
           message: " TABLE ",
-          color: "#ff8700",
+          color: () => getStringColor('navigation'),
           onclick: TABLE_TOGGLE_CLICK,
           toggler: indexTableToggler
         },
         {
           message: " INDEX ",
-          color: "#ff8700",
+          color: () => getStringColor('navigation'),
           onclick: INDEX_TOGGLE_CLICK,
           toggler: indexTableToggler
         }
@@ -253,7 +315,7 @@ let indexStrings = {
     {
       fromLeftPercent: 0.833,
       message: " NOMINEES ",
-      color: "#ff8700",
+      color: () => getStringColor('navigation'),
       onclick: NOMINEES_CLICK,
       activation: tradingActive
     }
@@ -261,20 +323,23 @@ let indexStrings = {
   left: [
     {
       fromLeftPercent: 0.5,
-      message: LEFT_TEXT
+      message: LEFT_TEXT,
+      color: () => getStringColor('side')
     }
   ],
   right: [
     {
       fromLeftPercent: 0.5,
-      message: RIGHT_TEXT
+      message: RIGHT_TEXT,
+      color: () => getStringColor('side')
     }
   ],
   bottom: [
     colorString,
     {
       fromLeftPercent: 0.5,
-      message: BOTTOM_TEXT
+      message: BOTTOM_TEXT,
+      color: () => getStringColor('border')
     }
   ]
 }
@@ -284,20 +349,20 @@ let nomineeStrings = {
     {
       fromLeftPercent: 0.293,
       message: " VOIDLING ",
-      color: "#ff8700",
+      color: () => getStringColor('navigation'),
       onclick: VOIDLING_PAGE_CLICK,
       activation: tradingActive
     },
     {
       fromLeftPercent: 0.5,
       message: TOP_TEXT,
-      color: "#ff8700"
+      color: () => getStringColor('border')
     },
     {
       fromLeftPercent: 0.75,
       activation: tradingActive,
       message: " INDEX ",
-      color: "#ff8700",
+      color: () => getStringColor('navigation'),
       onclick: INDEX_CLICK 
     }
 
@@ -305,20 +370,23 @@ let nomineeStrings = {
   left: [
     {
       fromLeftPercent: 0.5,
-      message: LEFT_TEXT
+      message: LEFT_TEXT,
+      color: () => getStringColor('side')
     }
   ],
   right: [
     {
       fromLeftPercent: 0.5,
-      message: RIGHT_TEXT
+      message: RIGHT_TEXT,
+      color: () => getStringColor('side')
     }
   ],
   bottom: [
     colorString,
     {
       fromLeftPercent: 0.5,
-      message: BOTTOM_TEXT
+      message: BOTTOM_TEXT,
+      color: () => getStringColor('border')
     }
   ]
 }
@@ -487,7 +555,9 @@ function borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, str
   let bc = getBorderCharacter(col, row, currentX, currentY, cv, strings, vertical, gameStarted);
   if (bc) {
     char = bc.char;
-    c = bc.link ? cscheme.linkColor : vertical ? cscheme.sideColor : cscheme.topBottomColor;
+      // Ensure we're using the current color scheme for all borders
+      const currentScheme = colorScheme.get(scheme);
+      c = bc.link ? currentScheme.linkColor : vertical ? getStringColor('side') : getStringColor('border');
   }
   return { char, c };
 }

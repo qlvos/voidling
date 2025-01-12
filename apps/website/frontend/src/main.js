@@ -14,7 +14,7 @@ import {
 } from "./voidlingdrawer.js";
 import { startGame, drops, getEndGameEvaluation, GAME_START_TEXT_TIME, GAME_START_TEXT_SECTION_1, GAME_START_TEXT_SECTION_2, GAME_START_TEXT_SECTION_3, GAME_END_TEXT_SECTION_1, initializeDrop, GAME_END_TEXT_LENGTH, getEvaluation } from "./game.js";
 import { openingAnimation, randomAnimations, resetAnimations } from "./animations.js";
-import { calculateDimensions, getCharacterDimensions, manageBorderMouseClick, manageMouseMove, isMouseOverRect, currentState, STATE_INDEX_PAGE, STATE_VOIDLING_PAGE } from "./canvashelper.js";
+import { calculateDimensions, getCharacterDimensions, manageBorderMouseClick, manageMouseMove, isMouseOverRect, handleClick, currentState, STATE_INDEX_PAGE, STATE_VOIDLING_PAGE } from "./canvashelper.js";
 
 window.isMobile = window.innerWidth <= 999;
 let lastMobileState = window.isMobile;
@@ -30,7 +30,6 @@ let openingDone = false;
 
 const FRAME_INTERVAL = 48;
 const CLEANUP_INTERVAL = 200;
-const MEMORY_THRESHOLD_MB = 200;
 const MEMORY_CHECK_INTERVAL = 2000;
 const OPENING_DONE_POST_PERIOD = 3000;
 const GAME_TEASER_ANIM_LENGTH = 1250;
@@ -41,6 +40,8 @@ let endGameEvaluation;
 const END_GAME_EVALUATION_MAX_LENGTH = 75;
 const RANDOM_ANIMATION_PROBABILITY = 0.1;
 const RANDOM_ANIM_EACH_SECOND = 20;
+const ABOUT_START_COL = 5;
+const ABOUT_START_ROW = 3;
 
 let hoverCycles = 1;
 const dims = calculateDimensions();
@@ -80,6 +81,36 @@ let openingDoneAt;
 let openingStart = Date.now();
 let dropCaughtTimeoutId;
 let dropEscapedTimeoutId;
+
+let linkPositions = [];
+let links = new Map([
+    ['reaper_x', 'https://x.com/reapers_gambit'],
+    ['hermes', 'https://nousresearch.com/hermes3/'],
+    ['donut_video', 'https://www.youtube.com/watch?v=DEqXNfs_HhY'],
+    ['donut_blog', 'https://www.a1k0n.net/2021/01/13/optimizing-donut.html'],
+    ['x', 'https://x.com/standardvoids'],
+    ['telegram', 'https://t.me/reaper_agent']
+]);
+
+// Add these help sections
+const aboutSections = [
+  {
+      title: "ABOUT",
+      content: "As the number of tokens grows exponentially on infinitely expanding decentralized networks, indexing and aggregating have become necessary. STANDARD & VOID'S builds on-chain indexes with AI."
+  },
+  {
+      title: "THE VOIDLING",
+      content: "Born from the void, summoned by [reaper_x]The Reaper[/reaper_x] agent, the STANDARD & VOID'S VOIDLING agent is an autonomous proto-conscious creature. It gathers data, informs its audience, and trades a basket of AI agent tokens."
+  },
+  {
+      title: "TECHNICAL",
+      content: "The Voidling's appearance is defined by a unique tri-dimensional ASCII animation controlled by an instance of [hermes]Nous Research Hermes 3[/hermes] model. It reacts to the performance of a basket of tokens and expresses emotions through the configuration of the animation's code. The Voidling is a far descendant of the famous [donut_video]donut.c animation[/donut_video], initially brought to life by [donut_blog]Andy Sloane[/donut_blog]. Its current form has evolved through many iterations, layers of interpretations, and adaptations for the browser."
+  },
+  {
+      title: "CONNECT",
+      content: "STANDARD & VOID'S has no token yet. Stay in touch with our developments here: [x]X[/x] | [telegram]Telegram[/telegram]"
+  }
+];
 
 export function getModuleInitialized() {
   return moduleInitialized;
@@ -442,7 +473,7 @@ function updateDisplay(timestamp) {
           if(tradingActive && currentState == STATE_VOIDLING_PAGE) {
             document.getElementById(PORTFOLIOBOX).style.visibility = "visible";
             document.getElementById(VOIDLINGBOX).style.visibility = "visible";
-            document.getElementById("voidlingexpression").style.visibility = "visible";
+            document.getElementById(VOIDLINGEXPRESSION).style.visibility = "visible";
           } 
         }
       }
@@ -711,7 +742,7 @@ function updateDisplay(timestamp) {
             gameTeaserLastCheck = now;
           }
 
-          if(gameActive && showGameTeaser && !window.isMobile) {
+          if(gameActive && showGameTeaser && !window.isMobile && !aboutClicked) {
             background = drawText(`PRESS V TO PLAY`.toUpperCase(), 0.9, 0.1, dims.width, background);
           }
         }
@@ -741,86 +772,15 @@ function updateDisplay(timestamp) {
     }
 
     if (!isDisplayInitialized) {
-      let outputElement = document.getElementById(OUTPUT_WRAPPER);
-      const canvas = document.getElementById(VOIDLING_CANVAS);
-      const outerRect = outputElement.getBoundingClientRect();
-      document.getElementById("voidlingcomment").style.maxWidth = `${canvas.offsetWidth * .8}px`;
-
-      const dims = calculateDimensions();
-      initStringPositions(dims.width, height);
-      setWorldDimensions(dims.width, dims.height);
-      setPosition(outerRect.x, outerRect.y);
-
-      const rect = canvas.getBoundingClientRect();
-      let lastMouseX = null;
-      let lastMouseY = null;
-
-      canvas.addEventListener('click', (event) => {
-        document.getElementById('gamewin').style.visibility = "hidden";
-        if(showGameEndText) {
-          document.getElementById(PORTFOLIOBOX).style.visibility = "visible";
-          document.getElementById(VOIDLINGBOX).style.visibility = "visible";
-        }
-
-        showGameEndText = false;
-        const mouseX = event.clientX - rect.left;
-        const mouseY = event.clientY - rect.top;
-
-        manageBorderMouseClick(mouseX, mouseY, [...voidlingStrings.top, ...voidlingStrings.bottom], [...voidlingStrings.left, ...voidlingStrings.right]);
-
-      });
-
-      canvas.addEventListener('mousemove', (event) => {
-        if(gameStarted && !gameOver) {
-          return;
-        }
-        manageMouseMove(event, rect, [...voidlingStrings.top, ...voidlingStrings.bottom], [...voidlingStrings.left, ...voidlingStrings.right], canvas);
-
-        const mouseX = event.clientX - rect.left;
-        const mouseY = event.clientY - rect.top;
-
-        let mOver = false;
-        if(openingDone) {
-          for (const rectangle of rectangles) {
-            if (isMouseOverRect(mouseX, mouseY, rectangle, horizontalFuzziness)) {
-              mOver = true;
-              break;
-            }
-          }
-        }
-
-        if (mOver) {
-          // If this is initial hover or any mouse movement
-          if (!mouseOverVoidling ||
-            lastMouseX === null || lastMouseY === null ||  // Initial hover
-            mouseX !== lastMouseX || mouseY !== lastMouseY) { // Any movement
-            if (voidlingSteps == 0) {
-              voidlingStepRaising = true;
-            } else if (voidlingSteps == voidlingMaxSteps) {
-              ++hoverCycles;
-              voidlingStepRaising = false;
-            }
-
-            voidlingStepRaising ? ++voidlingSteps : --voidlingSteps;
-
-            displayInnerThoughtsv2();
-          }
-          mouseOverVoidling = true;
-          lastMouseX = mouseX;
-          lastMouseY = mouseY;
-        } else {
-          if (mouseOverVoidling) { // Only if we were previously over the voidling
-            mouseOverVoidling = false;
-            lastMouseX = null;
-            lastMouseY = null;
-            isRunning = true;  // Ensure animation is running
-            requestAnimationFrame(updateDisplay); // Restart normal animation
-          }
-        }
-      });
-
-      isDisplayInitialized = true;
+      initializeVoidlingDisplay(height, setWorldDimensions);
     }
+
+    if (aboutClicked) {
+      if(openingDone) {
+        const cv = getCharacterDimensions();
+        drawAbout(context, dims, cv);
+      }
+    } 
 
     frameCounter++;
 
@@ -830,6 +790,239 @@ function updateDisplay(timestamp) {
 
   requestAnimationFrame(updateDisplay);
 };
+
+export function showTradingElements() {
+  document.getElementById(PORTFOLIOBOX).style.visibility = "visible";
+  document.getElementById(VOIDLINGBOX).style.visibility = "visible";
+  document.getElementById(VOIDLINGEXPRESSION).style.visibility = "visible";
+}
+
+export function hideTradingElements() {
+  document.getElementById(PORTFOLIOBOX).style.visibility = "hidden";
+  document.getElementById(VOIDLINGBOX).style.visibility = "hidden";
+  document.getElementById(VOIDLINGEXPRESSION).style.visibility = "hidden";
+}
+
+function drawAbout(context, dims, cv) {
+  // Do NOT clear the canvas. 
+  // Do NOT draw the '$' border here. (Your normal Voidling code already did.)
+  
+  // We'll just position the "about" text inside the border.
+  // For example, we start writing at row ~3, col ~5:
+  let row = ABOUT_START_ROW; 
+  let col = ABOUT_START_COL; 
+  context.fillStyle = '#5f5fff';   // or your text color
+  context.font = getFont();
+  context.textAlign = 'left';
+  linkPositions = [];
+  // We can loop your aboutSections array, just like you do:
+  aboutSections.forEach((section) => {
+    // 1) Print the section title
+    for (let i = 0; i < section.title.length; i++) {
+      // x position = (col + i) * cv.width
+      context.fillText(section.title[i], (col + i) * cv.width, row * cv.height);
+    }
+    row += 2; // skip a line
+
+    // 2) Print the section content using your drawFormattedText or a quick approach
+    const linesUsed = drawFormattedText(
+      context,
+      section.content,
+      col,      // start col
+      row,      // start row
+      '#5f5fff',
+      (dims.width - (col + 5)), // max width, so we don't overflow border
+      cv
+    );
+    row += linesUsed + 2; // skip some lines after each section
+  });
+}
+
+
+function drawFormattedText(context, text, x, y, color, maxWidth, cv) {
+  const linkRegex = /\[(.*?)\](.*?)\[\/(.*?)\]/g;
+  let lastIndex = 0;
+  let match;
+  let currentX = x;
+  let currentY = y;
+  let lines = 1;
+  let lineWidth = 0;
+
+  while ((match = linkRegex.exec(text)) !== null) {
+    // text before link
+    const beforeText = text.slice(lastIndex, match.index);
+    for (let i = 0; i < beforeText.length; i++) {
+      if (lineWidth >= maxWidth) {
+        currentY++;
+        currentX = x;
+        lineWidth = 0;
+        lines++;
+      }
+      context.fillStyle = color;
+      context.fillText(beforeText[i], currentX * cv.width, currentY * cv.height);
+      currentX++;
+      lineWidth++;
+    }
+
+    // link text
+    const linkText = match[2];
+    const linkStartX = currentX;
+    for (let i = 0; i < linkText.length; i++) {
+      if (lineWidth >= maxWidth) {
+        currentY++;
+        currentX = x;
+        lineWidth = 0;
+        lines++;
+      }
+      context.fillStyle = '#ff8700'; // link color
+      context.fillText(linkText[i], currentX * cv.width, currentY * cv.height);
+      currentX++;
+      lineWidth++;
+    }
+    // store link position
+
+    let openLink = (url) => {
+      window.open(url, '_blank');
+    }
+    let url = links.get(match[1]);
+    let linkObj = {
+      text: linkText,
+      onclick: () => { openLink(url)},
+      box: {
+        startx: linkStartX * cv.width,
+        endx: currentX * cv.width,
+        starty: currentY * cv.height - cv.height/2,
+        endy: (currentY * cv.height)
+      }
+    }
+
+    if(linkObj.box.startx > linkObj.box.endx) {
+      // this happens when links are broken into two lines
+      let linkObj2 = { ...linkObj }
+      linkObj2.box = {
+        startx: linkObj.box.startx,
+        endx: linkObj.box.endx,
+        starty: linkObj.box.starty,
+        endy: linkObj.box.endy
+      }
+
+      linkObj2.box.startx = ABOUT_START_COL * cv.width + 5;
+      linkObj2.box.starty = linkObj.box.endy - cv.height/2;
+      linkObj2.box.endy = linkObj.box.endy - 2;
+
+      linkObj.box.starty -= cv.height;
+      linkObj.box.endy -= cv.height;
+      linkObj.box.endx = maxWidth * (cv.width+1);
+
+      linkPositions.push(linkObj);
+      linkPositions.push(linkObj2);
+
+    } else {
+      linkPositions.push(linkObj);
+    }
+    lastIndex = match.index + match[0].length;
+  }
+
+  // remaining text
+  const remainingText = text.slice(lastIndex);
+  for (let i = 0; i < remainingText.length; i++) {
+    if (lineWidth >= maxWidth) {
+      currentY++;
+      currentX = x;
+      lineWidth = 0;
+      lines++;
+    }
+    context.fillStyle = color;
+    context.fillText(remainingText[i], currentX * cv.width, currentY * cv.height);
+    currentX++;
+    lineWidth++;
+  }
+  return lines;
+}
+
+function initializeVoidlingDisplay(height, setWorldDimensions) {
+  let outputElement = document.getElementById(OUTPUT_WRAPPER);
+  const canvas = document.getElementById(VOIDLING_CANVAS);
+  const outerRect = outputElement.getBoundingClientRect();
+  document.getElementById("voidlingcomment").style.maxWidth = `${canvas.offsetWidth * .8}px`;
+
+  const dims = calculateDimensions();
+  initStringPositions(dims.width, height);
+  setWorldDimensions(dims.width, dims.height);
+  setPosition(outerRect.x, outerRect.y);
+
+  const rect = canvas.getBoundingClientRect();
+  let lastMouseX = null;
+  let lastMouseY = null;
+
+  canvas.addEventListener('click', (event) => {
+    document.getElementById('gamewin').style.visibility = "hidden";
+    if (showGameEndText) {
+      showTradingElements();
+    }
+
+    showGameEndText = false;
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+
+    manageBorderMouseClick(mouseX, mouseY, [...voidlingStrings.top, ...voidlingStrings.bottom], [...voidlingStrings.left, ...voidlingStrings.right]);
+
+    handleClick(mouseX, mouseY, linkPositions);
+
+  });
+
+  canvas.addEventListener('mousemove', (event) => {
+    if (gameStarted && !gameOver) {
+      return;
+    }
+    manageMouseMove(event, rect, [...voidlingStrings.top, ...voidlingStrings.bottom, ...linkPositions], [...voidlingStrings.left, ...voidlingStrings.right], canvas);
+
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+
+    let mOver = false;
+    if (openingDone) {
+      for (const rectangle of rectangles) {
+        if (isMouseOverRect(mouseX, mouseY, rectangle, horizontalFuzziness)) {
+          mOver = true;
+          break;
+        }
+      }
+    }
+
+    if (mOver && !isAboutClicked) {
+      // If this is initial hover or any mouse movement
+      if (!mouseOverVoidling ||
+        lastMouseX === null || lastMouseY === null || // Initial hover
+        mouseX !== lastMouseX || mouseY !== lastMouseY) { // Any movement
+
+        if (voidlingSteps == 0) {
+          voidlingStepRaising = true;
+        } else if (voidlingSteps == voidlingMaxSteps) {
+          ++hoverCycles;
+          voidlingStepRaising = false;
+        }
+
+        voidlingStepRaising ? ++voidlingSteps : --voidlingSteps;
+        displayInnerThoughtsv2();
+        
+      }
+      mouseOverVoidling = true;
+      lastMouseX = mouseX;
+      lastMouseY = mouseY;
+    } else {
+      if (mouseOverVoidling) { // Only if we were previously over the voidling
+        mouseOverVoidling = false;
+        lastMouseX = null;
+        lastMouseY = null;
+        isRunning = true; // Ensure animation is running
+        requestAnimationFrame(updateDisplay); // Restart normal animation
+      }
+    }
+  });
+
+  isDisplayInitialized = true;
+}
 
 function isVoidlingCharacter(char) {
   return colorScheme.get(scheme).voidling.has(char) && char != '$';

@@ -1,5 +1,6 @@
 import { initIndexPage, toggleIndexHelp } from './indexpage.js';
 import { initNomineesPage } from './nomineespage.js';
+import { showTradingElements, hideTradingElements } from './main.js'
 
 export function calculateDimensions() {
   try {
@@ -49,12 +50,11 @@ export let currentState = STATE_VOIDLING_PAGE; // the default choice
 export function borderClick(msg) {
   if (msg.onclick == ABOUT_CLICK) {
     aboutClicked = !aboutClicked;
-    document.getElementById('aboutpage').style.visibility = "visible";
+    !aboutClicked ? showTradingElements() : hideTradingElements();
+
   } else if (msg.onclick == INDEX_ABOUT_CLICK) {
     toggleIndexHelp();
-  }
-  
-  else if (msg.onclick == VOIDLING_ONLY_CLICK) {
+  } else if (msg.onclick == VOIDLING_ONLY_CLICK) {
     voidlingOnly = !voidlingOnly;
     voidlingOnly ? document.getElementById(PORTFOLIOBOX).style.visibility = "hidden" : document.getElementById("portfoliobox").style.visibility = "visible";
     voidlingOnly ? document.getElementById(VOIDLINGBOX).style.visibility = "hidden" : document.getElementById("voidlingbox").style.visibility = "visible";
@@ -89,8 +89,11 @@ export function borderClick(msg) {
     document.getElementById(INDEX_CANVAS).style.visibility = "hidden";
     document.getElementById(NOMINEES_CANVAS).style.visibility = "hidden";
     document.getElementById(VOIDLING_CANVAS).style.visibility = "visible";
-    document.getElementById(PORTFOLIOBOX).style.visibility = "visible";
-    document.getElementById(VOIDLINGBOX).style.visibility = "visible";
+    if(!aboutClicked) {
+      document.getElementById(PORTFOLIOBOX).style.visibility = "visible";
+      document.getElementById(VOIDLINGBOX).style.visibility = "visible";
+    }
+
   }
   else if (msg.onclick == NOMINEES_CLICK) {
     currentState = STATE_NOMINEES_PAGE;
@@ -162,5 +165,24 @@ export function isMouseOverRect(mouseX, mouseY, rect, calculateBox, extendXleft 
   let xCondition = mouseX > startX && mouseX < endX;
   let yCondition = mouseY > (startY - yMargin) && mouseY < (endY + yMargin);
   return xCondition && yCondition
+}
+
+export function handleClick(x, y, linkPositions) {
+  for (const link of linkPositions) {
+    if (y >= link.box.starty && y <= link.box.endy && x >= link.box.startx && x <= link.box.endx) {
+      link.onclick();
+      return true;
+    }
+  }
+  return false;
+}
+
+export function isHovering(x, y, linkPositions) {
+  for (const link of linkPositions) {
+    if (y === link.y && x >= link.startX && x < link.endX) {
+      return true;
+    }
+  }
+  return false;
 }
 

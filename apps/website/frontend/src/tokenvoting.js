@@ -14,6 +14,24 @@ class TokenVotingTable {
     this.sortAscending = false;
     this.topIndex = 0;
 
+    this.colors = { ... GRID_COLORS }
+    this.gridColor = this.colors.darkblue;
+    this.textColor = this.colors.blue;
+    this.highlightColor = this.colors.orange;
+    this.plusColor = this.colors.blue;
+    this.borderColor = this.colors.blue;
+    this.colors.links = this.colors.darkorange;
+    this.colors.projectcontent = this.colors.orange;
+    this.colors.symbolcontent = this.colors.darkorange;
+    this.colors.xcontent = this.colors.purple;
+    this.colors.githubcontent = this.colors.purple;
+    this.colors.mktcapcontent = this.colors.purple;
+    this.colors.createdcontent = this.colors.purple;
+    this.colors.voidbalcontent = this.colors.purple;
+    this.colors.votescontent = this.colors.purple;
+    this.colors.vote = this.colors.orange;
+    this.colors.tabletitles = this.colors.blue;
+
     // Constants for spacing
     this.TABLE_START_Y = 17;  // Space from top
     this.BOTTOM_MARGIN = 10;   // Space we want at bottom
@@ -26,14 +44,9 @@ class TokenVotingTable {
     this.isLoading = false;
     this.errorMessage = null;
 
-    this.gridColor = '#302360';
-    this.textColor = '#5f5fff';
-    this.highlightColor = '#ff8700';
-    this.plusColor = '#5f5fff';
-    this.borderColor = '#5f5fff';
 
     this.columns = [
-      { id: 'name', title: 'NAME', width: 26 },
+      { id: 'name', title: 'PROJECT', width: 26 },
       { id: 'symbol', title: 'TICKER', width: 11 },
       { id: 'xprofile', title: 'X USERNAME', width: 18 },
       { id: 'github', title: 'GITHUB', width: 18 },
@@ -212,7 +225,7 @@ class TokenVotingTable {
           const idx = (x + i) + (y * this.width);
           if (idx >= 0 && idx < this.buffer.length) {
             this.buffer[idx] = word[i];
-            this.colorBuffer[idx] = '#d75f00';
+            this.colorBuffer[idx] = this.colors.links;
           }
         }
         this.linkPositions.push({
@@ -362,10 +375,10 @@ class TokenVotingTable {
         const totalCount = sortedTokens.length;
         const titleWithCount = `${column.title} [TOTAL: ${totalCount}]`;
         this.drawText(titleWithCount.padEnd(column.width), currentX, columnHeaderY,
-          column.sortable ? this.textColor : this.textColor);
+          column.sortable ? this.colors.tabletitles : this.colors.tabletitles);
       } else {
         this.drawText(column.title.padEnd(column.width), currentX, columnHeaderY,
-          column.sortable ? this.textColor : this.textColor);
+          column.sortable ? this.colors.tabletitles : this.colors.tabletitles);
       }
       currentX += column.width + 1;
     });
@@ -385,7 +398,7 @@ class TokenVotingTable {
       visibleColumns.forEach(column => {
         switch (column.id) {
           case 'name':
-            this.drawText(token.name.padEnd(column.width), currentX, currentY, '#ff8700');
+            this.drawText(token.name.padEnd(column.width), currentX, currentY, this.colors.projectcontent);
             break;
           case 'symbol':
             const network = token.network.split('-')[0].toLowerCase();
@@ -398,7 +411,7 @@ class TokenVotingTable {
               endX: currentX + token.symbol.length,
               y: currentY
             });
-            this.drawText(token.symbol.padEnd(column.width), currentX, currentY, '#d75f00');
+            this.drawText(token.symbol.padEnd(column.width), currentX, currentY, this.colors.symbolcontent);
             break;
           case 'xprofile':
             if (token.xprofile) {
@@ -411,7 +424,7 @@ class TokenVotingTable {
                 endX: currentX + token.xprofile.length,
                 y: currentY
               });
-              this.drawText(token.xprofile.padEnd(column.width), currentX, currentY);
+              this.drawText(token.xprofile.padEnd(column.width), currentX, currentY, this.colors.xcontent);
             }
             break;
           case 'github':
@@ -424,7 +437,7 @@ class TokenVotingTable {
                 endX: currentX + token.github.length,
                 y: currentY
               });
-              this.drawText(token.github.padEnd(column.width), currentX, currentY, '#875fff');
+              this.drawText(token.github.padEnd(column.width), currentX, currentY, this.colors.githubcontent);
             } else {
               this.drawText(''.padEnd(column.width), currentX, currentY);
             }
@@ -434,27 +447,27 @@ class TokenVotingTable {
             const mcapText = mcap ?
               `$${(mcap / 1000000).toFixed(0)}M` :
               '';
-            this.drawText(mcapText.padEnd(column.width), currentX, currentY);
+            this.drawText(mcapText.padEnd(column.width), currentX, currentY, this.colors.mktcapcontent);
             break;
           case 'created':
-            this.drawText(token.created.padEnd(column.width), currentX, currentY);
+            this.drawText(token.created.padEnd(column.width), currentX, currentY, this.colors.createdcontent);
             break;
           case 'voidBalance':
             const voidBalance = token.voidBalance || 0;
             const voidBalanceText = voidBalance >= 1000000 ?
               `${(voidBalance / 1000000).toFixed(2)}M` :
               voidBalance.toString();
-            this.drawText(voidBalanceText.padEnd(column.width), currentX, currentY);
+            this.drawText(voidBalanceText.padEnd(column.width), currentX, currentY, this.colors.voidbalcontent);
             break;
           case 'votes':
             const votes = token.votes || 0;
             const votesText = votes >= 1000000 ?
               `${(votes / 1000000).toFixed(2)}M` :
               votes.toString();
-              this.drawText(votesText.padEnd(column.width), currentX, currentY);
+              this.drawText(votesText.padEnd(column.width), currentX, currentY, this.colors.votescontent);
             break;
           case 'vote':
-            this.drawText('+ VOTE', currentX, currentY, '#d75f00');
+            this.drawText('+ VOTE', currentX, currentY, this.colors.vote);
             break;
         }
         currentX += column.width + 1;
