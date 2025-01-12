@@ -108,7 +108,9 @@ window.addEventListener('resize', onResize);
 let canvas = document.getElementById(INDEX_CANVAS);
 canvas.addEventListener('click', handleCanvasClick);
 canvas.addEventListener('mousemove', (event) => {
-  manageMouseMove(event, canvas.getBoundingClientRect(), [...indexStrings.top, ...indexStrings.bottom], [...indexStrings.left, ...indexStrings.right], canvas);
+  if(manageMouseMove(event, canvas.getBoundingClientRect(), [...indexStrings.top, ...indexStrings.bottom], [...indexStrings.left, ...indexStrings.right], canvas)) {
+    return;
+  }
 
   const dims = calculateDimensions();
   const cvs = document.getElementById(INDEX_CANVAS);

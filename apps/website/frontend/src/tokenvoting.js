@@ -41,7 +41,7 @@ class TokenVotingTable {
       { id: 'created', title: 'CREATED', width: 12, sortable: true },
       { id: 'voidBalance', title: 'VOIDLING', width: 10, sortable: true },
       { id: 'votes', title: 'VOTES', width: 10, sortable: true },
-      { id: 'vote', title: '', width: 8 }
+      //{ id: 'vote', title: '', width: 8 }
     ];
 
     this.TABLE_START_Y = 17;
@@ -432,7 +432,7 @@ class TokenVotingTable {
           case 'marketCap':
             const mcap = this.marketCaps.get(token.symbol);
             const mcapText = mcap ?
-              `$${(mcap / 1000000).toFixed(2)}M` :
+              `$${(mcap / 1000000).toFixed(0)}M` :
               '';
             this.drawText(mcapText.padEnd(column.width), currentX, currentY);
             break;
@@ -451,7 +451,7 @@ class TokenVotingTable {
             const votesText = votes >= 1000000 ?
               `${(votes / 1000000).toFixed(2)}M` :
               votes.toString();
-            this.drawText(votesText.padEnd(column.width), currentX, currentY);
+              this.drawText(votesText.padEnd(column.width), currentX, currentY);
             break;
           case 'vote':
             this.drawText('+ VOTE', currentX, currentY, '#d75f00');
@@ -551,6 +551,32 @@ class TokenVotingTable {
         this.drawTable();
         return true;
       }
+    }
+
+    return false;
+  }
+
+  isHoveringClickable(x, y) {
+    // links
+    for (const link of this.linkPositions) {
+      if (y === link.y && x >= link.startX && x < link.endX) {
+        return true;
+      }
+    }
+
+    // column headers
+    const columnHeaderY = this.TABLE_START_Y + this.HEADER_OFFSET;
+
+    if (y !== columnHeaderY) return false;
+
+    let currentX = 8;
+
+    const visibleColumns = this.getVisibleColumns();
+    for (const column of visibleColumns) {
+      if (column.sortable && x >= currentX && x < currentX + column.width) {
+        return true;
+      }
+      currentX += column.width + 1;
     }
 
     return false;

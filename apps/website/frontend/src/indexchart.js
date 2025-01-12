@@ -7,11 +7,13 @@ const HEADER_Y = 6;
 
 class IndexChart {
   constructor(width, height) {
+    this.colors = {
+      blue: "#5f5fff"
+    }
     this.width = width;
     this.height = height;
     this.buffer = new Array(width * height).fill(' ');
     this.colorBuffer = new Array(width * height).fill(null);
-
     this.prices = new Map();
     this.marketCaps = new Map();
     this.indexValues = [];
@@ -27,14 +29,11 @@ class IndexChart {
     this.indexPct1h = 'N/A';
     this.indexPct24h = 'N/A';
     this.indexPct7d = 'N/A';
-
     this.DATA_POINTS = TIME_RANGE_HOURS + 1;
-
     this.starColor = '#d75f00';
     this.atColor = '#ff8700';
     this.plusColor = '#5f5fff';
     this.gridColor = '#302360';
-
     this.showHelp = false;
     this.helpButton = {
       text: ' HELP ',
@@ -69,6 +68,10 @@ class IndexChart {
 
     this.currentSort = null;
     this.sortAscending = false;
+    this.timeLabelsConfig = {
+      bottomMargin: 1  // Distance from bottom border
+    };
+
 
     // Column definitions
     this.columns = [
@@ -100,7 +103,7 @@ class IndexChart {
       y === this.downArrowPosition.y &&
       x >= this.downArrowPosition.x &&
       x < this.downArrowPosition.endX) {
-      const tokens = Object.values(TOKEN_CONFIG);
+      const tokens = Object.values(getIndexAssets());
       if (this.topIndex + this.pageSize < tokens.length) {
         this.topIndex += this.pageSize;
         return true;
@@ -111,23 +114,18 @@ class IndexChart {
   }
 
   handleColumnClick(x, y) {
-    console.log('handleColumnClick called:', { x, y, showUnderlying: this.showUnderlying });
 
     if (!this.showUnderlying) return false;
 
     // The headers are actually rendered at y=7, not TABLE_START_Y + 6
     const headerY = HEADER_Y;
-    console.log('Expected header Y:', headerY, 'Actual Y:', y);
 
     if (y !== headerY) return false;
 
     let currentX = 8;
-    console.log('Checking columns...');
 
     for (const column of this.columns) {
-      console.log('Column:', column.id, 'X range:', currentX, 'to', currentX + column.width);
       if (column.sortable && x >= currentX && x < currentX + column.width) {
-        console.log('Column click detected:', column.id);
         if (this.currentSort === column.id) {
           this.sortAscending = !this.sortAscending;
         } else {
@@ -143,21 +141,17 @@ class IndexChart {
   }
 
   isHoveringColumn(x, y) {
-    console.log('handleColumnHover called:', { x, y, showUnderlying: this.showUnderlying });
 
     if (!this.showUnderlying) return false;
 
     // The headers are actually rendered at y=7, not TABLE_START_Y + 6
     const headerY = HEADER_Y;
-    console.log('Expected header Y:', headerY, 'Actual Y:', y);
 
     if (y !== headerY) return false;
 
     let currentX = 8;
-    console.log('Checking columns...');
 
     for (const column of this.columns) {
-      console.log('Column:', column.id, 'X range:', currentX, 'to', currentX + column.width);
       if (column.sortable && x >= currentX && x < currentX + column.width) {
         return true;
       }
@@ -395,6 +389,20 @@ class IndexChart {
       }
     }
 
+
+    const timeLabelsY = dataStartY + dataHeight + this.timeLabelsConfig.bottomMargin;
+    for (let hour = 0; hour <= timeIntervals; hour++) {
+        if (hour % TIMESTAMP_INTERVAL_HOURS === 0) {
+            // Skip first (0h) and last (168h) labels
+            if (hour !== 0 && hour !== timeIntervals) {
+                const x = dataStartX + Math.round(hour * intervalWidth);
+                const label = `${hour}h`;
+                const labelX = x - Math.floor(label.length / 2);  // Center the label
+                this.drawText(label, labelX, timeLabelsY, this.colors.blue);
+            }
+        }
+    }
+
     const priceSteps = Math.min(10, dataHeight - 1);
     const priceSpacing = Math.max(1, Math.floor(dataHeight / priceSteps));
     const priceLabels = [];
@@ -547,9 +555,11 @@ class IndexChart {
         const idx = x + y * this.width;
         if (x === headerX - 1 || x === headerX + colWidths.symbol ||
           x === headerX + colWidths.symbol + 1 + colWidths.marketCap ||
-          x === headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.latest ||
-          x === headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.latest + 1 + colWidths.pct1h ||
-          x === headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.latest + 1 + colWidths.pct1h + 1 + colWidths.pct24h) {
+          x === headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price ||
+          x === headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price + 1 + colWidths.pct1h ||
+          x === headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price + 1 + colWidths.pct1h + 1 + colWidths.pct24h ||
+          x === headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price + 1 + colWidths.pct1h + 1 + colWidths.pct24h + 1 + colWidths.pct7d) {
+          console.log(x)
           this.buffer[idx] = '+';
           this.colorBuffer[idx] = this.plusColor;
         } else {

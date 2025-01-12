@@ -148,6 +148,7 @@ export function manageMouseMove(event, rect, horizontalLinkCandidates, verticalL
     }
   }
   canvas.style.cursor = isPointer ? 'pointer' : 'default';
+  return isPointer;
 
 }
 

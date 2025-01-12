@@ -131,9 +131,17 @@ function isAboutClicked() {
 
 let pointString = {
   type: "game",
-  fromLeftPercent: 0.8,
-  message: " Points: 0 ",
+  fromLeftPercent: 0.75,
+  message: " POINTS: 0 ",
   color: "#ff8700"
+}
+
+let colorString = {
+  fromLeftPercent: 0.25,
+  message: " COLOR ",
+  color: "#ff8700",
+  onclick: COLOR_CLICK,
+  activation: tradingActive
 }
 
 let voidlingStrings = {
@@ -198,6 +206,7 @@ let voidlingStrings = {
     }
   ],
   bottom: [
+    colorString,
     {
       fromLeftPercent: 0.5,
       message: BOTTOM_TEXT
@@ -254,15 +263,7 @@ let indexStrings = {
       color: "#ff8700",
       onclick: NOMINEES_CLICK,
       activation: tradingActive
-    },
-
-    /* {
-       fromLeftPercent: 0.873,
-       message: " C ",
-       color: "#ff8700",
-       onclick: COLOR_CLICK,
-       activation: tradingActive
-     }*/
+    }
   ],
   left: [
     {
@@ -277,6 +278,7 @@ let indexStrings = {
     }
   ],
   bottom: [
+    colorString,
     {
       fromLeftPercent: 0.5,
       message: BOTTOM_TEXT
@@ -286,11 +288,6 @@ let indexStrings = {
 
 let nomineeStrings = {
   top: [
-    {
-      fromLeftPercent: 0.126,
-      message: " ? ",
-      onclick: ABOUT_CLICK
-    },
     {
       fromLeftPercent: 0.293,
       message: " VOIDLING ",
@@ -308,17 +305,9 @@ let nomineeStrings = {
       activation: tradingActive,
       message: " INDEX ",
       color: "#ff8700",
-      onclick: INDEX_TOGGLE_CLICK,
-      toggler: indexTableToggler      
+      onclick: INDEX_CLICK 
     }
 
-    /* {
-       fromLeftPercent: 0.873,
-       message: " C ",
-       color: "#ff8700",
-       onclick: COLOR_CLICK,
-       activation: tradingActive
-     }*/
   ],
   left: [
     {
@@ -333,6 +322,7 @@ let nomineeStrings = {
     }
   ],
   bottom: [
+    colorString,
     {
       fromLeftPercent: 0.5,
       message: BOTTOM_TEXT
@@ -365,7 +355,7 @@ function initStringPositions(width, height) {
   for (let msg of bottomStrings) {
     let w = (msg.toggle ? msg.toggleStrings[0].message.length : msg.message.length) / width;
     msg.startCol = Math.ceil((msg.fromLeftPercent - (w / 2)) * width);
-    msg.startRow = 0;
+    msg.startRow = height;
   }
 
   let leftStrings = [...voidlingStrings.left, ...indexStrings.left, ...nomineeStrings.left];
@@ -532,7 +522,7 @@ function getBorderCharacter(col, row, currentX, currentY, cv, strings, vertical 
     } else {
       if (col >= msg.startCol && col < (msg.startCol + msg.message.length)) {
         if (!msg.box) {
-          msg.box = { startx: (currentX * cv.width), endx: ((currentX * cv.width) + (cv.width * msg.message.length)), starty: 0, endy: cv.height };
+          msg.box = { startx: (currentX * cv.width), endx: ((currentX * cv.width) + (cv.width * msg.message.length)), starty: row*cv.height, endy: (row*cv.height) + cv.height };
         }
 
         return { char: msg.message[col - msg.startCol], link: msg.onclick != null };

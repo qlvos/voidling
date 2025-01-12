@@ -66,6 +66,14 @@ function handleCanvasClick(event) {
   const mouseX = event.clientX - rect.left;
   const mouseY = event.clientY - rect.top;
   manageBorderMouseClick(mouseX, mouseY, [...nomineeStrings.top, ...nomineeStrings.bottom], [...nomineeStrings.left, ...nomineeStrings.right]);
+
+  const dims = calculateDimensions();
+  const charX = Math.floor(mouseX / dims.charWidth);
+  const charY = Math.floor(mouseY / dims.charHeight);
+
+  // Handle clicks on sortable columns and navigation
+  tokenTable.handleClick(charX, charY);
+
 }
 
 export async function initNomineesPage() {
@@ -109,5 +117,19 @@ window.addEventListener('resize', () => {
 let canvas = document.getElementById(NOMINEES_CANVAS);
 canvas.addEventListener('click', handleCanvasClick);
 canvas.addEventListener('mousemove', (event) => {
-  manageMouseMove(event, canvas.getBoundingClientRect(), [...nomineeStrings.top, ...nomineeStrings.bottom], [...nomineeStrings.left, ...nomineeStrings.right], canvas);
+  if(manageMouseMove(event, canvas.getBoundingClientRect(), [...nomineeStrings.top, ...nomineeStrings.bottom], [...nomineeStrings.left, ...nomineeStrings.right], canvas)) {
+    return
+  };
+
+  const dims = calculateDimensions();
+  const cvs = document.getElementById(INDEX_CANVAS);
+  const rect = cvs.getBoundingClientRect();
+
+  // Calculate click position relative to canvas
+  const mouseX = event.clientX - rect.left;
+  const mouseY = event.clientY - rect.top;
+
+  const charX = Math.floor(mouseX / dims.charWidth);
+  const charY = Math.floor(mouseY / dims.charHeight);
+  canvas.style.cursor = tokenTable.isHoveringClickable(charX, charY) ? 'pointer' : 'default';
 });
