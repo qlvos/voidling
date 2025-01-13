@@ -1,6 +1,9 @@
 import { getNomineeAssets } from "./chaindata.js";
 import { getCharacterDimensions, calculateDimensions, manageBorderMouseClick, manageMouseMove } from './canvashelper.js';
 
+
+let mcapString = !window.isMobile ? 'MARKET CAP' : "MCAP";
+
 class TokenVotingTable {
   constructor(width, height) {
     this.width = width;
@@ -47,10 +50,10 @@ class TokenVotingTable {
 
     this.columns = [
       { id: 'name', title: 'PROJECT', width: 26 },
-      { id: 'symbol', title: 'TICKER', width: 11 },
-      { id: 'xprofile', title: 'X USERNAME', width: 18 },
+      { id: 'symbol', title: 'TICKER', width: !window.isMobile ? 11 : 9 },
+      { id: 'xprofile', title: 'X USERNAME', width: !window.isMobile ? 18 : 16 },
       { id: 'github', title: 'GITHUB', width: 18 },
-      { id: 'marketCap', title: 'MARKET CAP', width: 11, sortable: true },
+      { id: 'marketCap', title: mcapString, width: !window.isMobile ? 11 : 6, sortable: true },
       { id: 'created', title: 'CREATED', width: 12, sortable: true },
       { id: 'voidBalance', title: 'VOIDLING', width: 10, sortable: true },
       { id: 'votes', title: 'VOTES', width: 10, sortable: true },
@@ -58,11 +61,11 @@ class TokenVotingTable {
     ];
 
     this.TABLE_START_Y = 17;
-    this.COLUMN_START_X = 7;
+    this.COLUMN_START_X = !window.isMobile ? 7 : 3;
     this.HEADER_OFFSET = 1;
     this.DATA_START_OFFSET = 2;
     this.ROW_HEIGHT = 2;
-    this.TITLE_MARGIN = 7;
+    this.TITLE_MARGIN = !window.isMobile ? 7 : 3;
 
     // Calculate total width based on visible columns
     const visibleColumns = this.getVisibleColumns();
@@ -86,7 +89,7 @@ class TokenVotingTable {
 
     this.fullDescription = "This is a preliminary list for the upcoming S&V AI INDEX. Anyone who possesses [$RG] on [SOL] or [ETH] can vote. Reach out to the S&V team on [Telegram] or [X] for new submissions. In order for a token to be considered, the Voidling agent [wallet] must own some. The agent takes note of all who vote and send tokens. The final index curation will be decided based on multiple criteria. The live beta version of the [index] only uses select tokens. Help us map the whole AI crypto sector and create a decentralized index market.";
 
-    this.shortDescription = "This is a preliminary list for the upcoming S&V AI INDEX. Reach out to the S&V team on [Telegram] or [X] for new submissions. The final index curation will be decided based on multiple criteria. The live beta version of the [index] only uses select tokens.";
+    this.shortDescription = "This is a preliminary list for the upcoming S&V AI INDEX. Reach out to the S&V team on [Telegram] or [X] for new submissions. The final index curation will be decided based on multiple criteria.";
   }
 
   getSchemeColor(type) {
@@ -389,9 +392,10 @@ class TokenVotingTable {
     }
 
     // Draw title and description
+    let titleStartY = !window.isMobile ? 5 : 3;
     const titleText = "STANDARD & VOID'S AI INDEX NOMINEES";
-    this.drawText(titleText, this.TITLE_MARGIN, 5, this.getSchemeColor('orange-title'));
-    this.drawText(this.getDescription(), this.TITLE_MARGIN, 7, this.getSchemeColor('plus'), this.width - this.TITLE_MARGIN - 1);
+    this.drawText(titleText, this.TITLE_MARGIN, titleStartY, this.getSchemeColor('orange-title'));
+    this.drawText(this.getDescription(), this.TITLE_MARGIN, titleStartY+2, this.getSchemeColor('plus'), this.width - this.TITLE_MARGIN - 1);
 
     // Get visible columns and calculate total width
     const visibleColumns = this.getVisibleColumns();
@@ -480,7 +484,7 @@ class TokenVotingTable {
           case 'marketCap':
             const mcap = this.marketCaps.get(token.symbol);
             const mcapText = mcap ?
-              `$${(mcap / 1000000).toFixed(0)}M` :
+              `${(mcap / 1000000).toFixed(0)}M` :
               '';
             this.drawText(mcapText.padEnd(column.width), currentX, currentY, this.colors.mktcapcontent);
             break;
@@ -522,7 +526,7 @@ class TokenVotingTable {
     // Draw up arrow
     if (this.topIndex > 0) {
       const upArrowY = navigationBaseY - 1;
-      const upText = '▲ scroll up';
+      const upText = `▲ ${!window.isMobile ? "scroll" : ""} up`;
       this.drawText(upText, navigationX, upArrowY, this.highlightColor);
       this.upArrowPosition = {
         x: navigationX,
@@ -536,7 +540,7 @@ class TokenVotingTable {
     // Draw down arrow
     if (this.topIndex + this.pageSize < sortedTokens.length) {
       const downArrowY = navigationBaseY + 1;
-      const downText = '▼ scroll down';
+      const downText = `▼ ${!window.isMobile ? "scroll" : ""} down`;
       this.drawText(downText, navigationX, downArrowY, this.highlightColor);
       this.downArrowPosition = {
         x: navigationX,
