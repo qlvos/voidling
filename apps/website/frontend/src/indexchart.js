@@ -3,10 +3,11 @@ import { getIndexAssets } from "./chaindata.js";
 
 const TIME_RANGE_HOURS = 168;
 const TIMESTAMP_INTERVAL_HOURS = 14;
-const HEADER_Y = 6;
+const HEADER_Y = (!window.isMobile ? 6 : 3);
 let mcapString = !window.isMobile ? 'MARKET CAP' : "MCAP";
 let indexString = !window.isMobile ? "S&V AI INDEX" : "S&V INDEX";
 let projectString = !window.isMobile  ? "PROJECTS" : "ASSETS";
+
 
 class IndexChart {
   constructor(width, height) {
@@ -147,6 +148,7 @@ class IndexChart {
   }
 
   handleColumnClick(x, y) {
+    console.log("column click! " + x + " " + y)
 
     if (!this.showUnderlying) return false;
 
@@ -158,7 +160,9 @@ class IndexChart {
     let currentX = 8;
 
     for (const column of this.columns) {
+      console.log(column)
       if (column.sortable && x >= currentX && x < currentX + column.width) {
+        console.log("yoo")
         if (this.currentSort === column.id) {
           this.sortAscending = !this.sortAscending;
         } else {
@@ -639,7 +643,7 @@ class IndexChart {
     };
 
     const headerX = plotStartX + (!window.isMobile ? 8 : 3);
-    let headerY = plotStartY + (!window.isMobile ? 6 : 3);
+    let headerY = plotStartY + HEADER_Y;
 
     // Function to draw full-width horizontal grid line
     const drawHorizontalGrid = (y) => {
