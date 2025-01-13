@@ -15,22 +15,22 @@ class TokenVotingTable {
     this.topIndex = 0;
 
     this.colors = { ... GRID_COLORS }
-    this.gridColor = this.colors.darkblue;
-    this.textColor = this.colors.blue;
-    this.highlightColor = this.colors.orange;
-    this.plusColor = this.colors.blue;
-    this.borderColor = this.colors.blue;
-    this.colors.links = this.colors.darkorange;
+    this.gridColor = this.getSchemeColor('grid');
+    this.textColor = this.getSchemeColor('label');
+    this.highlightColor = this.colors.orange; // Keep as is since it's used for scroll arrows
+    this.plusColor = this.getSchemeColor('plus');
+    this.borderColor = this.getSchemeColor('label');
+    this.colors.links = this.colors.darkorange; // Keep as is
     this.colors.projectcontent = this.colors.orange;
     this.colors.symbolcontent = this.colors.darkorange;
-    this.colors.xcontent = this.colors.purple;
-    this.colors.githubcontent = this.colors.purple;
-    this.colors.mktcapcontent = this.colors.purple;
-    this.colors.createdcontent = this.colors.purple;
-    this.colors.voidbalcontent = this.colors.purple;
-    this.colors.votescontent = this.colors.purple;
-    this.colors.vote = this.colors.orange;
-    this.colors.tabletitles = this.colors.blue;
+    this.colors.xcontent = this.getSchemeColor('table-content');
+    this.colors.githubcontent = this.getSchemeColor('table-content');
+    this.colors.mktcapcontent = this.getSchemeColor('table-content');
+    this.colors.createdcontent = this.getSchemeColor('table-content');
+    this.colors.voidbalcontent = this.getSchemeColor('table-content');
+    this.colors.votescontent = this.getSchemeColor('table-content');
+    this.colors.vote = this.colors.orange; // Keep as is
+    this.colors.tabletitles = this.getSchemeColor('table-title');
 
     // Constants for spacing
     this.TABLE_START_Y = 17;  // Space from top
@@ -87,6 +87,32 @@ class TokenVotingTable {
     this.fullDescription = "This is a preliminary list for the upcoming S&V AI INDEX. Anyone who possesses [$RG] on [SOL] or [ETH] can vote. Reach out to the S&V team on [Telegram] or [X] for new submissions. In order for a token to be considered, the Voidling agent [wallet] must own some. The agent takes note of all who vote and send tokens. The final index curation will be decided based on multiple criteria. The live beta version of the [index] only uses select tokens. Help us map the whole AI crypto sector and create a decentralized index market.";
 
     this.shortDescription = "This is a preliminary list for the upcoming S&V AI INDEX. Reach out to the S&V team on [Telegram] or [X] for new submissions. The final index curation will be decided based on multiple criteria. The live beta version of the [index] only uses select tokens.";
+  }
+
+  getSchemeColor(type) {
+    const currentScheme = colorScheme.get(scheme);
+    if (!currentScheme) return '#ff8700'; // fallback color
+  
+    switch (type) {
+      case 'plus':
+        return currentScheme.plusSignColor;
+      case 'grid':
+        return currentScheme.realGridColor;
+      case 'label':
+        return currentScheme.labelColor;
+      case 'table-title':
+        return currentScheme.tableTitleColor;
+      case 'table-content':
+        return currentScheme.tableContentColor;
+      case 'orange-title':
+        return currentScheme.orangeTitleColor;
+      case 'border':
+        return currentScheme.borderColor;
+      case 'darkOrange-title':
+        return currentScheme.darkOrangeTitle;
+      default:
+        return currentScheme.textColor;
+    }
   }
 
   getVisibleColumns() {
@@ -225,7 +251,7 @@ class TokenVotingTable {
           const idx = (x + i) + (y * this.width);
           if (idx >= 0 && idx < this.buffer.length) {
             this.buffer[idx] = word[i];
-            this.colorBuffer[idx] = this.colors.links;
+            this.colorBuffer[idx] = this.getSchemeColor('darkOrange-title');
           }
         }
         this.linkPositions.push({
@@ -258,10 +284,10 @@ class TokenVotingTable {
       const idx = x + (y * this.width);
       if (this.buffer[idx] === '¦') {
         this.buffer[idx] = '+';
-        this.colorBuffer[idx] = this.plusColor;
+        this.colorBuffer[idx] = this.getSchemeColor('plus');
       } else {
         this.buffer[idx] = char;
-        this.colorBuffer[idx] = this.gridColor;
+        this.colorBuffer[idx] = this.getSchemeColor('grid');
       }
     }
   }
@@ -277,10 +303,10 @@ class TokenVotingTable {
       const idx = currentX + (y * this.width);
       if (this.buffer[idx] === '-') {
         this.buffer[idx] = '+';
-        this.colorBuffer[idx] = this.plusColor;
+        this.colorBuffer[idx] = this.getSchemeColor('plus');
       } else {
         this.buffer[idx] = '¦';
-        this.colorBuffer[idx] = this.gridColor;
+        this.colorBuffer[idx] = this.getSchemeColor('grid');
       }
     }
 
@@ -291,10 +317,10 @@ class TokenVotingTable {
         const idx = currentX + (y * this.width);
         if (this.buffer[idx] === '-') {
           this.buffer[idx] = '+';
-          this.colorBuffer[idx] = this.plusColor;
+          this.colorBuffer[idx] = this.getSchemeColor('plus');
         } else {
           this.buffer[idx] = '¦';
-          this.colorBuffer[idx] = this.gridColor;
+          this.colorBuffer[idx] = this.getSchemeColor('grid');
         }
       }
     });
@@ -316,8 +342,11 @@ class TokenVotingTable {
 
     // Draw border
     let char, c = null;
+    // Draw top and bottom borders
     for (let x = 0; x < this.width; x++) {
+        // Top border
       this.buffer[x] = '$';
+        this.colorBuffer[x] = this.getSchemeColor('border');
 
       ({ char, c } = borderCharacter(x, 0, x, 0, cv, null, null, cscheme, [...nomineeStrings.top]));
       if (char != null) {
@@ -325,17 +354,23 @@ class TokenVotingTable {
         this.colorBuffer[x] = c;
       }
 
+        // Bottom border
       let xBottom = x + (this.height - 1) * this.width;
       this.buffer[xBottom] = '$';
+        this.colorBuffer[xBottom] = this.getSchemeColor('border');  // Fixed: changed x to xBottom
+    
       ({ char, c } = borderCharacter(x, 0, x, 0, cv, null, null, cscheme, [...nomineeStrings.bottom]));
       if (char != null) {
         this.buffer[xBottom] = char;
         this.colorBuffer[xBottom] = c;
       }
-
     }
+    
+    // Draw left and right borders
     for (let y = 0; y < this.height; y++) {
+        // Left border
       this.buffer[y * this.width] = '$';
+        this.colorBuffer[y * this.width] = this.getSchemeColor('border');  // Fixed: changed x to y * this.width
 
       ({ char, c } = borderCharacter(0, y, 0, y, cv, null, null, cscheme, [...nomineeStrings.left], true));
       if (char != null) {
@@ -355,8 +390,8 @@ class TokenVotingTable {
 
     // Draw title and description
     const titleText = "STANDARD & VOID'S AI INDEX NOMINEES";
-    this.drawText(titleText, this.TITLE_MARGIN, 5, this.highlightColor);
-    this.drawText(this.getDescription(), this.TITLE_MARGIN, 7, this.textColor, this.width - this.TITLE_MARGIN - 1);
+    this.drawText(titleText, this.TITLE_MARGIN, 5, this.getSchemeColor('orange-title'));
+    this.drawText(this.getDescription(), this.TITLE_MARGIN, 7, this.getSchemeColor('plus'), this.width - this.TITLE_MARGIN - 1);
 
     // Get visible columns and calculate total width
     const visibleColumns = this.getVisibleColumns();
@@ -411,7 +446,7 @@ class TokenVotingTable {
               endX: currentX + token.symbol.length,
               y: currentY
             });
-            this.drawText(token.symbol.padEnd(column.width), currentX, currentY, this.colors.symbolcontent);
+            this.drawText(token.symbol.padEnd(column.width), currentX, currentY, this.getSchemeColor('darkOrange-title'));
             break;
           case 'xprofile':
             if (token.xprofile) {

@@ -10,25 +10,6 @@ export class ContentRenderer {
         this.colorBuffer = new Array(width * height).fill(null);
         this.linkPositions = [];
         
-        // Colors
-        this.colors = {
-            text: '#211e3a',
-            link: '#fc8726',
-            highlight: '#c0b0ff',
-            border: '#1c1936',
-            logo: {
-                dollar: '#211e3a',    // Color for '$' characters in logo
-                plus: '#211e3a'       // Color for '+' characters in logo
-            },
-            sectionTitle: '#c0b0ff',
-            background: '#875fff'
-        };
-
-        // Export colors as CSS variables
-        const root = document.documentElement;
-        root.style.setProperty('--background-color', this.colors.background);
-        root.style.setProperty('--text-color', this.colors.text);
-        
         // Layout constants with updated spacing
         this.MARGIN_LEFT = 7;
         this.MARGIN_TOP = 5;
@@ -36,6 +17,39 @@ export class ContentRenderer {
         this.SECTION_SPACING = 2;
         this.TITLE_CONTENT_SPACING = 3;
         this.LOGO_CONTENT_SPACING = 3;
+    
+        // Initialize color scheme
+        this.colors = { ...GRID_COLORS }; // Assuming GRID_COLORS is imported
+    }
+
+    getSchemeColor(type) {
+        const currentScheme = colorScheme.get(scheme);
+        if (!currentScheme) return '#ff8700'; // fallback color
+    
+        switch (type) {
+            case 'text':
+                return currentScheme.textColor;
+            case 'link':
+                return currentScheme.darkOrangeTitle;
+            case 'highlight':
+                return currentScheme.orangeTitleColor;
+            case 'border':
+                return currentScheme.borderColor;
+            case 'logo-dollar':
+                return currentScheme.plusSignColor;
+            case 'logo-plus':
+                return currentScheme.plusSignColor;
+            case 'section-title':
+                return currentScheme.specialTitleColor;
+            case 'background':
+                return currentScheme.backgroundColor;
+            case 'special-title':
+                return currentScheme.specialTitleColor;
+            case 'special-content':
+                return currentScheme.specialContentColor;
+            default:
+                return currentScheme.textColor;
+        }
     }
 
     resize(width, height) {
@@ -60,44 +74,53 @@ export class ContentRenderer {
     initStringPositions(dims.width, height);
     let char, c = null;
 
+        // Draw top and bottom borders
     for (let x = plotStartX; x < plotStartX + plotWidth; x++) {
       const topIndex = x;
       this.buffer[topIndex] = '$';
+          this.colorBuffer[topIndex] = this.getSchemeColor('border');
+          
       ({ char, c } = borderCharacter(x, 0, x, 0, cv, null, null, cscheme, [...infoStrings.top]));
       if (char != null) {
         this.buffer[topIndex] = char;
-        this.colorBuffer[topIndex] = c;
+            this.colorBuffer[topIndex] = c;  // Use the color returned by borderCharacter
       }
 
       const bottomIndex = x + (plotHeight * this.width) - this.width;
-
       this.buffer[bottomIndex] = '$';
+          this.colorBuffer[bottomIndex] = this.getSchemeColor('border');
+          
       ({ char, c } = borderCharacter(x, (plotStartY + plotHeight), x, (plotStartY + plotHeight), cv, null, null, cscheme, [...infoStrings.bottom]));
       if (char != null) {
         this.buffer[bottomIndex] = char;
-        this.colorBuffer[bottomIndex] = c;
+            this.colorBuffer[bottomIndex] = c;  // Use the color returned by borderCharacter
       }
     }
 
+        // Draw left and right borders
     for (let y = plotStartY; y < plotStartY + plotHeight; y++) {
       const leftIndex = plotStartX + (y * this.width);
       const rightIndex = (plotStartX + this.width) + (y * this.width) - 1;
 
       this.buffer[leftIndex] = '$';
+          this.colorBuffer[leftIndex] = this.getSchemeColor('border');
+          
       ({ char, c } = borderCharacter(plotStartX, y, plotStartX, y, cv, null, null, cscheme, [...infoStrings.left], true));
       if (char != null) {
         this.buffer[leftIndex] = char;
-        this.colorBuffer[leftIndex] = c;
+            this.colorBuffer[leftIndex] = c;  // Use the color returned by borderCharacter
       }
 
       this.buffer[rightIndex] = '$';
+          this.colorBuffer[rightIndex] = this.getSchemeColor('border');
+          
       ({ char, c } = borderCharacter(plotStartX + plotWidth, y, plotStartX + plotWidth, y, cv, null, null, cscheme, [...infoStrings.right], true));
       if (char != null) {
         this.buffer[rightIndex] = char;
-        this.colorBuffer[rightIndex] = c;
+            this.colorBuffer[rightIndex] = c;  // Use the color returned by borderCharacter
+          }
       }
 
-    }
     return { plotStartX, plotWidth, plotStartY, plotHeight };
   }
 
@@ -122,13 +145,13 @@ export class ContentRenderer {
     drawReturnButton() {
         if (this.currentPage !== 'landing') {
             const buttonText = '< RETURN ';
-            const startX = 5;  // Position closer to left border
-            const startY = 0;  // Position on the top border line
+            const startX = 5;
+            const startY = 0;
             
             for (let i = 0; i < buttonText.length; i++) {
                 const idx = (startX + i) + (startY * this.width);
                 this.buffer[idx] = buttonText[i];
-                this.colorBuffer[idx] = this.colors.highlight;
+                this.colorBuffer[idx] = this.getSchemeColor('highlight');
             }
             
             this.linkPositions.push({
@@ -141,10 +164,11 @@ export class ContentRenderer {
         }
     }
 
-    drawText(text, startX, startY, color = null, maxWidth = this.width - this.MARGIN_LEFT * 2) {
+    drawText(text, startX, startY, colorType = 'text', maxWidth = this.width - this.MARGIN_LEFT * 2) {
         let x = startX;
         let y = startY;
         let totalLines = 0;
+        const color = this.getSchemeColor(colorType);
         
         // Split into paragraphs first
         const paragraphs = text.split('\n');
@@ -272,7 +296,7 @@ export class ContentRenderer {
                         for (let i = 0; i < linkText.length; i++) {
                             const idx = (x + i) + (y * this.width);
                             this.buffer[idx] = linkText[i];
-                            this.colorBuffer[idx] = this.colors.link;
+                            this.colorBuffer[idx] = this.getSchemeColor('link');
                         }
                         
                         // Register link position
@@ -326,11 +350,11 @@ export class ContentRenderer {
                     if (idx >= 0 && idx < this.buffer.length) {
                         this.buffer[idx] = char;
                         
-                        // Set different colors based on the character
+                        // Set colors using getSchemeColor
                         if (char === '$') {
-                            this.colorBuffer[idx] = this.colors.logo.dollar;
+                            this.colorBuffer[idx] = this.getSchemeColor('logo-dollar');
                         } else if (char === '+') {
-                            this.colorBuffer[idx] = this.colors.logo.plus;
+                            this.colorBuffer[idx] = this.getSchemeColor('logo-plus');
                         }
                     }
                 }
@@ -351,8 +375,6 @@ export class ContentRenderer {
         // Draw border
         const { plotStartX, plotWidth, plotStartY, plotHeight } = this.drawBorder();
 
-        this.drawBorder();
-        
         // Draw return button if not on landing page
         this.drawReturnButton();
         
@@ -361,35 +383,31 @@ export class ContentRenderer {
         
         let currentY;
         
-        // Set initial Y position based on whether we have a logo
         if (this.currentPage === 'landing' && page.logo) {
             currentY = this.drawLogo();
-            currentY += this.LOGO_CONTENT_SPACING; // Add specific spacing after logo
+            currentY += this.LOGO_CONTENT_SPACING;
         } else {
             currentY = this.MARGIN_TOP;
         }
         
-        // Draw sections with updated spacing
+        // Draw sections with updated color types
         if (page.sections) {
             page.sections.forEach((section, index) => {
-                // Add extra spacing before sections (except first one)
                 if (index > 0) {
                     currentY += this.SECTION_SPACING;
                 }
                 
-                // Draw section title only if it exists
                 if (section.title) {
-                    this.drawText(section.title, this.MARGIN_LEFT, currentY, this.colors.sectionTitle);
+                    this.drawText(section.title, this.MARGIN_LEFT, currentY, 'special-title');
                     currentY += this.TITLE_CONTENT_SPACING;
                 }
                 
-                // Draw section content if it exists
                 if (section.content) {
                     const linesUsed = this.drawText(
                         section.content, 
                         this.MARGIN_LEFT, 
                         currentY, 
-                        this.colors.text,
+                        'special-content',
                         this.width - this.MARGIN_LEFT * 2
                     );
                     currentY += linesUsed * this.LINE_SPACING;

@@ -8,7 +8,7 @@ const HEADER_Y = 6;
 class IndexChart {
   constructor(width, height) {
 
-    this.colors = { ... GRID_COLORS }
+    this.colors = { ...GRID_COLORS }
     this.starColor = this.colors.darkorange;
     this.atColor = this.colors.orange;
     this.plusColor = this.colors.blue;
@@ -95,6 +95,28 @@ class IndexChart {
     // Navigation arrows positions
     this.upArrowPosition = null;
     this.downArrowPosition = null;
+  }
+
+  getSchemeColor(type) {
+    const currentScheme = colorScheme.get(scheme);
+    if (!currentScheme) return '#ff8700'; // fallback color
+
+    switch (type) {
+      case 'plus':
+        return currentScheme.plusSignColor;
+      case 'grid':
+        return currentScheme.realGridColor;
+      case 'label':
+        return currentScheme.labelColor;
+      case 'table-title':
+        return currentScheme.tableTitleColor;
+      case 'table-content':
+        return currentScheme.tableContentColor;
+      case 'darkOrange-title':
+        return currentScheme.darkOrangeTitle;
+      default:
+        return currentScheme.textColor;
+    }
   }
 
   handleTableClick(x, y) {
@@ -338,7 +360,7 @@ class IndexChart {
       currentY += 3;
 
       // Draw section content and get number of lines used
-      const linesUsed = this.drawText(section.content, contentX, currentY, '#5f5fff', maxWidth);
+      const linesUsed = this.drawText(section.content, contentX, currentY, this.getSchemeColor('plus'), maxWidth);
       currentY += linesUsed + 3;  // Add spacing after content
     });
   }
@@ -444,10 +466,10 @@ class IndexChart {
             const idx = x + y * this.width;
             if (this.buffer[idx] !== ' ' && this.buffer[idx] !== '+') {
               this.buffer[idx] = '¦';
-              this.colorBuffer[idx] = this.gridColor;
+              this.colorBuffer[idx] = this.getSchemeColor('grid');
             } else if (this.buffer[idx] === ' ') {
               this.buffer[idx] = '¦';
-              this.colorBuffer[idx] = this.gridColor;
+              this.colorBuffer[idx] = this.getSchemeColor('grid');
             }
           }
         }
@@ -462,7 +484,7 @@ class IndexChart {
           const x = dataStartX + Math.round(hour * intervalWidth);
           const label = `${hour}h`;
           const labelX = x - Math.floor(label.length / 2);  // Center the label
-          this.drawText(label, labelX, timeLabelsY, this.colors.blue);
+          this.drawText(label, labelX, timeLabelsY, this.getSchemeColor('label'));
         }
       }
     }
@@ -478,10 +500,10 @@ class IndexChart {
           const idx = x + screenY * this.width;
           if (this.buffer[idx] !== '¦' && this.buffer[idx] !== '+') {
             this.buffer[idx] = '-';
-            this.colorBuffer[idx] = this.gridColor;
+            this.colorBuffer[idx] = this.getSchemeColor('grid');
           } else if (this.buffer[idx] === '¦') {
             this.buffer[idx] = '+';
-            this.colorBuffer[idx] = this.plusColor;
+            this.colorBuffer[idx] = this.getSchemeColor('plus');
           }
         }
         const level = y / priceSpacing;
@@ -491,7 +513,7 @@ class IndexChart {
           text: label,
           x: dataStartX + dataWidth - label.length + 4,
           y: screenY - 2,
-          color: this.colors.labels
+          color: this.getSchemeColor('label')
         });
       }
     }
@@ -553,6 +575,9 @@ class IndexChart {
     for (let x = plotStartX; x < plotStartX + plotWidth; x++) {
       const topIndex = x;
       this.buffer[topIndex] = '$';
+      // Use scheme border color instead of local color
+      this.colorBuffer[topIndex] = cscheme.borderColor;  // This gets the correct border color from the scheme
+
       ({ char, c } = borderCharacter(x, 0, x, 0, cv, null, null, cscheme, [...indexStrings.top]));
       if (char != null) {
         this.buffer[topIndex] = char;
@@ -560,6 +585,8 @@ class IndexChart {
       }
 
       const bottomIndex = x + (plotHeight * this.width) - this.width;
+      this.buffer[bottomIndex] = '$';
+      this.colorBuffer[bottomIndex] = cscheme.borderColor;
 
       this.buffer[bottomIndex] = '$';
       ({ char, c } = borderCharacter(x, (plotStartY + plotHeight), x, (plotStartY + plotHeight), cv, null, null, cscheme, [...indexStrings.bottom]));
@@ -574,6 +601,8 @@ class IndexChart {
       const rightIndex = (plotStartX + this.width) + (y * this.width) - 1;
 
       this.buffer[leftIndex] = '$';
+      this.colorBuffer[leftIndex] = cscheme.borderColor;  // Use side color for left border
+
       ({ char, c } = borderCharacter(plotStartX, y, plotStartX, y, cv, null, null, cscheme, [...indexStrings.left], true));
       if (char != null) {
         this.buffer[leftIndex] = char;
@@ -581,13 +610,15 @@ class IndexChart {
       }
 
       this.buffer[rightIndex] = '$';
+      this.colorBuffer[rightIndex] = cscheme.borderColor;  // Use side color for right border
+
       ({ char, c } = borderCharacter(plotStartX + plotWidth, y, plotStartX + plotWidth, y, cv, null, null, cscheme, [...indexStrings.right], true));
       if (char != null) {
         this.buffer[rightIndex] = char;
         this.colorBuffer[rightIndex] = c;
       }
-
     }
+
     return { plotStartX, plotWidth, plotStartY, plotHeight };
   }
 
@@ -620,10 +651,10 @@ class IndexChart {
           x === headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price + 1 + colWidths.pct1h + 1 + colWidths.pct24h ||
           x === headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price + 1 + colWidths.pct1h + 1 + colWidths.pct24h + 1 + colWidths.pct7d) {
           this.buffer[idx] = '+';
-          this.colorBuffer[idx] = this.plusColor;
+          this.colorBuffer[idx] = this.getSchemeColor('plus');
         } else {
           this.buffer[idx] = '-';
-          this.colorBuffer[idx] = this.gridColor;
+          this.colorBuffer[idx] = this.getSchemeColor('grid');
         }
       }
     };
@@ -643,7 +674,7 @@ class IndexChart {
 
     let currentX = headerX;
     headers.forEach(header => {
-      this.drawText(header, currentX, headerY, this.colors.tabletitles);
+      this.drawText(header, currentX, headerY, this.getSchemeColor('table-title'));
       currentX += header.length + 1;
     });
 
@@ -666,18 +697,18 @@ class IndexChart {
     // Market Cap (darker orange)
     const totalMarketCapStr = this.latestTotalMarketCap ?
       this.latestTotalMarketCap.toLocaleString('en-US', { maximumFractionDigits: 0 }) : 'N/A';
-    this.drawText(totalMarketCapStr.padEnd(colWidths.marketCap), currentX, headerY, this.colors.mktcaptable);
+    this.drawText(totalMarketCapStr.padEnd(colWidths.marketCap), currentX, headerY, this.getSchemeColor('darkOrange-title'));
     currentX += colWidths.marketCap + 1;
 
     // Index Value
-    this.drawText(this.latestIndexValue.padEnd(colWidths.price), currentX, headerY, this.colors.svindexcontent);
+    this.drawText(this.latestIndexValue.padEnd(colWidths.price), currentX, headerY, this.getSchemeColor('table-content'));
     currentX += colWidths.price + 1;
 
     // Percentages
     const indexPercentages = [this.indexPct1h, this.indexPct24h, this.indexPct7d];
     const colWidthsArray = [colWidths.pct1h, colWidths.pct24h, colWidths.pct7d];
     indexPercentages.forEach((pct, idx) => {
-      this.drawText(pct.padEnd(colWidthsArray[idx]), currentX, headerY, this.colors.svindexcontent);
+      this.drawText(pct.padEnd(colWidthsArray[idx]), currentX, headerY, this.getSchemeColor('table-content'));
       currentX += colWidthsArray[idx] + 1;
     });
 
@@ -709,10 +740,10 @@ class IndexChart {
         if (this.buffer[idx] === '-') {
           // Create proper intersections
           this.buffer[idx] = '+';
-          this.colorBuffer[idx] = this.plusColor;
+          this.colorBuffer[idx] = this.getSchemeColor('plus');
         } else if (this.buffer[idx] === ' ') {
           this.buffer[idx] = '¦';
-          this.colorBuffer[idx] = this.gridColor;
+          this.colorBuffer[idx] = this.getSchemeColor('grid');
         }
       }
     });
@@ -746,18 +777,18 @@ class IndexChart {
 
       // Market Cap (darker orange)
       this.drawText((latestCap ? latestCap.toLocaleString('en-US', { maximumFractionDigits: 0 }) : 'N/A').padEnd(colWidths.marketCap),
-        currentX, headerY, this.colors.mktcaptablecontent);
+        currentX, headerY, this.getSchemeColor('darkOrange-title'));
       currentX += colWidths.marketCap + 1;
 
       // Price
-      this.drawText((latestPrice ? latestPrice.toFixed(6) : 'N/A').padEnd(colWidths.price), currentX, headerY, this.colors.tablecontent);
+      this.drawText((latestPrice ? latestPrice.toFixed(6) : 'N/A').padEnd(colWidths.price), currentX, headerY, this.getSchemeColor('table-content'));
       currentX += colWidths.price + 1;
 
       // Percentages
       const percentages = [pct1h, pct24h, pct7d];
       const widths = [colWidths.pct1h, colWidths.pct24h, colWidths.pct7d];
       percentages.forEach((pct, idx) => {
-        this.drawText(pct.padEnd(widths[idx]), currentX, headerY, this.colors.tablecontent);
+        this.drawText(pct.padEnd(widths[idx]), currentX, headerY, this.getSchemeColor('table-content'));
         currentX += widths[idx] + 1;
       });
 
@@ -893,7 +924,7 @@ class IndexChart {
           const idx = (x + i) + (y * this.width);
           if (idx >= 0 && idx < this.buffer.length) {
             this.buffer[idx] = word[i];
-            this.colorBuffer[idx] = this.colors.links;
+            this.colorBuffer[idx] = this.getSchemeColor('darkOrange-title');
           }
         }
         this.linkPositions.push({

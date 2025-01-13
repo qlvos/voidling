@@ -1,4 +1,4 @@
-import { initIndexPage, toggleIndexHelp } from './indexpage.js';
+import { initIndexPage, toggleIndexHelp, hideIndexHelp } from './indexpage.js';
 import { initNomineesPage } from './nomineespage.js';
 import { initInfoPage } from './infopage.js';
 import { showTradingElements, hideTradingElements } from './main.js'
@@ -53,6 +53,7 @@ export let currentState = STATE_VOIDLING_PAGE; // the default choice
 
 export function borderClick(msg) {
   if (msg.onclick == ABOUT_CLICK) {
+    console.log("Yo")
     aboutClicked = !aboutClicked;
     !aboutClicked ? showTradingElements() : hideTradingElements();
 
@@ -78,6 +79,15 @@ export function borderClick(msg) {
     scheme = schemes[schemeCounter]
     document.body.style.backgroundColor = colorScheme.get(scheme).background;
     document.documentElement.style.setProperty('--text-color', colorScheme.get(scheme).textColor);
+    
+    // Force redraw based on current state
+    if (currentState === STATE_INDEX_PAGE) {
+      initIndexPage();  // This will trigger redraw of index page
+    } else if (currentState === STATE_NOMINEES_PAGE) {
+      initNomineesPage();  // This will trigger redraw of nominees page
+    } else if (currentState === STATE_INFO_PAGE) {
+      initInfoPage();  // This will trigger redraw of info page
+    }
   } else if (msg.onclick == INDEX_CLICK) {
     currentState = STATE_INDEX_PAGE;
     indexPageActive = !indexPageActive;	
@@ -121,18 +131,27 @@ export function borderClick(msg) {
       document.getElementById(INFO_CANVAS).style.visibility = "visible";
       initInfoPage();  
     } else {
-      // TODO: here identify whatever page was active BEFORE the info page was visible and go back to that one
-      document.getElementById(VOIDLING_CANVAS).style.visibility = "visible";
       document.getElementById(INFO_CANVAS).style.visibility = "hidden"
+      if(currentState == STATE_VOIDLING_PAGE) {
+        document.getElementById(VOIDLING_CANVAS).style.visibility = "visible";
+        showTradingElements();
+      } else if(currentState == STATE_NOMINEES_PAGE) {
+        document.getElementById(NOMINEES_CANVAS).style.visibility = "visible";
+      } else if(currentState == STATE_INDEX_PAGE) {
+        document.getElementById(INDEX_CANVAS).style.visibility = "visible";
+      }
     }    
 
   } else if(msg.onclick == INDEX_TOGGLE_CLICK) {
+    hideIndexHelp();
+
     if(msg.toggler.first) {
       return;
     }
     msg.toggler.first = !msg.toggler.first
     return { activateTable: false }
   } else if(msg.onclick == TABLE_TOGGLE_CLICK) {
+    hideIndexHelp();
     if(!msg.toggler.first) {
       return;
     }

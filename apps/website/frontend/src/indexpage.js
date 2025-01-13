@@ -46,6 +46,10 @@ async function drawChart() {
   }
 }
 
+export function hideIndexHelp() {
+  indexChart.showHelp = false;
+}
+
 function handleCanvasClick(event) {
   if (!indexChart) return;
 

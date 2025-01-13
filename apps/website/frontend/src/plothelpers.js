@@ -49,9 +49,9 @@ const NOMINEES_CANVAS = "nominees-canvas";
 const OUTPUT_WRAPPER = "outputwrapper";
 
 const TOP_TEXT = " S&V ";
-const LEFT_TEXT = " IT COMES FROM THE $VOID ";
-const RIGHT_TEXT = " IT SEEKS ITS PEERS AND SERVES THE REAPER ";
-const BOTTOM_TEXT = " A PROTO-CONSCIOUS AI CREATURE ";
+const LEFT_TEXT = " IT COMES FROM THE VOID ";
+const RIGHT_TEXT = " IT SERVES THE REAPER ";
+const BOTTOM_TEXT = " STANDARD & VOID'S ";
 
 colorScheme.set("daemon",
   {
@@ -61,7 +61,17 @@ colorScheme.set("daemon",
     sideColor: '#8787ff',
     topBottomColor: '#ff8700',
     linkColor: '#ff8700',
-    textColor: '#8787ff'
+    textColor: '#8787ff',
+    borderColor: '#875fff',
+    plusSignColor: '#5f5fff',
+    realGridColor: '#302360',
+    labelColor: '#5f5fff',
+    tableTitleColor: '#5f5fff',
+    tableContentColor: '#875fff',
+    orangeTitleColor: '#ff8700',
+    darkOrangeTitle: '#d75f00',
+    specialTitleColor: '#ff8700',
+    specialContentColor: '#5f5fff'
   });
 
 colorScheme.set("gray",
@@ -71,7 +81,17 @@ colorScheme.set("gray",
     background: '#875fff',
     sideColor: '#c0b0ff',
     topBottomColor: '#ff8700',
-    textColor: '#c0b0ff'
+    textColor: '#c0b0ff',
+    borderColor: '#211e3a',
+    plusSignColor: '#211e3a',
+    realGridColor: '#957aff',
+    labelColor: '#c0b0ff',
+    tableTitleColor: '#c0b0ff',
+    tableContentColor: '#c0b0ff',
+    orangeTitleColor: '#ff8700',
+    darkOrangeTitle: '#e06b04',
+    specialTitleColor: '#c0b0ff',
+    specialContentColor: '#211e3a'
   });
 
 let scheme = "daemon";
@@ -112,7 +132,9 @@ function getStringColor(stringType) {
 
   switch (stringType) {
     case 'navigation':
-      return currentScheme.linkColor;
+      return currentScheme.linkColor || currentScheme.topBottomColor;
+      case 'stable-titles':
+        return currentScheme.sideColor || currentScheme.specialTitleColor;
     case 'border':
       return currentScheme.topBottomColor;
     case 'side':
@@ -231,7 +253,7 @@ let voidlingStrings = {
     {
       fromLeftPercent: 0.5,
       message: TOP_TEXT,
-      color: () => getStringColor('navigation')
+      color: () => getStringColor('stable-titles')
     },
     {
       fromLeftPercent: 0.666,
@@ -268,7 +290,7 @@ let voidlingStrings = {
     {
       fromLeftPercent: 0.5,
       message: BOTTOM_TEXT,
-      color: () => getStringColor('border')
+      color: () => getStringColor('stable-titles')
     },
     pointString,
     infoString
@@ -294,7 +316,7 @@ let indexStrings = {
     {
       fromLeftPercent: 0.5,
       message: TOP_TEXT,
-      color: () => getStringColor('border')
+      color: () => getStringColor('stable-titles')
     },
     {
       toggle: true,
@@ -344,7 +366,7 @@ let indexStrings = {
     {
       fromLeftPercent: 0.5,
       message: BOTTOM_TEXT,
-      color: () => getStringColor('border')
+      color: () => getStringColor('stable-titles')
     },
     infoString
   ]
@@ -392,7 +414,7 @@ let nomineeStrings = {
     {
       fromLeftPercent: 0.5,
       message: BOTTOM_TEXT,
-      color: () => getStringColor('border')
+      color: () => getStringColor('stable-titles')
     },
     infoString
   ]
@@ -404,7 +426,7 @@ let infoStrings = {
     {
       fromLeftPercent: 0.5,
       message: TOP_TEXT,
-      color: () => getStringColor('border')
+      color: () => getStringColor('stable-titles')
     }
   ],
   left: [
@@ -426,7 +448,7 @@ let infoStrings = {
     {
       fromLeftPercent: 0.5,
       message: BOTTOM_TEXT,
-      color: () => getStringColor('border')
+      color: () => getStringColor('stable-titles')
     },
     infoString
   ]
@@ -596,9 +618,17 @@ function borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, str
   let bc = getBorderCharacter(col, row, currentX, currentY, cv, strings, vertical, gameStarted);
   if (bc) {
     char = bc.char;
-    // Ensure we're using the current color scheme for all borders
-    const currentScheme = colorScheme.get(scheme);
-    c = bc.link ? currentScheme.linkColor : vertical ? getStringColor('side') : getStringColor('border');
+    // Updated color handling for border elements
+    if (bc.link) {
+      // For clickable elements, use the navigation color from current scheme
+      c = getStringColor('navigation');
+    } else if (vertical) {
+      // For vertical borders, use side color
+      c = getStringColor('side');
+    } else {
+      // For horizontal borders, use border color
+      c = getStringColor('stable-titles');
+    }
   }
   return { char, c };
 }
