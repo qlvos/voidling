@@ -137,6 +137,4 @@ canvas.addEventListener('mousemove', (event) => {
   let hover = indexChart.isHoveringColumn(charX, charY) || indexChart.isHoveringHelpLink(charX, charY);
   canvas.style.cursor = hover ? 'pointer' : 'default';
 
-  
-
 });

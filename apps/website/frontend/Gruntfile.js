@@ -18,6 +18,8 @@ module.exports = function(grunt) {
           'build/canvashelper.js': ['src/canvashelper.js'],
           'build/indexchart.js': ['src/indexchart.js'],
           'build/indexpage.js': ['src/indexpage.js'],
+          'build/infopage.js': ['src/indexpage.js'],
+          'build/inforenderer.js': ['src/indexpage.js'],
           'build/nomineespage.js': ['src/nomineespage.js'],
           'build/tokenvoting.js': ['src/tokenvoting.js'],
           'build/plothelpers.js': ['src/plothelpers.js'],

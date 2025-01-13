@@ -20,8 +20,8 @@ grayColors.set("-", "#211e3a");
 grayColors.set("~", "#211e3a");
 grayColors.set(":", "#211e3a");
 grayColors.set(";", "#211e3a");
-grayColors.set("=", "#211e3a"); 
-grayColors.set("!", "#c0b0ff"); 
+grayColors.set("=", "#211e3a");
+grayColors.set("!", "#c0b0ff");
 grayColors.set("*", "#c0b0ff");
 grayColors.set("#", "#e06b04");
 grayColors.set("@", "#ff8700");
@@ -44,6 +44,7 @@ const VOIDLINGBOX = "voidlingbox";
 const VOIDLINGEXPRESSION = "voidlingexpression";
 const VOIDLING_CANVAS = "voidling-canvas";
 const INDEX_CANVAS = "index-canvas";
+const INFO_CANVAS = "info-canvas";
 const NOMINEES_CANVAS = "nominees-canvas";
 const OUTPUT_WRAPPER = "outputwrapper";
 
@@ -88,7 +89,7 @@ let voidlingOnly = false;
 function saveColorScheme(newScheme) {
   scheme = newScheme;
   localStorage.setItem('selectedColorScheme', newScheme);
-  
+
   // Update scheme counter to match the new scheme
   schemeCounter = schemes.indexOf(newScheme);
   if (schemeCounter === -1) schemeCounter = 0;
@@ -100,32 +101,32 @@ function saveColorScheme(newScheme) {
 function initColorScheme() {
   const savedScheme = localStorage.getItem('selectedColorScheme');
   if (savedScheme && schemes.includes(savedScheme)) {
-      scheme = savedScheme;
-      schemeCounter = schemes.indexOf(savedScheme);
+    scheme = savedScheme;
+    schemeCounter = schemes.indexOf(savedScheme);
   }
 }
 
 function getStringColor(stringType) {
   const currentScheme = colorScheme.get(scheme);
   if (!currentScheme) return '#ff8700'; // fallback color
-  
-  switch(stringType) {
-      case 'navigation':
-          return currentScheme.linkColor;
-      case 'border':
-          return currentScheme.topBottomColor;
-      case 'side':
-          return currentScheme.sideColor;
-      default:
-          return currentScheme.textColor;
+
+  switch (stringType) {
+    case 'navigation':
+      return currentScheme.linkColor;
+    case 'border':
+      return currentScheme.topBottomColor;
+    case 'side':
+      return currentScheme.sideColor;
+    default:
+      return currentScheme.textColor;
   }
 }
 
 function applyStringColor(stringObj) {
   if (!stringObj) return getStringColor('default');
-  const color = typeof stringObj.color === 'function' 
-      ? stringObj.color() 
-      : stringObj.color;
+  const color = typeof stringObj.color === 'function'
+    ? stringObj.color()
+    : stringObj.color;
   return color || getStringColor('default');
 }
 
@@ -144,6 +145,7 @@ let INDEX_CLICK = "i";
 let NOMINEES_CLICK = "n";
 let CHART_CLICK = "ch";
 let COLOR_CLICK = "c";
+let INFO_CLICK = "info";
 let aboutClicked = false;
 
 async function loadFonts() {
@@ -204,6 +206,14 @@ let colorString = {
   activation: tradingActive
 }
 
+let infoString = {
+  fromLeftPercent: 0.75,
+  message: " ABOUT ",
+  color: () => getStringColor('navigation'),
+  onclick: INFO_CLICK,
+  activation: tradingActive
+}
+
 let voidlingStrings = {
   top: [
     {
@@ -214,26 +224,19 @@ let voidlingStrings = {
     {
       fromLeftPercent: 0.293,
       message: " VOIDLING ",
-          color: () => getStringColor('navigation'),
+      color: () => getStringColor('border'),
       onclick: VOIDLING_ONLY_CLICK,
       activation: tradingActive
     },
     {
       fromLeftPercent: 0.5,
       message: TOP_TEXT,
-          color: () => getStringColor('border')
-    },
-    {
-      fromLeftPercent: 0.293,
-      message: " TRADES ",
-          color: () => getStringColor('navigation'),
-      onclick: TRADING_ONLY_CLICK,
-      activation: tradingActive
+      color: () => getStringColor('navigation')
     },
     {
       fromLeftPercent: 0.666,
       message: " INDEX ",
-          color: () => getStringColor('navigation'),
+      color: () => getStringColor('border'),
       onclick: INDEX_CLICK,
       activation: tradingActive
     },
@@ -241,6 +244,7 @@ let voidlingStrings = {
       fromLeftPercent: 0.833,
       message: " NOMINEES ",
       color: "#ff8700",
+      color: () => getStringColor('border'),
       onclick: NOMINEES_CLICK,
       activation: tradingActive
     }
@@ -248,25 +252,26 @@ let voidlingStrings = {
   left: [
     {
       fromLeftPercent: 0.5,
-          message: LEFT_TEXT,
-          color: () => getStringColor('side')
+      message: LEFT_TEXT,
+      color: () => getStringColor('side')
     }
   ],
   right: [
     {
       fromLeftPercent: 0.5,
-          message: RIGHT_TEXT,
-          color: () => getStringColor('side')
+      message: RIGHT_TEXT,
+      color: () => getStringColor('side')
     }
   ],
   bottom: [
     colorString,
     {
       fromLeftPercent: 0.5,
-          message: BOTTOM_TEXT,
-          color: () => getStringColor('border')
+      message: BOTTOM_TEXT,
+      color: () => getStringColor('border')
     },
-    pointString
+    pointString,
+    infoString
   ]
 }
 
@@ -340,7 +345,8 @@ let indexStrings = {
       fromLeftPercent: 0.5,
       message: BOTTOM_TEXT,
       color: () => getStringColor('border')
-    }
+    },
+    infoString
   ]
 }
 
@@ -363,7 +369,7 @@ let nomineeStrings = {
       activation: tradingActive,
       message: " INDEX ",
       color: () => getStringColor('navigation'),
-      onclick: INDEX_CLICK 
+      onclick: INDEX_CLICK
     }
 
   ],
@@ -387,7 +393,42 @@ let nomineeStrings = {
       fromLeftPercent: 0.5,
       message: BOTTOM_TEXT,
       color: () => getStringColor('border')
+    },
+    infoString
+  ]
+}
+
+let infoStrings = {
+  top: [
+
+    {
+      fromLeftPercent: 0.5,
+      message: TOP_TEXT,
+      color: () => getStringColor('border')
     }
+  ],
+  left: [
+    {
+      fromLeftPercent: 0.5,
+      message: LEFT_TEXT,
+      color: () => getStringColor('side')
+    }
+  ],
+  right: [
+    {
+      fromLeftPercent: 0.5,
+      message: RIGHT_TEXT,
+      color: () => getStringColor('side')
+    }
+  ],
+  bottom: [
+    colorString,
+    {
+      fromLeftPercent: 0.5,
+      message: BOTTOM_TEXT,
+      color: () => getStringColor('border')
+    },
+    infoString
   ]
 }
 
@@ -397,7 +438,7 @@ let indexPageActive = false;
 
 function initStringPositions(width, height) {
 
-  let topStrings = [...voidlingStrings.top, ...indexStrings.top, ...nomineeStrings.top];
+  let topStrings = [...voidlingStrings.top, ...indexStrings.top, ...nomineeStrings.top, ...infoStrings.top];
   for (let msg of topStrings) {
     if (msg.toggle) {
       for (let tmsg of msg.toggleStrings) {
@@ -412,21 +453,21 @@ function initStringPositions(width, height) {
     }
   }
 
-  let bottomStrings = [...voidlingStrings.bottom, ...indexStrings.bottom, ...nomineeStrings.bottom]
+  let bottomStrings = [...voidlingStrings.bottom, ...indexStrings.bottom, ...nomineeStrings.bottom, ...infoStrings.bottom]
   for (let msg of bottomStrings) {
     let w = (msg.toggle ? msg.toggleStrings[0].message.length : msg.message.length) / width;
     msg.startCol = Math.ceil((msg.fromLeftPercent - (w / 2)) * width);
     msg.startRow = height;
   }
 
-  let leftStrings = [...voidlingStrings.left, ...indexStrings.left, ...nomineeStrings.left];
+  let leftStrings = [...voidlingStrings.left, ...indexStrings.left, ...nomineeStrings.left, ...infoStrings.left];
   for (let msg of leftStrings) {
     let h = (msg.toggle ? msg.toggleStrings[0].message.length : msg.message.length) / height;
     msg.startCol = 0;
     msg.startRow = Math.ceil((msg.fromLeftPercent - (h / 2)) * height);
   }
 
-  let rightStrings = [...voidlingStrings.right, ...indexStrings.right, ...nomineeStrings.right];
+  let rightStrings = [...voidlingStrings.right, ...indexStrings.right, ...nomineeStrings.right, ...infoStrings.right];
   for (let msg of rightStrings) {
     let h = (msg.toggle ? msg.toggleStrings[0].message.length : msg.message.length) / height;
     msg.startCol = 0;
@@ -555,9 +596,9 @@ function borderCharacter(col, row, currentX, currentY, cv, char, c, cscheme, str
   let bc = getBorderCharacter(col, row, currentX, currentY, cv, strings, vertical, gameStarted);
   if (bc) {
     char = bc.char;
-      // Ensure we're using the current color scheme for all borders
-      const currentScheme = colorScheme.get(scheme);
-      c = bc.link ? currentScheme.linkColor : vertical ? getStringColor('side') : getStringColor('border');
+    // Ensure we're using the current color scheme for all borders
+    const currentScheme = colorScheme.get(scheme);
+    c = bc.link ? currentScheme.linkColor : vertical ? getStringColor('side') : getStringColor('border');
   }
   return { char, c };
 }
@@ -585,7 +626,7 @@ function getBorderCharacter(col, row, currentX, currentY, cv, strings, vertical 
     } else {
       if (col >= msg.startCol && col < (msg.startCol + msg.message.length)) {
         if (!msg.box) {
-          msg.box = { startx: (currentX * cv.width), endx: ((currentX * cv.width) + (cv.width * msg.message.length)), starty: row*cv.height, endy: (row*cv.height) + cv.height };
+          msg.box = { startx: (currentX * cv.width), endx: ((currentX * cv.width) + (cv.width * msg.message.length)), starty: row * cv.height, endy: (row * cv.height) + cv.height };
         }
 
         return { char: msg.message[col - msg.startCol], link: msg.onclick != null };

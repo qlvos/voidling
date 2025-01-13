@@ -1,5 +1,6 @@
 import { initIndexPage, toggleIndexHelp } from './indexpage.js';
 import { initNomineesPage } from './nomineespage.js';
+import { initInfoPage } from './infopage.js';
 import { showTradingElements, hideTradingElements } from './main.js'
 
 export function calculateDimensions() {
@@ -44,6 +45,9 @@ export function getCharacterDimensions() {
 export const STATE_VOIDLING_PAGE = "v";
 export const STATE_INDEX_PAGE = "i";
 export const STATE_NOMINEES_PAGE = "n";
+export const STATE_INFO_PAGE = "info";
+
+let showInfoPage = false;
 
 export let currentState = STATE_VOIDLING_PAGE; // the default choice
 
@@ -104,6 +108,23 @@ export function borderClick(msg) {
     document.getElementById(NOMINEES_CANVAS).style.visibility = "visible";
 
     initNomineesPage();
+
+  } else if (msg.onclick == INFO_CLICK) {
+    showInfoPage = !showInfoPage;
+
+    if(showInfoPage) {
+      document.getElementById(INDEX_CANVAS).style.visibility = "hidden";
+      document.getElementById(VOIDLING_CANVAS).style.visibility = "hidden";
+      document.getElementById(PORTFOLIOBOX).style.visibility = "hidden";
+      document.getElementById(VOIDLINGBOX).style.visibility = "hidden";
+      document.getElementById(NOMINEES_CANVAS).style.visibility = "hidden";
+      document.getElementById(INFO_CANVAS).style.visibility = "visible";
+      initInfoPage();  
+    } else {
+      // TODO: here identify whatever page was active BEFORE the info page was visible and go back to that one
+      document.getElementById(VOIDLING_CANVAS).style.visibility = "visible";
+      document.getElementById(INFO_CANVAS).style.visibility = "hidden"
+    }    
 
   } else if(msg.onclick == INDEX_TOGGLE_CLICK) {
     if(msg.toggler.first) {
