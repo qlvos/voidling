@@ -1,3 +1,4 @@
+window.isMobile = window.innerWidth <= 999;
 
 let daemonColors = new Map();
 daemonColors.set(".", "#5f00ff");
@@ -221,7 +222,7 @@ let pointString = {
 }
 
 let colorString = {
-  fromLeftPercent: 0.25,
+  fromLeftPercent: !window.isMobile ? 0.25 : 0.20,
   message: " COLOR ",
   color: () => getStringColor('navigation'),
   onclick: COLOR_CLICK,
@@ -229,12 +230,16 @@ let colorString = {
 }
 
 let infoString = {
-  fromLeftPercent: 0.75,
+  fromLeftPercent: !window.isMobile ? 0.75 : 0.80,
   message: " ABOUT ",
   color: () => getStringColor('navigation'),
   onclick: INFO_CLICK,
   activation: tradingActive
 }
+
+let indexString = !window.isMobile ? " INDEX " : " IDX ";
+let tableString = !window.isMobile ? " TABLE " : " LIST ";
+let nomineeString = !window.isMobile ? " NOMINEES " : " PICKS ";
 
 let voidlingStrings = {
   top: [
@@ -257,14 +262,14 @@ let voidlingStrings = {
     },
     {
       fromLeftPercent: 0.666,
-      message: " INDEX ",
+      message: indexString,
       color: () => getStringColor('border'),
       onclick: INDEX_CLICK,
       activation: tradingActive
     },
     {
       fromLeftPercent: 0.833,
-      message: " NOMINEES ",
+      message: nomineeString,
       color: "#ff8700",
       color: () => getStringColor('border'),
       onclick: NOMINEES_CLICK,
@@ -326,13 +331,13 @@ let indexStrings = {
       toggleStrings: [
         {
           display: true,
-          message: " TABLE ",
+          message: tableString,
           color: () => getStringColor('navigation'),
           onclick: TABLE_TOGGLE_CLICK,
           toggler: indexTableToggler
         },
         {
-          message: " INDEX ",
+          message: indexString,
           color: () => getStringColor('navigation'),
           onclick: INDEX_TOGGLE_CLICK,
           toggler: indexTableToggler
@@ -341,7 +346,7 @@ let indexStrings = {
     },
     {
       fromLeftPercent: 0.833,
-      message: " NOMINEES ",
+      message: nomineeString,
       color: () => getStringColor('navigation'),
       onclick: NOMINEES_CLICK,
       activation: tradingActive
@@ -389,7 +394,7 @@ let nomineeStrings = {
     {
       fromLeftPercent: 0.75,
       activation: tradingActive,
-      message: " INDEX ",
+      message: indexString,
       color: () => getStringColor('navigation'),
       onclick: INDEX_CLICK
     }
