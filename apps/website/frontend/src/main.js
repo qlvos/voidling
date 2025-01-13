@@ -990,7 +990,7 @@ function initializeVoidlingDisplay(height, setWorldDimensions) {
       }
     }
 
-    if (mOver && !isAboutClicked) {
+    if (mOver && !isAboutClicked()) {
       // If this is initial hover or any mouse movement
       if (!mouseOverVoidling ||
         lastMouseX === null || lastMouseY === null || // Initial hover

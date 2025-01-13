@@ -160,16 +160,15 @@ function drawCanvas(timestamp) {
     const context = cvs.getContext('2d');
     
     const dpr = window.devicePixelRatio || 1;
-    cvs.width = 15 + cvs.offsetWidth * dpr;
-    cvs.height = cvs.offsetHeight * dpr;
+    let cvd = getCanvasDimensions(INFO_CANVAS);
+    cvs.width = cvd.width;
+    cvs.height = cvd.height;
     
     context.scale(dpr, dpr);
     context.clearRect(0, 0, cvs.offsetWidth, cvs.offsetHeight);
     
-    context.font = window.isMobile ? 
-        `24px ProtoMono, monospace` : 
-        `12px ProtoMono, monospace`;
-    context.textBaseline = 'left';
+    context.font = getFont();
+    context.textAlign = getCanvasTextAlign();
     
     contentRenderer.draw();
     const bufferData = contentRenderer.getBuffer();

@@ -4,6 +4,9 @@ import { getIndexAssets } from "./chaindata.js";
 const TIME_RANGE_HOURS = 168;
 const TIMESTAMP_INTERVAL_HOURS = 14;
 const HEADER_Y = 6;
+let mcapString = !window.isMobile ? 'MARKET CAP' : "MCAP";
+let indexString = !window.isMobile ? "S&V AI INDEX" : "S&V INDEX";
+let projectString = !window.isMobile  ? "PROJECTS" : "ASSETS";
 
 class IndexChart {
   constructor(width, height) {
@@ -81,11 +84,10 @@ class IndexChart {
       bottomMargin: 0  // Distance from bottom border (meaning bottom border of the grid above the time labels)
     };
 
-
     // Column definitions
     this.columns = [
       { id: 'symbol', title: 'SYMBOL', width: 14 },
-      { id: 'marketCap', title: 'MARKET CAP', width: 20, sortable: true },
+      { id: 'marketCap', title: mcapString, width: 20, sortable: true },
       { id: 'price', title: 'PRICE', width: 15, sortable: true },
       { id: 'pct1h', title: '1H%', width: 12, sortable: true },
       { id: 'pct24h', title: '24H%', width: 12, sortable: true },
@@ -226,7 +228,7 @@ class IndexChart {
       const oldVal = prices[oldIndex];
       if (!oldVal || oldVal === 0) return 'N/A';  // Added null check
       const pct = ((last - oldVal) / oldVal) * 100;
-      return pct.toFixed(2) + '%';
+      return pct.toFixed(2);
     } catch (e) {
       console.error("Error computing change:", e);  // Added error logging
       return 'N/A';
@@ -320,7 +322,6 @@ class IndexChart {
 
   toggleHelp() {
     this.showHelp = !this.showHelp;
-    console.log("Toggled help view:", this.showHelp);
   }
 
   drawHelp() {
@@ -340,7 +341,7 @@ class IndexChart {
     // Define help content sections
     const helpSections = [
       {
-        title: "S&V AI INDEX",
+        title: indexString,
         content: "This is a beta version of the S&V AI69 index. It is a work in progress while we catalogue as many projects as possible from all chains. You can personnally contribute to this process by visiting the [nominees] page and vote for different projects or submit new ones. The goal of this index is to track the development of the AI-crypto sector in a transparent and decentralized manner. The current beta version of the index you see on this page is curated by the S&V team from the [nominees] list. It does not include all projects. To see the list of projects included in the index, use the TABLE view."
       },
       {
@@ -629,16 +630,16 @@ class IndexChart {
 
     // Column widths and positions
     const colWidths = {
-      symbol: 21,
-      marketCap: 20,
-      price: 15,
-      pct1h: 12,
-      pct24h: 12,
-      pct7d: 12
+      symbol: !window.isMobile ? 21 : 10,
+      marketCap: !window.isMobile ? 20 : 8,
+      price: !window.isMobile ? 15 : 8,
+      pct1h: !window.isMobile ? 12 : 8,
+      pct24h: !window.isMobile ? 12 : 8,
+      pct7d: !window.isMobile ? 12 : 8
     };
 
-    const headerX = plotStartX + 8;
-    let headerY = plotStartY + 6;
+    const headerX = plotStartX + (!window.isMobile ? 8 : 3);
+    let headerY = plotStartY + (!window.isMobile ? 6 : 3);
 
     // Function to draw full-width horizontal grid line
     const drawHorizontalGrid = (y) => {
@@ -663,14 +664,18 @@ class IndexChart {
     drawHorizontalGrid(headerY - 1);
 
     // Draw headers
+    let totalString = !window.isMobile ? `[TOTAL: ${Object.keys(getIndexAssets()).length}]` : '';
     const headers = [
-      `PROJECTS [TOTAL: ${Object.keys(getIndexAssets()).length}]`.padEnd(colWidths.symbol),
-      "MARKET CAP".padEnd(colWidths.marketCap),
-      "PRICE".padEnd(colWidths.price),
-      "1H%".padEnd(colWidths.pct1h),
-      "24H%".padEnd(colWidths.pct24h),
-      "7D%".padEnd(colWidths.pct7d)
+      `${projectString} ${totalString}`.padEnd(colWidths.symbol),
+      mcapString.padEnd(colWidths.marketCap),
+      "PRICE".padEnd(colWidths.price)
     ];
+
+    if(!window.isMobile) {
+      headers.push("1H%".padEnd(colWidths.pct1h));
+    }
+    headers.push("24H%".padEnd(colWidths.pct24h));
+    headers.push("7D%".padEnd(colWidths.pct7d));
 
     let currentX = headerX;
     headers.forEach(header => {
@@ -691,12 +696,12 @@ class IndexChart {
     currentX = headerX;
 
     // Symbol (orange)
-    this.drawText("S&V AI INDEX".padEnd(colWidths.symbol), currentX, headerY, this.colors.svtable);
+    this.drawText(indexString.padEnd(colWidths.symbol), currentX, headerY, this.colors.svtable);
     currentX += colWidths.symbol + 1;
 
     // Market Cap (darker orange)
-    const totalMarketCapStr = this.latestTotalMarketCap ?
-      this.latestTotalMarketCap.toLocaleString('en-US', { maximumFractionDigits: 0 }) : 'N/A';
+    const totalMarketCapStr = this.latestTotalMarketCap ? (!window.isMobile ? this.latestTotalMarketCap.toLocaleString('en-US', { maximumFractionDigits: 0 }) : (this.latestTotalMarketCap/1000000).toFixed(0) + "M") : "N/A";
+
     this.drawText(totalMarketCapStr.padEnd(colWidths.marketCap), currentX, headerY, this.getSchemeColor('darkOrange-title'));
     currentX += colWidths.marketCap + 1;
 
@@ -705,8 +710,20 @@ class IndexChart {
     currentX += colWidths.price + 1;
 
     // Percentages
-    const indexPercentages = [this.indexPct1h, this.indexPct24h, this.indexPct7d];
-    const colWidthsArray = [colWidths.pct1h, colWidths.pct24h, colWidths.pct7d];
+    const indexPercentages = []
+    if(!window.isMobile) {
+      indexPercentages.push(this.indexPct1h);
+    }
+    indexPercentages.push(this.indexPct24h);
+    indexPercentages.push(this.indexPct7d);
+
+    const colWidthsArray = [];
+    if(!window.isMobile) {
+      colWidthsArray.push(colWidths.pct1h);
+    }
+    colWidthsArray.push(colWidths.pct24h);
+    colWidthsArray.push(colWidths.pct7d);
+
     indexPercentages.forEach((pct, idx) => {
       this.drawText(pct.padEnd(colWidthsArray[idx]), currentX, headerY, this.getSchemeColor('table-content'));
       currentX += colWidthsArray[idx] + 1;
@@ -767,7 +784,7 @@ class IndexChart {
 
       const pct1h = this.computePercentChange(priceArray, 1);
       const pct24h = this.computePercentChange(priceArray, 24);
-      const pct7d = ((priceArray[priceArray.length - 1] - priceArray[0]) / priceArray[0] * 100).toFixed(2) + '%';
+      const pct7d = ((priceArray[priceArray.length - 1] - priceArray[0]) / priceArray[0] * 100).toFixed(2);
 
       currentX = headerX;
 
@@ -776,17 +793,33 @@ class IndexChart {
       currentX += colWidths.symbol + 1;
 
       // Market Cap (darker orange)
-      this.drawText((latestCap ? latestCap.toLocaleString('en-US', { maximumFractionDigits: 0 }) : 'N/A').padEnd(colWidths.marketCap),
+      let mcapString = latestCap ? (!window.isMobile ? latestCap.toLocaleString('en-US', { maximumFractionDigits: 0 }) : (latestCap/1000000).toFixed(1)) + "M" : "N/A";
+      //this.drawText((latestCap ? latestCap.toLocaleString('en-US', { maximumFractionDigits: 0 }) : 'N/A').padEnd(colWidths.marketCap),
+      this.drawText(mcapString.padEnd(colWidths.marketCap),
         currentX, headerY, this.getSchemeColor('darkOrange-title'));
       currentX += colWidths.marketCap + 1;
 
       // Price
-      this.drawText((latestPrice ? latestPrice.toFixed(6) : 'N/A').padEnd(colWidths.price), currentX, headerY, this.getSchemeColor('table-content'));
+      this.drawText((latestPrice ? latestPrice.toFixed(!window.isMobile ? 6 : 3) : 'N/A').padEnd(colWidths.price), currentX, headerY, this.getSchemeColor('table-content'));
       currentX += colWidths.price + 1;
 
       // Percentages
-      const percentages = [pct1h, pct24h, pct7d];
-      const widths = [colWidths.pct1h, colWidths.pct24h, colWidths.pct7d];
+      const percentages = []
+
+      if(!window.isMobile) {
+        percentages.push(pct1h);
+      }
+      percentages.push(pct24h);
+      percentages.push(pct7d);
+      
+
+      const widths = [];
+      if(!window.isMobile) {
+        widths.push(colWidths.pct1h);
+      }
+      widths.push(colWidths.pct24h);
+      widths.push(colWidths.pct7d);
+      
       percentages.forEach((pct, idx) => {
         this.drawText(pct.padEnd(widths[idx]), currentX, headerY, this.getSchemeColor('table-content'));
         currentX += widths[idx] + 1;
@@ -805,7 +838,7 @@ class IndexChart {
     // Up arrow
     if (this.topIndex > 0) {
       const upArrowY = plotStartY + 6;
-      const upText = '▲ scroll up';
+      const upText = `▲ ${!window.isMobile ? "scroll" : "" } up`;
       this.drawText(upText, navigationX, upArrowY, this.colors.scroll);
       this.upArrowPosition = {
         x: navigationX,
@@ -819,7 +852,7 @@ class IndexChart {
     // Down arrow
     if (this.topIndex + this.pageSize < Object.values(getIndexAssets()).length) {
       const downArrowY = plotStartY + 8;
-      const downText = '▼ scroll down';
+      const downText = `▼ ${!window.isMobile ? "scroll" : "" } down`;
       this.drawText(downText, navigationX, downArrowY, this.colors.scroll);
       this.downArrowPosition = {
         x: navigationX,
@@ -957,7 +990,7 @@ class IndexChart {
     if (!this.currentSort) return Object.values(getIndexAssets());
 
     const tokens = Object.values(getIndexAssets());
-    return tokens.filter(token => token.symbol !== "S&V AI INDEX")
+    return tokens.filter(token => token.symbol !== indexString)
       .sort((a, b) => {
         let comparison = 0;
         const symbolA = a.symbol;
