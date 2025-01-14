@@ -539,10 +539,10 @@ class IndexChart {
     for (let hour = 0; hour <= timeIntervals; hour++) {
         // Skip first (0h) and last (168h) labels
         if (hour !== 0 && hour !== timeIntervals) {
-          if (!window.isMobile || (hour % TIMESTAMP_INTERVAL_HOURS === 0 && Math.floor(hour / TIMESTAMP_INTERVAL_HOURS) % 2 === 1)) {
+          if (!window.isMobile && (hour % TIMESTAMP_INTERVAL_HOURS === 0 && Math.floor(hour / TIMESTAMP_INTERVAL_HOURS) % 2 === 1)) {
           const x = dataStartX + Math.round(hour * intervalWidth);
           const label = `${hour}h`;
-            const labelX = x - Math.floor(label.length / 2);  // Center align the label
+          const labelX = x - Math.floor(label.length / 2);  // Center align the label
           this.drawText(label, labelX, timeLabelsY, this.getSchemeColor('label'));
         }
       }
