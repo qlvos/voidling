@@ -24,6 +24,9 @@ const CACHE_UPDATE_FREQUENCY = 60000 * 10;
 const SLOW_CACHE_UPDATE_FREQUENCY = 60000 * 60 * 1; // 1 per hour
 let cachedChainData = null;
 const VOIDLING_DATA = "vdata";
+
+checkEnvironment();
+
 let redis = await getRedisConnection();
 let redisPublisher = redis.duplicate();
 redisPublisher.on('error', err => logger.error(err));
@@ -186,6 +189,52 @@ function validatePoints(points) {
     return false;
   }
   return !isNaN(points)
+}
+
+function checkEnvironment() {
+  let ok = true;
+  if(!config.VLING_POSTGRES_CREDENTIALS) {
+    logger.warn('VLING_POSTGRES_CREDENTIALS is undefined, check that environment variable is set.');
+    ok = false;
+  }
+
+  if(!config.VLING_POSTGRES_URL) {
+    logger.warn('VLING_POSTGRES_URL is undefined, check that environment variable is set.');
+    ok = false;
+  }
+
+  if(!config.VLING_POSTGRES_DATABASE) {
+    logger.warn('VLING_POSTGRES_DATABASE is undefined, check that environment variable is set.');
+    ok = false;
+  }
+
+  if(!config.VLING_HELIUS_API_KEY) {
+    logger.warn('VLING_HELIUS_API_KEY is undefined, check that environment variable is set.');
+    ok = false;
+  }
+
+  if(!config.DEXTOOLS_API_KEY) {
+    logger.warn('DEXTOOLS_API_KEY is undefined, check that environment variable is set.');
+    ok = false;
+  }
+
+  if(!config.VLING_ALCHEMY_API_KEY) {
+    logger.warn('VLING_ALCHEMY_API_KEY is undefined, check that environment variable is set.');
+    ok = false;
+  }
+
+  if(!config.VLING_HYPERBOLIC_API_KEY) {
+    logger.warn('VLING_HYPERBOLIC_API_KEY is undefined, check that environment variable is set.');
+    ok = false;
+  }
+
+  if(!ok) {
+    logger.error("Shutting down.");
+    process.exit();
+  }
+
+  logger.info("All environment variables set, continue startup sequence.")
+
 }
 
 
