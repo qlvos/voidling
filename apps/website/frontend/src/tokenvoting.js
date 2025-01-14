@@ -159,8 +159,9 @@ class TokenVotingTable {
         const token = Object.values(assets).find(t =>
           t.address.toLowerCase() === tokenData.address?.toLowerCase());
 
-        if (token && tokenData.data[0].value) {
-          const price = parseFloat(tokenData.data[0].value);
+        let idx = tokenData.data.length-1;
+        if (token && tokenData.data[idx].value) {
+          const price = parseFloat(tokenData.data[idx].value);
           if (!isNaN(price)) {
             const marketCap = price * Number(token.totalSupply);
             this.marketCaps.set(token.symbol, marketCap);
