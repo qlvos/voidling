@@ -11,7 +11,7 @@ daemonColors.set("=", "#5f00ff");
 daemonColors.set("!", "#8787ff");
 daemonColors.set("*", "#8787ff");
 daemonColors.set("#", "#d75f00");
-daemonColors.set("@", "#ff8700");
+daemonColors.set("@", "#5f5fff");
 daemonColors.set("$", "#875fff");
 
 let grayColors = new Map();

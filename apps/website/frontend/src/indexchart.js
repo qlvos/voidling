@@ -69,8 +69,8 @@ class IndexChart {
       endX: 0
     };
 
-    // Table pagination properties
-    this.TABLE_START_Y = 17;  // Space from top
+    // Table pagination properties - adjust for mobile
+    this.TABLE_START_Y = !window.isMobile ? 17 : 10;  // Less space from top on mobile
     this.BOTTOM_MARGIN = 0;   // Space at bottom
     this.ROW_HEIGHT = 2;      // Height of each table row
     this.topIndex = 0;        // Current scroll position
@@ -328,6 +328,18 @@ class IndexChart {
     this.showHelp = !this.showHelp;
   }
 
+  handleHelpScroll(direction) {
+    const scrollAmount = 5; // Number of lines to scroll at once
+    if (direction === 'up') {
+      this.helpViewOffset = Math.max(0, this.helpViewOffset - scrollAmount);
+      return true;
+    } else if (direction === 'down') {
+      this.helpViewOffset += scrollAmount;
+      return true;
+    }
+    return false;
+  }
+
   drawHelp() {
     this.buffer.fill(' ');
     this.colorBuffer.fill(null);
@@ -337,10 +349,10 @@ class IndexChart {
     // Draw border
     const { plotStartX, plotWidth, plotStartY, plotHeight } = this.drawBorder();
 
-    // Content start position
-    let currentY = plotStartY + 4;
-    const contentX = plotStartX + 5;
-    const maxWidth = plotWidth - 10;  // Leave margin on both sides
+    const contentX = plotStartX + (!window.isMobile ? 5 : 4);  // 2 characters less padding on mobile
+    const contentStartY = plotStartY + (!window.isMobile ? 2 : 3);  // One character lower on mobile
+    let currentY = contentStartY;
+    const maxWidth = plotWidth - 10;
 
     // Define help content sections
     const helpSections = [
@@ -361,16 +373,58 @@ class IndexChart {
     // Draw sections
     helpSections.forEach((section, index) => {
       // Draw section title
-      this.drawText(section.title, contentX, currentY, '#ff8700');
+      this.drawText(section.title, contentX, currentY - this.helpViewOffset, '#ff8700');
       currentY += 3;
 
       // Draw section content and get number of lines used
-      const linesUsed = this.drawText(section.content, contentX, currentY, this.getSchemeColor('plus'), maxWidth);
+      const linesUsed = this.drawText(section.content, contentX, currentY - this.helpViewOffset, this.getSchemeColor('plus'), maxWidth);
       currentY += linesUsed + 3;  // Add spacing after content
     });
+
+    // Add scroll buttons if content extends beyond viewport
+    const navigationX = contentX + maxWidth - (!window.isMobile ? 10 : 4);  // Moved 2 chars right
+    
+    // Up arrow - show if scrolled down
+    if (this.helpViewOffset > 0) {
+      const upArrowY = plotStartY + 4;  // Moved down 2 characters
+      const upText = !window.isMobile ? `▲ scroll up` : `▲ up`;
+      this.drawText(upText, navigationX, upArrowY, this.colors.scroll);
+      this.upArrowPosition = {
+        x: navigationX,
+        y: upArrowY,
+        endX: navigationX + upText.length
+      };
+    }
+
+    // Down arrow - show if more content below
+    if (currentY > this.helpMaxLines + this.helpViewOffset) {
+      const downArrowY = plotStartY + 6;  // Moved down 2 characters
+      const downText = !window.isMobile ? `▼ scroll down` : `▼ down`;
+      this.drawText(downText, navigationX, downArrowY, this.colors.scroll);
+      this.downArrowPosition = {
+        x: navigationX,
+        y: downArrowY,
+        endX: navigationX + downText.length
+      };
+    }
   }
 
   handleHelpClick(x, y) {
+    // Check for scroll button clicks
+    if (this.upArrowPosition && 
+        y === this.upArrowPosition.y && 
+        x >= this.upArrowPosition.x && 
+        x < this.upArrowPosition.endX) {
+      return this.handleHelpScroll('up');
+    }
+    
+    if (this.downArrowPosition && 
+        y === this.downArrowPosition.y && 
+        x >= this.downArrowPosition.x && 
+        x < this.downArrowPosition.endX) {
+      return this.handleHelpScroll('down');
+    }
+
     // Check for link clicks when in help view
     for (const link of this.linkPositions) {
       if (y === link.y && x >= link.startX && x < link.endX) {
@@ -442,9 +496,9 @@ class IndexChart {
 
     // 2) Define data region
     const TOP_OFFSET = 2;
-    const LEFT_OFFSET = 3;
-    const BOTTOM_OFFSET = 3;
-    const RIGHT_OFFSET = 6;
+    const LEFT_OFFSET = window.isMobile ? 2 : 3;  // One character less on mobile
+    const BOTTOM_OFFSET = window.isMobile ? 4 : 3;
+    const RIGHT_OFFSET = window.isMobile ? 6 : 6;  // One character less on mobile
 
     const dataStartX = plotStartX + LEFT_OFFSET;
     const dataStartY = plotStartY + TOP_OFFSET;
@@ -481,14 +535,14 @@ class IndexChart {
       }
     }
 
-    const timeLabelsY = dataStartY + dataHeight + this.timeLabelsConfig.bottomMargin;
+    const timeLabelsY = dataStartY + dataHeight + this.timeLabelsConfig.bottomMargin + (window.isMobile ? 1 : 0);
     for (let hour = 0; hour <= timeIntervals; hour++) {
-      if (hour % TIMESTAMP_INTERVAL_HOURS === 0) {
         // Skip first (0h) and last (168h) labels
         if (hour !== 0 && hour !== timeIntervals) {
+          if (!window.isMobile || (hour % TIMESTAMP_INTERVAL_HOURS === 0 && Math.floor(hour / TIMESTAMP_INTERVAL_HOURS) % 2 === 1)) {
           const x = dataStartX + Math.round(hour * intervalWidth);
           const label = `${hour}h`;
-          const labelX = x - Math.floor(label.length / 2);  // Center the label
+            const labelX = x - Math.floor(label.length / 2);  // Center align the label
           this.drawText(label, labelX, timeLabelsY, this.getSchemeColor('label'));
         }
       }
@@ -677,8 +731,8 @@ class IndexChart {
 
     if(!window.isMobile) {
       headers.push("1H%".padEnd(colWidths.pct1h));
+      headers.push("24H%".padEnd(colWidths.pct24h));
     }
-    headers.push("24H%".padEnd(colWidths.pct24h));
     headers.push("7D%".padEnd(colWidths.pct7d));
 
     let currentX = headerX;
@@ -717,15 +771,15 @@ class IndexChart {
     const indexPercentages = []
     if(!window.isMobile) {
       indexPercentages.push(this.indexPct1h);
+      indexPercentages.push(this.indexPct24h);
     }
-    indexPercentages.push(this.indexPct24h);
     indexPercentages.push(this.indexPct7d);
 
     const colWidthsArray = [];
     if(!window.isMobile) {
       colWidthsArray.push(colWidths.pct1h);
+      colWidthsArray.push(colWidths.pct24h);
     }
-    colWidthsArray.push(colWidths.pct24h);
     colWidthsArray.push(colWidths.pct7d);
 
     indexPercentages.forEach((pct, idx) => {
@@ -748,11 +802,23 @@ class IndexChart {
       headerX - 1,
       headerX + colWidths.symbol,
       headerX + colWidths.symbol + 1 + colWidths.marketCap,
-      headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price,
-      headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price + 1 + colWidths.pct1h,
-      headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price + 1 + colWidths.pct1h + 1 + colWidths.pct24h,
-      headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price + 1 + colWidths.pct1h + 1 + colWidths.pct24h + 1 + colWidths.pct7d
+      headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price
     ];
+
+    // Only add pct1h and pct24h lines if not mobile
+    if (!window.isMobile) {
+      verticalLineXs.push(
+        headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price + 1 + colWidths.pct1h,
+        headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price + 1 + colWidths.pct1h + 1 + colWidths.pct24h
+      );
+    }
+
+    // Always add the final pct7d line
+    verticalLineXs.push(
+      headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price + 1 + 
+      (!window.isMobile ? (colWidths.pct1h + 1 + colWidths.pct24h + 1) : 0) + 
+      colWidths.pct7d
+    );
 
     // Draw vertical lines
     verticalLineXs.forEach(x => {
@@ -812,16 +878,16 @@ class IndexChart {
 
       if(!window.isMobile) {
         percentages.push(pct1h);
+        percentages.push(pct24h);
       }
-      percentages.push(pct24h);
       percentages.push(pct7d);
       
 
       const widths = [];
       if(!window.isMobile) {
         widths.push(colWidths.pct1h);
+        widths.push(colWidths.pct24h);
       }
-      widths.push(colWidths.pct24h);
       widths.push(colWidths.pct7d);
       
       percentages.forEach((pct, idx) => {
@@ -836,13 +902,15 @@ class IndexChart {
     // Draw final grid line
     drawHorizontalGrid(headerY - 1);
 
-    // Draw navigation arrows
-    const navigationX = headerX + Object.values(colWidths).reduce((sum, width) => sum + width + 1, 0) + 2;
+    // Calculate navigation X position based on visible columns only
+    const navigationX = headerX + colWidths.symbol + 1 + colWidths.marketCap + 1 + colWidths.price + 1 + 
+    (!window.isMobile ? (colWidths.pct1h + 1 + colWidths.pct24h + 1) : 0) + 
+    colWidths.pct7d + 2;
 
     // Up arrow
     if (this.topIndex > 0) {
       const upArrowY = plotStartY + 6;
-      const upText = `▲ ${!window.isMobile ? "scroll" : "" } up`;
+      const upText = !window.isMobile ? `▲ scroll up` : `▲ up`;
       this.drawText(upText, navigationX, upArrowY, this.colors.scroll);
       this.upArrowPosition = {
         x: navigationX,
@@ -856,7 +924,7 @@ class IndexChart {
     // Down arrow
     if (this.topIndex + this.pageSize < Object.values(getIndexAssets()).length) {
       const downArrowY = plotStartY + 8;
-      const downText = `▼ ${!window.isMobile ? "scroll" : "" } down`;
+      const downText = !window.isMobile ? `▼ scroll down` : `▼ down`;
       this.drawText(downText, navigationX, downArrowY, this.colors.scroll);
       this.downArrowPosition = {
         x: navigationX,
@@ -906,10 +974,14 @@ class IndexChart {
   }
 
   drawText(text, startX, startY, color = null, maxWidth = this.width - 2) {
+    // Don't render text if it would appear above our minimum spacing requirement
+    if (startY < 2) return 0;
+
     let x = startX;
     let y = startY;
     let inLink = false;
     let currentLink = '';
+    let linesUsed = 0;
 
     // Special handling for title buttons - if text starts with space and is short
     if (text.startsWith(' ') && text.length < 15) {
@@ -929,6 +1001,17 @@ class IndexChart {
     let words = text.split(' ');
 
     words.forEach((word, index) => {
+      // Skip rendering if this line would appear above minimum spacing
+      if (y < 2) {
+        if (x + word.length > maxWidth) {
+          x = startX;
+          y += 2;
+          linesUsed += 2;
+        }
+        x += word.length + 1;
+        return;
+      }
+
       // Handle link markers
       if (word.startsWith('[') && word.includes(']')) {
         inLink = true;
@@ -942,6 +1025,7 @@ class IndexChart {
       if (x + wordLength > maxWidth) {
         x = startX;
         y += 2;
+        linesUsed += 2;
       }
 
       if (x > startX) {
@@ -966,7 +1050,7 @@ class IndexChart {
         }
         this.linkPositions.push({
           text: currentLink,
-          url: this.links.get(currentLink),
+          url: this.links.get(currentLink.toLowerCase()),
           startX: linkStart.x,
           endX: x + word.length,
           y: linkStart.y
@@ -987,7 +1071,9 @@ class IndexChart {
       x += word.length;
     });
 
-    return y - startY + 1;
+    // Calculate final lines used
+    linesUsed = Math.max(linesUsed, y - startY + 1);
+    return linesUsed;
   }
 
   sortTokens() {
