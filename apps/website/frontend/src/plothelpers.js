@@ -169,6 +169,7 @@ let NOMINEES_CLICK = "n";
 let CHART_CLICK = "ch";
 let COLOR_CLICK = "c";
 let INFO_CLICK = "info";
+let INFO_BACK_CLICK = "infoback";
 let aboutClicked = false;
 
 async function loadFonts() {
@@ -219,6 +220,12 @@ let pointString = {
   fromLeftPercent: 0.75,
   message: " POINTS: 0 ",
   color: "#ff8700"
+}
+
+let phoneString = {
+  fromLeftPercent: 0.9,
+  message: " +1-111-111-1111 ",
+  color: () => getStringColor('navigation'),
 }
 
 let colorString = {
@@ -298,7 +305,8 @@ let voidlingStrings = {
       color: () => getStringColor('stable-titles')
     },
     pointString,
-    infoString
+    infoString,
+
   ]
 }
 
@@ -427,7 +435,12 @@ let nomineeStrings = {
 
 let infoStrings = {
   top: [
-
+    {
+      fromLeftPercent: 0.125,
+      message: " BACK ",
+      color: () => getStringColor('navigation'),
+      onclick: INFO_BACK_CLICK,
+    },
     {
       fromLeftPercent: 0.5,
       message: TOP_TEXT,

@@ -131,15 +131,13 @@ export function borderClick(msg) {
       initInfoPage();  
     } else {
       document.getElementById(INFO_CANVAS).style.visibility = "hidden"
-      if(currentState == STATE_VOIDLING_PAGE) {
-        document.getElementById(VOIDLING_CANVAS).style.visibility = "visible";
-        showTradingElements();
-      } else if(currentState == STATE_NOMINEES_PAGE) {
-        document.getElementById(NOMINEES_CANVAS).style.visibility = "visible";
-      } else if(currentState == STATE_INDEX_PAGE) {
-        document.getElementById(INDEX_CANVAS).style.visibility = "visible";
-      }
+      goBackToPreviousState();
     }    
+
+  } else if (msg.onclick == INFO_BACK_CLICK) {
+    showInfoPage = !showInfoPage;
+    document.getElementById(INFO_CANVAS).style.visibility = "hidden"
+    goBackToPreviousState(); 
 
   } else if(msg.onclick == INDEX_TOGGLE_CLICK) {
     hideIndexHelp();
@@ -156,6 +154,17 @@ export function borderClick(msg) {
     }
     msg.toggler.first = !msg.toggler.first
     return { activateTable: true }
+  }
+}
+
+function goBackToPreviousState() {
+  if (currentState == STATE_VOIDLING_PAGE) {
+    document.getElementById(VOIDLING_CANVAS).style.visibility = "visible";
+    showTradingElements();
+  } else if (currentState == STATE_NOMINEES_PAGE) {
+    document.getElementById(NOMINEES_CANVAS).style.visibility = "visible";
+  } else if (currentState == STATE_INDEX_PAGE) {
+    document.getElementById(INDEX_CANVAS).style.visibility = "visible";
   }
 }
 
