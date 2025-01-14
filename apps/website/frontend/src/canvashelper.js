@@ -53,7 +53,6 @@ export let currentState = STATE_VOIDLING_PAGE; // the default choice
 
 export function borderClick(msg) {
   if (msg.onclick == ABOUT_CLICK) {
-    console.log("Yo")
     aboutClicked = !aboutClicked;
     !aboutClicked ? showTradingElements() : hideTradingElements();
 

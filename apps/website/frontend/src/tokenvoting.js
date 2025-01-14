@@ -53,10 +53,10 @@ class TokenVotingTable {
       { id: 'symbol', title: 'TICKER', width: !window.isMobile ? 11 : 9 },
       { id: 'xprofile', title: 'X USERNAME', width: !window.isMobile ? 18 : 16 },
       { id: 'github', title: 'GITHUB', width: 18 },
-      { id: 'marketCap', title: mcapString, width: !window.isMobile ? 11 : 6, sortable: true },
+      { id: 'marketCap', title: mcapString, width: !window.isMobile ? 11 : 7, sortable: true },
       { id: 'created', title: 'CREATED', width: 12, sortable: true },
       { id: 'voidBalance', title: 'VOIDLING', width: 10, sortable: true },
-      { id: 'votes', title: 'VOTES', width: 10, sortable: true },
+      { id: 'votes', title: 'VOTES', width: !window.isMobile ? 10 : 7, sortable: true },
       //{ id: 'vote', title: '', width: 8 }
     ];
 
@@ -349,7 +349,7 @@ class TokenVotingTable {
     for (let x = 0; x < this.width; x++) {
         // Top border
       this.buffer[x] = '$';
-      this.colorBuffer[x] = this.getSchemeColor('border');
+        this.colorBuffer[x] = this.getSchemeColor('border');
 
       ({ char, c } = borderCharacter(x, 0, x, 0, cv, null, null, cscheme, [...nomineeStrings.top]));
       if (char != null) {
@@ -360,7 +360,7 @@ class TokenVotingTable {
         // Bottom border
       let xBottom = x + (this.height - 1) * this.width;
       this.buffer[xBottom] = '$';
-        this.colorBuffer[xBottom] = this.getSchemeColor('border');  // Fixed: changed x to xBottom
+      this.colorBuffer[xBottom] = this.getSchemeColor('border');
     
       ({ char, c } = borderCharacter(x, 0, x, 0, cv, null, null, cscheme, [...nomineeStrings.bottom]));
       if (char != null) {
@@ -384,6 +384,7 @@ class TokenVotingTable {
       let indexRight = this.width - 1 + y * this.width;
       this.buffer[indexRight] = '$';
       this.colorBuffer[indexRight] = this.getSchemeColor('border');
+
       ({ char, c } = borderCharacter(this.width, y, this.width, y, cv, null, null, cscheme, [...nomineeStrings.right], true));
       if (char != null) {
         this.buffer[indexRight] = char;
@@ -399,7 +400,7 @@ class TokenVotingTable {
 
     // Get visible columns and calculate total width
     const visibleColumns = this.getVisibleColumns();
-    this.TOTAL_TABLE_WIDTH = visibleColumns.reduce((sum, col) => sum + col.width + 1, 0);
+    this.TOTAL_TABLE_WIDTH = visibleColumns.reduce((sum, col) => sum + col.width + 1, 0) + (!window.isMobile ? 0 : - 3);
 
     // Draw initial horizontal line
     this.drawHorizontalLine(this.TABLE_START_Y);
@@ -482,12 +483,14 @@ class TokenVotingTable {
             }
             break;
           case 'marketCap':
-            const mcap = this.marketCaps.get(token.symbol);
-            const mcapText = mcap ?
-              `${(mcap / 1000000).toFixed(0)}M` :
-              '';
-            this.drawText(mcapText.padEnd(column.width), currentX, currentY, this.colors.mktcapcontent);
-            break;
+              const mcap = this.marketCaps.get(token.symbol);
+              const mcapText = mcap ? 
+                (!window.isMobile ? 
+                  mcap.toLocaleString('en-US', { maximumFractionDigits: 0 }) :
+                  `${(mcap/1000000).toFixed(1)}M`) :
+                '';
+              this.drawText(mcapText.padEnd(column.width), currentX, currentY, this.colors.mktcapcontent);
+          break;
           case 'created':
             this.drawText(token.created.padEnd(column.width), currentX, currentY, this.colors.createdcontent);
             break;
@@ -499,12 +502,12 @@ class TokenVotingTable {
             this.drawText(voidBalanceText.padEnd(column.width), currentX, currentY, this.colors.voidbalcontent);
             break;
           case 'votes':
-            const votes = token.votes || 0;
-            const votesText = votes >= 1000000 ?
-              `${(votes / 1000000).toFixed(2)}M` :
-              votes.toString();
+              const votes = token.votes || 0;
+              const votesText = !window.isMobile ?
+                votes.toLocaleString('en-US', { maximumFractionDigits: 0 }) :
+                (votes >= 1000000 ? `${(votes/1000000).toFixed(1)}M` : votes.toString());
               this.drawText(votesText.padEnd(column.width), currentX, currentY, this.colors.votescontent);
-            break;
+          break;
           case 'vote':
             this.drawText('+ VOTE', currentX, currentY, this.colors.vote);
             break;
@@ -520,13 +523,13 @@ class TokenVotingTable {
     this.drawVerticalLines();
 
     // Draw navigation arrows
-    const navigationX = this.COLUMN_START_X + this.TOTAL_TABLE_WIDTH + 2;
+    const navigationX = this.COLUMN_START_X + this.TOTAL_TABLE_WIDTH + (!window.isMobile ? 2 : 3);
     const navigationBaseY = this.TABLE_START_Y + this.HEADER_OFFSET;
 
     // Draw up arrow
     if (this.topIndex > 0) {
       const upArrowY = navigationBaseY - 1;
-      const upText = `▲ ${!window.isMobile ? "scroll" : ""} up`;
+      const upText = !window.isMobile ? `▲ scroll up` : `▲ up`;
       this.drawText(upText, navigationX, upArrowY, this.highlightColor);
       this.upArrowPosition = {
         x: navigationX,
@@ -540,7 +543,7 @@ class TokenVotingTable {
     // Draw down arrow
     if (this.topIndex + this.pageSize < sortedTokens.length) {
       const downArrowY = navigationBaseY + 1;
-      const downText = `▼ ${!window.isMobile ? "scroll" : ""} down`;
+      const downText = !window.isMobile ? `▼ scroll down` : `▼ down`;
       this.drawText(downText, navigationX, downArrowY, this.highlightColor);
       this.downArrowPosition = {
         x: navigationX,

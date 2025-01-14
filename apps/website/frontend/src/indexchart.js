@@ -11,6 +11,9 @@ let projectString = !window.isMobile  ? "PROJECTS" : "ASSETS";
 
 class IndexChart {
   constructor(width, height) {
+    // Help text scroll position
+    this.helpViewOffset = 0;
+    this.helpMaxLines = !window.isMobile ? 30 : 20; // Visible lines in viewport
 
     this.colors = { ...GRID_COLORS }
     this.starColor = this.colors.darkorange;
@@ -499,7 +502,7 @@ class IndexChart {
     const LEFT_OFFSET = window.isMobile ? 2 : 3;  // One character less on mobile
     const BOTTOM_OFFSET = window.isMobile ? 4 : 3;
     const RIGHT_OFFSET = window.isMobile ? 6 : 6;  // One character less on mobile
-
+    
     const dataStartX = plotStartX + LEFT_OFFSET;
     const dataStartY = plotStartY + TOP_OFFSET;
     const dataWidth = plotWidth - (LEFT_OFFSET + RIGHT_OFFSET);
@@ -540,12 +543,12 @@ class IndexChart {
         // Skip first (0h) and last (168h) labels
         if (hour !== 0 && hour !== timeIntervals) {
           if (!window.isMobile && (hour % TIMESTAMP_INTERVAL_HOURS === 0 && Math.floor(hour / TIMESTAMP_INTERVAL_HOURS) % 2 === 1)) {
-          const x = dataStartX + Math.round(hour * intervalWidth);
-          const label = `${hour}h`;
-          const labelX = x - Math.floor(label.length / 2);  // Center align the label
-          this.drawText(label, labelX, timeLabelsY, this.getSchemeColor('label'));
+            const x = dataStartX + Math.round(hour * intervalWidth);
+            const label = `${hour}h`;
+            const labelX = x - Math.floor(label.length / 2);  // Center align the label
+            this.drawText(label, labelX, timeLabelsY, this.getSchemeColor('label'));
+          }
         }
-      }
     }
 
     const priceSteps = Math.min(10, dataHeight - 1);
