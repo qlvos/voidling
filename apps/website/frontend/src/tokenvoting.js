@@ -349,7 +349,7 @@ class TokenVotingTable {
     for (let x = 0; x < this.width; x++) {
         // Top border
       this.buffer[x] = '$';
-        this.colorBuffer[x] = this.getSchemeColor('border');
+      this.colorBuffer[x] = this.getSchemeColor('border');
 
       ({ char, c } = borderCharacter(x, 0, x, 0, cv, null, null, cscheme, [...nomineeStrings.top]));
       if (char != null) {
@@ -373,7 +373,7 @@ class TokenVotingTable {
     for (let y = 0; y < this.height; y++) {
         // Left border
       this.buffer[y * this.width] = '$';
-        this.colorBuffer[y * this.width] = this.getSchemeColor('border');  // Fixed: changed x to y * this.width
+      this.colorBuffer[y * this.width] = this.getSchemeColor('border');  // Fixed: changed x to y * this.width
 
       ({ char, c } = borderCharacter(0, y, 0, y, cv, null, null, cscheme, [...nomineeStrings.left], true));
       if (char != null) {
@@ -383,7 +383,7 @@ class TokenVotingTable {
 
       let indexRight = this.width - 1 + y * this.width;
       this.buffer[indexRight] = '$';
-
+      this.colorBuffer[indexRight] = this.getSchemeColor('border');
       ({ char, c } = borderCharacter(this.width, y, this.width, y, cv, null, null, cscheme, [...nomineeStrings.right], true));
       if (char != null) {
         this.buffer[indexRight] = char;
