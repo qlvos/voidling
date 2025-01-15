@@ -14,7 +14,7 @@ export let openingAnimation = [
     background: '$',
     text : ["wif" , "goat", "www" , "pepito", "rg" , "sendai", "cents", "fartcoin", "zerebro", "ongo", "ai16z", "degenai", "shoggoth", "shegen", "gnon", "lola", "luna", "yousim", "project89", "bully", "pippin", "rex"],
     type: "randomtext",
-    timeseconds: 2,
+    timeseconds: 1.8,
     overlapNext: true
   },
   {
@@ -22,7 +22,7 @@ export let openingAnimation = [
     background: '$',
     text : [" standard & voids "],
     type: "fillprogressively",
-    timeseconds: 3
+    timeseconds: 2
   },
   {
     backgroundFromPrevious: true,
@@ -30,7 +30,7 @@ export let openingAnimation = [
     background: '$',
     text : [' S&V '],
     type: "fillprogressively",
-    timeseconds: 3
+    timeseconds: 2
   },
   {
     backgroundFromPrevious: true,
@@ -39,7 +39,7 @@ export let openingAnimation = [
     background: ' ',
     text : [' '],
     type: "fillprogressively",
-    timeseconds: 3
+    timeseconds: 2
   }
 ];
 
