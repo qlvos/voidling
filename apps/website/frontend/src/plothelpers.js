@@ -439,7 +439,7 @@ let nomineeStrings = {
 let infoStrings = {
   top: [
     {
-      fromLeftPercent: 0.125,
+      fromLeftPercent: 0.75,
       message: " BACK ",
       color: () => getStringColor('navigation'),
       onclick: INFO_BACK_CLICK,
