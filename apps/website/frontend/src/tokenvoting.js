@@ -53,7 +53,7 @@ class TokenVotingTable {
       { id: 'symbol', title: 'TICKER', width: !window.isMobile ? 11 : 9 },
       { id: 'xprofile', title: 'X USERNAME', width: !window.isMobile ? 18 : 16 },
       { id: 'github', title: 'GITHUB', width: 18 },
-      { id: 'marketCap', title: mcapString, width: !window.isMobile ? 11 : 7, sortable: true },
+      { id: 'marketCap', title: mcapString, width: !window.isMobile ? 14 : 7, sortable: true },
       { id: 'created', title: 'CREATED', width: 12, sortable: true },
       { id: 'voidBalance', title: 'VOIDLING', width: 10, sortable: true },
       { id: 'votes', title: 'VOTES', width: !window.isMobile ? 10 : 7, sortable: true },

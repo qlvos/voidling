@@ -40,8 +40,8 @@ let endGameEvaluation;
 const END_GAME_EVALUATION_MAX_LENGTH = 75;
 const RANDOM_ANIMATION_PROBABILITY = 0.1;
 const RANDOM_ANIM_EACH_SECOND = 20;
-const ABOUT_START_COL = 5;
-const ABOUT_START_ROW = 3;
+const ABOUT_START_COL = !window.isMobile ? 5 : 4;
+const ABOUT_START_ROW = !window.isMobile ? 4 : 3;
 
 let hoverCycles = 1;
 const dims = calculateDimensions();
@@ -95,10 +95,6 @@ let links = new Map([
 // Add these help sections
 const aboutSections = [
   {
-      title: "ABOUT",
-      content: "As the number of tokens grows exponentially on infinitely expanding decentralized networks, indexing and aggregating have become necessary. STANDARD & VOID'S builds on-chain indexes with AI."
-  },
-  {
       title: "THE VOIDLING",
       content: "Born from the void, summoned by [reaper_x]The Reaper[/reaper_x] agent, the STANDARD & VOID'S VOIDLING agent is an autonomous proto-conscious creature. It gathers data, informs its audience, and trades a basket of AI agent tokens."
   },
@@ -111,6 +107,22 @@ const aboutSections = [
       content: "STANDARD & VOID'S has no token yet. Stay in touch with our developments here: [x]X[/x] | [telegram]Telegram[/telegram]"
   }
 ];
+
+function getSchemeColor(type) {
+  const currentScheme = colorScheme.get(scheme);
+  if (!currentScheme) return '#ff8700'; // fallback color
+
+  switch (type) {
+    case 'about-title':
+      return currentScheme.orangeTitleColor;
+    case 'about-text':
+      return currentScheme.plusSignColor;
+    case 'about-link':
+      return currentScheme.darkOrangeTitle;
+    default:
+      return currentScheme.textColor;
+  }
+}
 
 export function getModuleInitialized() {
   return moduleInitialized;
@@ -803,41 +815,38 @@ export function hideTradingElements() {
   document.getElementById(VOIDLINGEXPRESSION).style.visibility = "hidden";
 }
 
+// modify the drawAbout function to use the color scheme
 function drawAbout(context, dims, cv) {
-  // Do NOT clear the canvas. 
-  // Do NOT draw the '$' border here. (Your normal Voidling code already did.)
-  
-  // We'll just position the "about" text inside the border.
-  // For example, we start writing at row ~3, col ~5:
   let row = ABOUT_START_ROW; 
-  let col = ABOUT_START_COL; 
-  context.fillStyle = '#5f5fff';   // or your text color
+  let col = ABOUT_START_COL;
+  const SECTION_SPACING = 3;  // Increased spacing between sections
+  
+  context.fillStyle = getSchemeColor('about-text');
   context.font = getFont();
   context.textAlign = 'left';
   linkPositions = [];
-  // We can loop your aboutSections array, just like you do:
+
   aboutSections.forEach((section) => {
-    // 1) Print the section title
+    // Section title with scheme color
+    context.fillStyle = getSchemeColor('about-title');
     for (let i = 0; i < section.title.length; i++) {
-      // x position = (col + i) * cv.width
       context.fillText(section.title[i], (col + i) * cv.width, row * cv.height);
     }
-    row += 2; // skip a line
+    row += SECTION_SPACING;
 
-    // 2) Print the section content using your drawFormattedText or a quick approach
+    // Section content with scheme colors
     const linesUsed = drawFormattedText(
       context,
       section.content,
-      col,      // start col
-      row,      // start row
-      '#5f5fff',
-      (dims.width - (col + 5)), // max width, so we don't overflow border
+      col,
+      row,
+      getSchemeColor('about-text'),
+      (dims.width - (col + 5)),
       cv
     );
-    row += linesUsed + 2; // skip some lines after each section
+    row += linesUsed + SECTION_SPACING;  // Add spacing after content
   });
 }
-
 
 function drawFormattedText(context, text, x, y, color, maxWidth, cv) {
   const linkRegex = /\[(.*?)\](.*?)\[\/(.*?)\]/g;
@@ -846,97 +855,68 @@ function drawFormattedText(context, text, x, y, color, maxWidth, cv) {
   let currentX = x;
   let currentY = y;
   let lines = 1;
-  let lineWidth = 0;
+  let words = [];
+  const LINE_HEIGHT = 2; // Increased line height for better readability
+  
+  function drawWord(word, isLink = false) {
+    if (currentX - x + word.length > maxWidth) {
+      currentY += LINE_HEIGHT;
+      currentX = x;
+      lines += LINE_HEIGHT;
+    }
+    
+    context.fillStyle = isLink ? getSchemeColor('about-link') : getSchemeColor('about-text');
+    const startX = currentX;
+    
+    for (let i = 0; i < word.length; i++) {
+      context.fillText(word[i], currentX * cv.width, currentY * cv.height);
+      currentX++;
+    }
+    
+    // Add space after word unless it's end of line
+    if (currentX - x < maxWidth) {
+      currentX++;
+    }
+    
+    return startX;
+  }
 
   while ((match = linkRegex.exec(text)) !== null) {
-    // text before link
+    // Split and process regular text before link
     const beforeText = text.slice(lastIndex, match.index);
-    for (let i = 0; i < beforeText.length; i++) {
-      if (lineWidth >= maxWidth) {
-        currentY++;
-        currentX = x;
-        lineWidth = 0;
-        lines++;
-      }
-      context.fillStyle = color;
-      context.fillText(beforeText[i], currentX * cv.width, currentY * cv.height);
-      currentX++;
-      lineWidth++;
-    }
+    words = beforeText.split(/\s+/);
+    
+    words.forEach(word => {
+      if (word) drawWord(word);
+    });
 
-    // link text
+    // Process link text
     const linkText = match[2];
-    const linkStartX = currentX;
-    for (let i = 0; i < linkText.length; i++) {
-      if (lineWidth >= maxWidth) {
-        currentY++;
-        currentX = x;
-        lineWidth = 0;
-        lines++;
-      }
-      context.fillStyle = '#ff8700'; // link color
-      context.fillText(linkText[i], currentX * cv.width, currentY * cv.height);
-      currentX++;
-      lineWidth++;
-    }
-    // store link position
+    const linkStartX = drawWord(linkText, true);
 
-    let openLink = (url) => {
-      window.open(url, '_blank');
-    }
+    // Store link position
     let url = links.get(match[1]);
-    let linkObj = {
+    linkPositions.push({
       text: linkText,
-      onclick: () => { openLink(url)},
+      onclick: () => { window.open(url, '_blank') },
       box: {
         startx: linkStartX * cv.width,
         endx: currentX * cv.width,
         starty: currentY * cv.height - cv.height/2,
-        endy: (currentY * cv.height)
+        endy: currentY * cv.height
       }
-    }
-
-    if(linkObj.box.startx > linkObj.box.endx) {
-      // this happens when links are broken into two lines
-      let linkObj2 = { ...linkObj }
-      linkObj2.box = {
-        startx: linkObj.box.startx,
-        endx: linkObj.box.endx,
-        starty: linkObj.box.starty,
-        endy: linkObj.box.endy
-      }
-
-      linkObj2.box.startx = ABOUT_START_COL * cv.width + 5;
-      linkObj2.box.starty = linkObj.box.endy - cv.height/2;
-      linkObj2.box.endy = linkObj.box.endy - 2;
-
-      linkObj.box.starty -= cv.height;
-      linkObj.box.endy -= cv.height;
-      linkObj.box.endx = maxWidth * (cv.width+1);
-
-      linkPositions.push(linkObj);
-      linkPositions.push(linkObj2);
-
-    } else {
-      linkPositions.push(linkObj);
-    }
+    });
+    
     lastIndex = match.index + match[0].length;
   }
 
-  // remaining text
+  // Handle remaining text with word wrapping
   const remainingText = text.slice(lastIndex);
-  for (let i = 0; i < remainingText.length; i++) {
-    if (lineWidth >= maxWidth) {
-      currentY++;
-      currentX = x;
-      lineWidth = 0;
-      lines++;
-    }
-    context.fillStyle = color;
-    context.fillText(remainingText[i], currentX * cv.width, currentY * cv.height);
-    currentX++;
-    lineWidth++;
-  }
+  const remainingWords = remainingText.split(/\s+/);
+  remainingWords.forEach(word => {
+    if (word) drawWord(word);
+  });
+
   return lines;
 }
 
