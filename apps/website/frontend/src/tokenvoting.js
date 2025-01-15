@@ -205,14 +205,19 @@ class TokenVotingTable {
           comparison = voidB - voidA;
           break;
         case 'created':
-          const dateA = new Date(a.created);
-          const dateB = new Date(b.created);
+          const dateA = this.getDate(a.created);
+          const dateB = this.getDate(b.created);
           comparison = dateB - dateA;
           break;
       }
 
       return this.sortAscending ? -comparison : comparison;
     });
+  }
+
+  getDate(dateStr) {
+    const [day, month, year] = dateStr.split('/').map(Number);
+    return new Date(year, month - 1, day);
   }
 
   drawText(text, startX, startY, color = null, maxWidth = this.width - this.TITLE_MARGIN) {
@@ -647,3 +652,4 @@ class TokenVotingTable {
 }
 
 export { TokenVotingTable };
+
