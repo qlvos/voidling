@@ -760,7 +760,7 @@ class IndexChart {
     currentX += colWidths.symbol + 1;
 
     // Market Cap (darker orange)
-    const totalMarketCapStr = this.latestTotalMarketCap ? (!window.isMobile ? this.latestTotalMarketCap.toLocaleString('en-US', { maximumFractionDigits: 0 }) : (this.latestTotalMarketCap/1000000).toFixed(0) + "M") : "N/A";
+    const totalMarketCapStr = this.latestTotalMarketCap ? (!window.isMobile ? '$' + this.latestTotalMarketCap.toLocaleString('en-US', { maximumFractionDigits: 0 }) : (this.latestTotalMarketCap/1000000).toFixed(0) + "M") : "N/A";
 
     this.drawText(totalMarketCapStr.padEnd(colWidths.marketCap), currentX, headerY, this.getSchemeColor('darkOrange-title'));
     currentX += colWidths.marketCap + 1;
