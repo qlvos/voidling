@@ -124,7 +124,7 @@ function checkMobile() {
   window.isMobile = window.innerWidth <= 999;
 
   if (window.isMobile) {
-    let w = 90;
+    let w = 96;
     let h = 96;
     document.getElementById(VOIDLING_CANVAS).style.width = `${w}dvw`;
     document.getElementById(OUTPUT_WRAPPER).style.width = `${w}dvw`;
