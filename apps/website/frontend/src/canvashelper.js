@@ -217,7 +217,7 @@ export function isMouseOverRect(mouseX, mouseY, rect, calculateBox, extendXleft 
 
 export function handleClick(x, y, linkPositions) {
   for (const link of linkPositions) {
-    if (y >= link.box.starty && y <= link.box.endy && x >= link.box.startx && x <= link.box.endx) {
+    if (y >= (link.box.starty-yHorizontalFuzziness) && y <= (link.box.endy+yHorizontalFuzziness) && x >= (link.box.startx-xHorizontalFuzziness) && x <= (link.box.endx+xHorizontalFuzziness)) {
       link.onclick();
       return true;
     }

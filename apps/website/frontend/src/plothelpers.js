@@ -54,6 +54,9 @@ const LEFT_TEXT = " IT COMES FROM THE VOID ";
 const RIGHT_TEXT = " IT SERVES THE REAPER ";
 const BOTTOM_TEXT = " STANDARD & VOID'S ";
 
+const xHorizontalFuzziness = 10;
+const yHorizontalFuzziness = 5;
+
 colorScheme.set("daemon",
   {
     voidling: daemonColors,
@@ -696,12 +699,10 @@ function verticalFuzziness(extendXleft, rect, extendXright, extendY) {
 }
 
 function horizontalFuzziness(extendXleft, rect, extendXright, extendY) {
-  let xFuzziness = 10;
-  let yFuzziness = 5;
-  let startX = extendXleft ? rect.startx - xFuzziness : rect.startx;
-  let endX = extendXright ? rect.endx + xFuzziness : rect.endx;
-  let startY = extendY ? rect.starty - yFuzziness : rect.starty;
-  let endY = extendY ? rect.endy + yFuzziness : rect.endy;
+  let startX = extendXleft ? rect.startx - xHorizontalFuzziness : rect.startx;
+  let endX = extendXright ? rect.endx + xHorizontalFuzziness : rect.endx;
+  let startY = extendY ? rect.starty - yHorizontalFuzziness : rect.starty;
+  let endY = extendY ? rect.endy + yHorizontalFuzziness : rect.endy;
   return { startX, endX, startY, endY };
 }
 
