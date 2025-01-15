@@ -153,6 +153,7 @@ function checkMobile() {
 
 checkMobile();
 
+
 function updateVoidlingSize() {
   document.documentElement.style.setProperty('--voidling-font-size',
     window.isMobile ? '24px' : '12px'
