@@ -74,7 +74,7 @@ class IndexChart {
 
     // Table pagination properties - adjust for mobile
     this.TABLE_START_Y = !window.isMobile ? 17 : 10;  // Less space from top on mobile
-    this.BOTTOM_MARGIN = 0;   // Space at bottom
+    this.BOTTOM_MARGIN = 2;   // Space at bottom
     this.ROW_HEIGHT = 2;      // Height of each table row
     this.topIndex = 0;        // Current scroll position
 
@@ -82,7 +82,7 @@ class IndexChart {
     const availableHeight = height - this.TABLE_START_Y - this.BOTTOM_MARGIN;
     this.pageSize = Math.floor(availableHeight / this.ROW_HEIGHT);
 
-    this.currentSort = null;
+    this.currentSort = 'marketCap';
     this.sortAscending = false;
     this.timeLabelsConfig = {
       bottomMargin: 0  // Distance from bottom border (meaning bottom border of the grid above the time labels)
@@ -90,12 +90,12 @@ class IndexChart {
 
     // Column definitions
     this.columns = [
-      { id: 'symbol', title: 'SYMBOL', width: 14 },
-      { id: 'marketCap', title: mcapString, width: 20, sortable: true },
-      { id: 'price', title: 'PRICE', width: 15, sortable: true },
-      { id: 'pct1h', title: '1H%', width: 12, sortable: true },
-      { id: 'pct24h', title: '24H%', width: 12, sortable: true },
-      { id: 'pct7d', title: '7D%', width: 12, sortable: true }
+      { id: 'symbol', title: 'SYMBOL', width: 21 },
+      { id: 'marketCap', title: mcapString, width: 16, sortable: true },
+      { id: 'price', title: 'PRICE', width: 11, sortable: true },
+      { id: 'pct1h', title: '1H%', width: 9, sortable: true },
+      { id: 'pct24h', title: '24H%', width: 9, sortable: true },
+      { id: 'pct7d', title: '7D%', width: 9, sortable: true }
     ];
 
     // Navigation arrows positions
@@ -542,7 +542,7 @@ class IndexChart {
     for (let hour = 0; hour <= timeIntervals; hour++) {
         // Skip first (0h) and last (168h) labels
         if (hour !== 0 && hour !== timeIntervals) {
-          if (!window.isMobile && (hour % TIMESTAMP_INTERVAL_HOURS === 0 && Math.floor(hour / TIMESTAMP_INTERVAL_HOURS) % 2 === 1)) {
+          if (hour % TIMESTAMP_INTERVAL_HOURS === 0 && (!window.isMobile || Math.floor(hour / TIMESTAMP_INTERVAL_HOURS) % 2 === 1)) {
             const x = dataStartX + Math.round(hour * intervalWidth);
             const label = `${hour}h`;
             const labelX = x - Math.floor(label.length / 2);  // Center align the label
@@ -593,7 +593,7 @@ class IndexChart {
         const x1 = markerPositions[i];
         const x2 = markerPositions[i + 1];
         const y1 = dataStartY + Math.floor((1 - normVal) * (dataHeight - 1));
-        const y2 = dataStartY + Math.floor((1 - normNextVal) * (dataHeight - 1));
+        const y2 = dataStartY + Math.floor((1 - normNextVal) * (dataHeight - (window.isMobile ? 1 : 2)));
 
         if (this.isInBounds(x1, y1) && this.isInBounds(x2, y2)) {
           this.drawLine(x1, y1, x2, y2);
@@ -689,14 +689,13 @@ class IndexChart {
 
     const { plotStartX, plotWidth, plotStartY, plotHeight } = this.drawBorder();
 
-    // Column widths and positions
     const colWidths = {
       symbol: !window.isMobile ? 21 : 10,
-      marketCap: !window.isMobile ? 20 : 8,
-      price: !window.isMobile ? 15 : 8,
-      pct1h: !window.isMobile ? 12 : 8,
-      pct24h: !window.isMobile ? 12 : 8,
-      pct7d: !window.isMobile ? 12 : 8
+      marketCap: !window.isMobile ? 16 : 8,
+      price: !window.isMobile ? 11 : 8,
+      pct1h: !window.isMobile ? 9 : 8,
+      pct24h: !window.isMobile ? 9 : 8,
+      pct7d: !window.isMobile ? 9 : 8
     };
 
     const headerX = plotStartX + (!window.isMobile ? 8 : 3);
@@ -865,10 +864,12 @@ class IndexChart {
       this.drawText(symbol.padEnd(colWidths.symbol), currentX, headerY, '#ff8700');
       currentX += colWidths.symbol + 1;
 
-      // Market Cap (darker orange)
-      let mcapString = latestCap ? (!window.isMobile ? latestCap.toLocaleString('en-US', { maximumFractionDigits: 0 }) : (latestCap/1000000).toFixed(1)) + "M" : "N/A";
-      //this.drawText((latestCap ? latestCap.toLocaleString('en-US', { maximumFractionDigits: 0 }) : 'N/A').padEnd(colWidths.marketCap),
-      this.drawText(mcapString.padEnd(colWidths.marketCap),
+      let mcapString = latestCap ? (
+  !window.isMobile ? 
+    "$" + latestCap.toLocaleString('en-US', { maximumFractionDigits: 0 }) :
+    (latestCap/1000000).toFixed(1) + "M"
+) : "N/A";
+this.drawText(mcapString.padEnd(colWidths.marketCap),
         currentX, headerY, this.getSchemeColor('darkOrange-title'));
       currentX += colWidths.marketCap + 1;
 
