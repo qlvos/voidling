@@ -492,7 +492,7 @@ class TokenVotingTable {
               const mcap = this.marketCaps.get(token.symbol);
               const mcapText = mcap ? 
                 (!window.isMobile ? 
-                  mcap.toLocaleString('en-US', { maximumFractionDigits: 0 }) :
+                  '$' + mcap.toLocaleString('en-US', { maximumFractionDigits: 0 }) :
                   `${(mcap/1000000).toFixed(1)}M`) :
                 '';
               this.drawText(mcapText.padEnd(column.width), currentX, currentY, this.colors.mktcapcontent);
