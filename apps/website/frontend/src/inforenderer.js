@@ -11,9 +11,9 @@ export class ContentRenderer {
         this.linkPositions = [];
         
         // Layout constants with updated spacing
-        this.MARGIN_LEFT = !window.isMobile ? 7 : 3;
-        this.MARGIN_TOP = !window.isMobile ? 5 : 4;
-        this.MARGIN_RIGHT = !window.isMobile ? 7 : 12;
+        this.MARGIN_LEFT = !window.isMobile ? 6 : 3;
+        this.MARGIN_TOP = !window.isMobile ? 4 : 3;
+        this.MARGIN_RIGHT = !window.isMobile ? 6 : 12;
         this.LINE_SPACING = 2;
         this.SECTION_SPACING = 2;
         this.TITLE_CONTENT_SPACING = 3;
