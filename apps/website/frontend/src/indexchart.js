@@ -74,7 +74,7 @@ class IndexChart {
 
     // Table pagination properties - adjust for mobile
     this.TABLE_START_Y = !window.isMobile ? 17 : 10;  // Less space from top on mobile
-    this.BOTTOM_MARGIN = 2;   // Space at bottom
+    this.BOTTOM_MARGIN = !window.isMobile ? 2 : 4;  // Space at bottom
     this.ROW_HEIGHT = 2;      // Height of each table row
     this.topIndex = 0;        // Current scroll position
 
