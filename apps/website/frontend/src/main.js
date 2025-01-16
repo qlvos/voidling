@@ -671,16 +671,16 @@ function updateDisplay(timestamp) {
         if (!(tradingOnly && isVoidlingCharacter(char))) {
           if(!openingDone && !currentScene.voidling && isVoidlingCharacter(char)) {
             char = background[i];
-            context.fillStyle = cscheme.textColor;
+            context.fillStyle = cscheme.borderColor;
           } else if(!openingDone && currentScene.voidling && isVoidlingCharacter(char)) {
-            context.fillStyle = cscheme.textColor;
+            context.fillStyle = cscheme.borderColor;
           }
 
           let now = Date.now();
           if(now-openingDoneAt < OPENING_DONE_POST_PERIOD) {
             let ratio = ((now-openingDoneAt) / OPENING_DONE_POST_PERIOD);
             if(Math.random() >  ratio) {
-              context.fillStyle = cscheme.textColor;
+              context.fillStyle = cscheme.borderColor;
             }
             
           }
@@ -697,7 +697,7 @@ function updateDisplay(timestamp) {
         }
 
       } else {
-        context.fillStyle = cscheme.textColor;
+        context.fillStyle = cscheme.borderColor;
 
         if(showGameStartText) {
           background = drawText(GAME_START_TEXT_SECTION_1.toUpperCase(), 0.5, 0.1, dims.width, background);
