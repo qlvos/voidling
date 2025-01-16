@@ -56,7 +56,7 @@ const PAGES = {
                 content: "[our story] | [what we build]"
             },
             {
-                content: "[X] | [Telegram]"
+                content: "[X] | [Telegram] | [1 (650) 271-9908]"
             }
         ],
         links: {
@@ -66,7 +66,8 @@ const PAGES = {
             'our story': '#story',
             'what we build': '#build',
             'X': 'https://x.com/standardvoids',
-            'Telegram': 'https://t.me/reaper_agent'
+            'Telegram': 'https://t.me/reaper_agent',
+            '1 (650) 271-9908': '1 (650) 271-9908',
         }
     },
     story: {
