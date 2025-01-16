@@ -41,7 +41,7 @@ const END_GAME_EVALUATION_MAX_LENGTH = 75;
 const RANDOM_ANIMATION_PROBABILITY = 0.1;
 const RANDOM_ANIM_EACH_SECOND = 20;
 const ABOUT_START_COL = !window.isMobile ? 5 : 4;
-const ABOUT_START_ROW = !window.isMobile ? 4 : 3;
+const ABOUT_START_ROW = !window.isMobile ? 4 : 4;
 
 let hoverCycles = 1;
 const dims = calculateDimensions();
