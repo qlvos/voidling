@@ -46,9 +46,7 @@ const PAGES = {
         logo: LOGO_ART,
         sections: [
             {
-                title: "We build indexes with AI."
-            },
-            {
+                title: "We build indexes with AI.",
                 content: "At Standard & Void's, we curate new digitally native asset classes and offer everyone exposure. From our humble beginnings as on-chain traders and builders, to experiments with token standards, multi-model agentic systems, and blockchain art, S&V strives to provide a simple and transparent service while innovating in Artificial intelligence and decentralized finance."
             },
             {
