@@ -353,7 +353,7 @@ class IndexChart {
     const { plotStartX, plotWidth, plotStartY, plotHeight } = this.drawBorder();
 
     const contentX = plotStartX + (!window.isMobile ? 5 : 4);  // 2 characters less padding on mobile
-    const contentStartY = plotStartY + (!window.isMobile ? 2 : 3);  // One character lower on mobile
+    const contentStartY = plotStartY + (!window.isMobile ? 4 : 3);  // One character lower on mobile
     let currentY = contentStartY;
     const maxWidth = plotWidth - 10;
 
@@ -399,8 +399,8 @@ class IndexChart {
       };
     }
 
-    // Down arrow - show if more content below
-    if (currentY > this.helpMaxLines + this.helpViewOffset) {
+    // Down arrow - show if more content below and on mobile only
+    if (window.isMobile && currentY > this.helpMaxLines + this.helpViewOffset) {
       const downArrowY = plotStartY + 6;  // Moved down 2 characters
       const downText = !window.isMobile ? `▼ scroll down` : `▼ down`;
       this.drawText(downText, navigationX, downArrowY, this.colors.scroll);
