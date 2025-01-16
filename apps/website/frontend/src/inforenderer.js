@@ -16,7 +16,7 @@ export class ContentRenderer {
         this.MARGIN_RIGHT = !window.isMobile ? 6 : 12;
         this.LINE_SPACING = 2;
         this.SECTION_SPACING = 2;
-        this.TITLE_CONTENT_SPACING = 3;
+        this.TITLE_CONTENT_SPACING = 2;
         this.LOGO_CONTENT_SPACING = 3;
     
         // Initialize color scheme
