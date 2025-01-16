@@ -11,10 +11,11 @@ export class ContentRenderer {
         this.linkPositions = [];
         
         // Layout constants with updated spacing
-        this.MARGIN_LEFT = 7;
-        this.MARGIN_TOP = 5;
+        this.MARGIN_LEFT = !window.isMobile ? 6 : 3;
+        this.MARGIN_TOP = !window.isMobile ? 4 : 3;
+        this.MARGIN_RIGHT = !window.isMobile ? 6 : 12;
         this.LINE_SPACING = 2;
-        this.SECTION_SPACING = 2;
+        this.SECTION_SPACING = 1;
         this.TITLE_CONTENT_SPACING = 3;
         this.LOGO_CONTENT_SPACING = 3;
     
@@ -371,10 +372,12 @@ export class ContentRenderer {
         this.buffer.fill(' ');
         this.colorBuffer.fill(null);
         this.linkPositions = [];
+        this.upArrowPosition = null;
+        this.downArrowPosition = null;
         
         // Draw border
         const { plotStartX, plotWidth, plotStartY, plotHeight } = this.drawBorder();
-
+    
         // Draw return button if not on landing page
         this.drawReturnButton();
         
@@ -382,6 +385,7 @@ export class ContentRenderer {
         if (!page) return;
         
         let currentY;
+        let firstTitleY = null;
         
         if (this.currentPage === 'landing' && page.logo) {
             currentY = this.drawLogo();
@@ -390,46 +394,130 @@ export class ContentRenderer {
             currentY = this.MARGIN_TOP;
         }
         
-        // Draw sections with updated color types
+        // Draw sections with updated mobile handling
         if (page.sections) {
-            page.sections.forEach((section, index) => {
+            // Determine which sections to show based on page and device
+            let visibleSections;
+            if (window.isMobile && (this.currentPage === 'build' || this.currentPage === 'story')) {
+                // On mobile for build/story pages, only show one section at a time
+                visibleSections = [page.sections[this.topIndex]];
+            } else {
+                // Otherwise show all sections from topIndex
+                visibleSections = page.sections.slice(this.topIndex);
+            }
+    
+            visibleSections.forEach((section, index) => {
+                // Check if we're about to exceed the height with padding
+                if (currentY >= this.height - 4) { // Increased padding from bottom
+                    return;
+                }
+                
                 if (index > 0) {
                     currentY += this.SECTION_SPACING;
                 }
                 
                 if (section.title) {
-                    this.drawText(section.title, this.MARGIN_LEFT, currentY, 'special-title');
+                    if (firstTitleY === null) {
+                        firstTitleY = currentY;
+                    }
+                    this.drawText(section.title, this.MARGIN_LEFT, currentY, 'special-title', 
+                        this.width - (this.MARGIN_LEFT + this.MARGIN_RIGHT));
                     currentY += this.TITLE_CONTENT_SPACING;
                 }
                 
                 if (section.content) {
-                    const linesUsed = this.drawText(
-                        section.content, 
-                        this.MARGIN_LEFT, 
-                        currentY, 
-                        'special-content',
-                        this.width - this.MARGIN_LEFT * 2
-                    );
-                    currentY += linesUsed * this.LINE_SPACING;
+                    // Handle both string and array content
+                    const contentArray = Array.isArray(section.content) ? section.content : [section.content];
+                    
+                    contentArray.forEach((contentItem, contentIndex) => {
+                        const linesUsed = this.drawText(
+                            contentItem, 
+                            this.MARGIN_LEFT, 
+                            currentY, 
+                            'special-content',
+                            this.width - (this.MARGIN_LEFT + this.MARGIN_RIGHT)
+                        );
+                        currentY += linesUsed * this.LINE_SPACING;
+                        
+                        // Add a small space between multiple content items
+                        if (contentIndex < contentArray.length - 1) {
+                            currentY += 1;
+                        }
+                    });
                 }
             });
+    
+            // Draw navigation arrows on mobile - only on build/story pages
+            if (window.isMobile && (this.currentPage === 'build' || this.currentPage === 'story') && firstTitleY !== null) {
+                const navigationX = this.width - 10;
+                
+                // Up arrow - show if not at first section
+                if (this.topIndex > 0) {
+                    const upText = '▲ up';
+                    this.drawText(upText, navigationX, firstTitleY - 1, 'link');
+                    this.upArrowPosition = {
+                        x: navigationX,
+                        y: firstTitleY - 1,
+                        endX: navigationX + upText.length
+                    };
+                }
+    
+                // Down arrow - show if not at last section
+                if (this.topIndex < page.sections.length - 1) {
+                    const downText = '▼ down';
+                    this.drawText(downText, navigationX, firstTitleY + 1, 'link');
+                    this.downArrowPosition = {
+                        x: navigationX,
+                        y: firstTitleY + 1,
+                        endX: navigationX + downText.length
+                    };
+                }
+            }
         }
     }
-    
+        
     handleClick(x, y) {
+        // Check for mobile navigation arrows
+        if (window.isMobile && this.currentPage !== 'landing') {
+            if (this.upArrowPosition && 
+                y === this.upArrowPosition.y && 
+                x >= this.upArrowPosition.x && 
+                x < this.upArrowPosition.endX) {
+                this.topIndex = Math.max(0, this.topIndex - 1);
+                this.draw();
+                return true;
+            }
+            
+            if (this.downArrowPosition && 
+                y === this.downArrowPosition.y && 
+                x >= this.downArrowPosition.x && 
+                x < this.downArrowPosition.endX) {
+                const page = this.pages[this.currentPage];
+                if (page && this.topIndex < page.sections.length - 1) {
+                    this.topIndex++;
+                    this.draw();
+                    return true;
+                }
+            }
+        }
+
         // Check for link clicks
         for (const link of this.linkPositions) {
             if (y === link.y && x >= link.startX && x < link.endX) {
                 if (link.action === 'return') {
                     this.currentPage = 'landing';
+                    this.topIndex = 0;
                     this.draw();
-                } else if (link.url.startsWith('#')) {
+                    return true;
+                } else if (link.url?.startsWith('#')) {
                     this.currentPage = link.url.slice(1);
+                    this.topIndex = 0;
                     this.draw();
-                } else if (link.url.startsWith('http')) {
+                    return true;
+                } else if (link.url?.startsWith('http')) {
                     window.open(link.url, '_blank');
+                    return true;
                 }
-                return true;
             }
         }
         return false;

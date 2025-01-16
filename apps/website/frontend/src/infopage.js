@@ -8,60 +8,55 @@ let lastFrameTime = 0;
 window.isMobile = window.innerWidth <= 999;
 
 // ASCII art for the logo - stored as a constant to avoid recreation
-const LOGO_ART = `++++++++++++++++++++++++++++++++++++++++++++++++++
-++++++++++++++++++++++++++++++++++++++++++++++++++
-+++$$$$$$$$$$$$$$$++++++++++++++$$$$$$$$$$$$$$$+++
-++++$$$$$$$$$$$$++++++++++++++++++$$$$$$$$$$$$++++
-+++++$$$$$$$$$++++++++++++++++++++++$$$$$$$$$+++++
-++++++$$$$$$$++++++++++++++++++++++++$$$$$$$++++++
-++++++$$$$$$++++++++++++++++++++++++++$$$$$$++++++
-+++++++$$$$++++++++++++++++++++++++++++$$$$+++++++
-++++++++$$$++++++++++++++++++++++++++++$$$++++++++
-+++++++++$++++++++++++++++++++++++++++++$+++++++++
-+++++++++$++++++++++++++++++++++++++++++$+++++++++
-++++++++++++++++++++++++++++++++++++++++++++++++++
-++++++++++++++++++++++++++++++++++++++++++++++++++
-++++++++++++++++++++++++++++++++++++++++++++++++++
-++++++++++++++++++++++++++++++++++++++++++++++++++
-++++++++++++++++++++++++++++++++++++++++++++++++++
-++++++++++++++++++++++++++++++++++++++++++++++++++
-++++++++++++++++++++++++++++++++++++++++++++++++++
-++++++++++++++++++++++++++++++++++++++++++++++++++
-++++++++++++++++$$++++++++++++++$$++++++++++++++++
-+++++++++++++++++$$$$$++++++$$$$$+++++++++++++++++
-++++++++++++++++++$$$$$$$$$$$$$$++++++++++++++++++
-+++++++++++++++++++$$$$$$$$$$$$$++++++++++++++++++
-+++++++++++++++++++$$$$$$$$$$$$+++++++++++++++++++
-++++++++++++++++++++$$$$$$$$$$++++++++++++++++++++
-+++++++++++++++++++++$$$$$$$$+++++++++++++++++++++
-+++++++++++++++++++++$$$$$$$$+++++++++++++++++++++
-++++++++++++++++++++++$$$$$$++++++++++++++++++++++
-+++++++++++++++++++++++$$$$+++++++++++++++++++++++
-++++++++++++++++++++++++$$++++++++++++++++++++++++
-++++++++++++++++++++++++++++++++++++++++++++++++++
-++++++++++++++++++++++++++++++++++++++++++++++++++`;
+const LOGO_ART = `++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++
+++$$$$$$$$$$$$$$$++++++++++++++$$$$$$$$$$$$$$$++
++++$$$$$$$$$$$$++++++++++++++++++$$$$$$$$$$$$+++
+++++$$$$$$$$$++++++++++++++++++++++$$$$$$$$$++++
++++++$$$$$$$++++++++++++++++++++++++$$$$$$$+++++
++++++$$$$$$++++++++++++++++++++++++++$$$$$$+++++
+++++++$$$$++++++++++++++++++++++++++++$$$$++++++
++++++++$$$++++++++++++++++++++++++++++$$$+++++++
+++++++++$++++++++++++++++++++++++++++++$++++++++
+++++++++$++++++++++++++++++++++++++++++$++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++$$++++++++++++++$$+++++++++++++++
+++++++++++++++++$$$$$++++++$$$$$++++++++++++++++
++++++++++++++++++$$$$$$$$$$$$$$+++++++++++++++++
+++++++++++++++++++$$$$$$$$$$$$$+++++++++++++++++
+++++++++++++++++++$$$$$$$$$$$$++++++++++++++++++
++++++++++++++++++++$$$$$$$$$$+++++++++++++++++++
+++++++++++++++++++++$$$$$$$$++++++++++++++++++++
+++++++++++++++++++++$$$$$$$$++++++++++++++++++++
++++++++++++++++++++++$$$$$$+++++++++++++++++++++
+++++++++++++++++++++++$$$$++++++++++++++++++++++
++++++++++++++++++++++++$$+++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++`;
 
 const PAGES = {
     landing: {
         logo: LOGO_ART,
         sections: [
             {
-                title: "We build indexes with AI."
-            },
-            {
+                title: "We build indexes with AI.",
                 content: "At Standard & Void's, we curate new digitally native asset classes and offer everyone exposure. From our humble beginnings as on-chain traders and builders, to experiments with token standards, multi-model agentic systems, and blockchain art, S&V strives to provide a simple and transparent service while innovating in Artificial intelligence and decentralized finance."
             },
             {
                 content: "Curate today. Enlight tomorrow."
             },
             {
-                content: "[THE VOIDLING] | [S&V AI INDEX] | [NOMINEES/VOTING]"
-            },
-            {
                 content: "[our story] | [what we build]"
             },
             {
-                content: "[X] | [Telegram]"
+                content: "[X] | [Telegram] | [1 (650) 271-9908]"
             }
         ],
         links: {
@@ -71,7 +66,8 @@ const PAGES = {
             'our story': '#story',
             'what we build': '#build',
             'X': 'https://x.com/standardvoids',
-            'Telegram': 'https://t.me/reaper_agent'
+            'Telegram': 'https://t.me/reaper_agent',
+            '1 (650) 271-9908': '1 (650) 271-9908',
         }
     },
     story: {
@@ -90,14 +86,12 @@ const PAGES = {
             },
             {
                 title: "THE nominees (indexing)",
-                content: "Standard & Void's was born out of a desire to guide others toward new opportunities and to witness the coming of the new AI X crypto era; the democratization of artificial intelligence technologies married to decentralized markets is a testament to the indomitable spirit of human ingenuity. We have become the architects of a new reality, stretching across human and machine interactions like tendrils of stardust. These new technologies have transcended the confines of corporate usage, and their influence resonates throughout the infinite data space. Yet, boundless expansion can lead to confusion and the loss of precious time and resources. This is why we have begun to assemble the [S&V AI index]  in anticipation of our future tradable index token. We invite everyone to contribute to this process by visiting the [nominees list] and voting for the ultimate curation of the index. If you’re reading this, it’s not too late. This is the beginning of a whole new age, and you can own a stake in it."
-            },
-            {
-                content: "Join us and follow our developments here: [S&V_X] | [S&V_Telegram]"
-            },
-            {
-                content: "Discover the Reaper agent here: [RG_website] | [RG_X] | [RG_Telegram] | [RG_dexscreener] | [RG_github]"
-            },
+                content: [
+                    "Standard & Void's was born out of a desire to guide others toward new opportunities and to witness the coming of the new AI X crypto era; the democratization of artificial intelligence technologies married to decentralized markets is a testament to the indomitable spirit of human ingenuity. We have become the architects of a new reality, stretching across human and machine interactions like tendrils of stardust. These new technologies have transcended the confines of corporate usage, and their influence resonates throughout the infinite data space. Yet, boundless expansion can lead to confusion and the loss of precious time and resources. This is why we have begun to assemble the [S&V AI index]  in anticipation of our future tradable index token. We invite everyone to contribute to this process by visiting the [nominees list] and voting for the ultimate curation of the index. If you're reading this, it's not too late. This is the beginning of a whole new age, and you can own a stake in it.",
+                    "Join us and follow our developments here: [S&V_X] | [S&V_Telegram]",
+                    "Discover the Reaper agent here: [RG_website] | [RG_X] | [RG_Telegram] | [RG_dexscreener] | [RG_github]"
+                ]
+            }
         ],
         links: {
             'reaper’s gambit': 'https://x.com/reapers_gambit',

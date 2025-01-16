@@ -41,7 +41,7 @@ const END_GAME_EVALUATION_MAX_LENGTH = 75;
 const RANDOM_ANIMATION_PROBABILITY = 0.1;
 const RANDOM_ANIM_EACH_SECOND = 20;
 const ABOUT_START_COL = !window.isMobile ? 5 : 4;
-const ABOUT_START_ROW = !window.isMobile ? 4 : 3;
+const ABOUT_START_ROW = !window.isMobile ? 4 : 4;
 
 let hoverCycles = 1;
 const dims = calculateDimensions();
@@ -671,16 +671,16 @@ function updateDisplay(timestamp) {
         if (!(tradingOnly && isVoidlingCharacter(char))) {
           if(!openingDone && !currentScene.voidling && isVoidlingCharacter(char)) {
             char = background[i];
-            context.fillStyle = cscheme.textColor;
+            context.fillStyle = cscheme.borderColor;
           } else if(!openingDone && currentScene.voidling && isVoidlingCharacter(char)) {
-            context.fillStyle = cscheme.textColor;
+            context.fillStyle = cscheme.borderColor;
           }
 
           let now = Date.now();
           if(now-openingDoneAt < OPENING_DONE_POST_PERIOD) {
             let ratio = ((now-openingDoneAt) / OPENING_DONE_POST_PERIOD);
             if(Math.random() >  ratio) {
-              context.fillStyle = cscheme.textColor;
+              context.fillStyle = cscheme.borderColor;
             }
             
           }
@@ -697,7 +697,7 @@ function updateDisplay(timestamp) {
         }
 
       } else {
-        context.fillStyle = cscheme.textColor;
+        context.fillStyle = cscheme.borderColor;
 
         if(showGameStartText) {
           background = drawText(GAME_START_TEXT_SECTION_1.toUpperCase(), 0.5, 0.1, dims.width, background);
