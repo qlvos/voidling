@@ -21,6 +21,13 @@ config.VLING_ALCHEMY_API_KEY = get({
   default: process.env.VLING_ALCHEMY_API_KEY
 });
 
+config.VLING_DEEPGRAM_API_KEY = get({
+  dev: null,
+  test: null,
+  prod: null,
+  default: process.env.VLING_DEEPGRAM_API_KEY
+});
+
 config.VLING_HELIUS_API_KEY = get({
   dev: null,
   test: null,
@@ -85,8 +92,22 @@ config.RG_API_BACKEND = get({
 });
 
 config.INDEX_MAX_ASSETS = get({
-  dev: 3,
+  dev: null,
   test: null,
   prod: null,
   default: null
+});
+
+config.VLING_MAIL_ADDRESS = get({
+  dev: null,
+  test: null,
+  prod: null,
+  default: process.env.VLING_MAIL_ADDRESS
+});
+
+config.VLING_MAIL_PASSWORD = get({
+  dev: null,
+  test: null,
+  prod: null,
+  default: process.env.VLING_MAIL_PASSWORD
 });

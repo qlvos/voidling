@@ -8,8 +8,9 @@ import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import { getPortfolioStats } from './chaindata.js';
 import { getRedisConnection } from './db/redismanager.js';
-import { whitelistWallet } from './db/postgresdbhandler.js';
+import { whitelistWallet, getFeedback } from './db/postgresdbhandler.js';
 import { callReaper } from './aimodel.js';
+import { checkAndTranscribeMails } from './mailservice.js';
 const router = express.Router();
 
 app.use(cors());
@@ -22,6 +23,7 @@ const checkConnectionInterval = pingInterval * 2;
 const maxPongWaitTime = 3000;
 const CACHE_UPDATE_FREQUENCY = 60000 * 10;
 const SLOW_CACHE_UPDATE_FREQUENCY = 60000 * 60 * 1; // 1 per hour
+const MAIL_CHECK_FREQUENCY = 60000 * 3;
 let cachedChainData = null;
 const VOIDLING_DATA = "vdata";
 
@@ -50,6 +52,11 @@ setInterval(async () => {
 }, CACHE_UPDATE_FREQUENCY);
 
 setInterval(async () => { cachedChainData = await getPortfolioStats(); }, SLOW_CACHE_UPDATE_FREQUENCY);
+
+setInterval(async () => {
+  logger.info("Checking for new mails...")
+  checkAndTranscribeMails();
+}, MAIL_CHECK_FREQUENCY);
 
 
 app.listen(config.VLINGSITE_REST_PORT, () => {
@@ -83,7 +90,7 @@ function startWebsocketServer() {
   const server = createServer();
   const wss = new WebSocketServer({ server });
 
-  wss.on('connection', (ws) => {
+  wss.on('connection', async (ws) => {
     logger.info("Connection attempt being made.");
     ws.isAlive = true
     ws.on('message', async (messageAsString) => {
@@ -100,7 +107,9 @@ function startWebsocketServer() {
       }
     });
 
-    ws.send(JSON.stringify({ action: VOIDLING_DATA, ...cachedChainData }));
+    let feedback = await getFeedback();
+
+    ws.send(JSON.stringify({ action: VOIDLING_DATA, ...cachedChainData, feedback: feedback}));
 
   });
 

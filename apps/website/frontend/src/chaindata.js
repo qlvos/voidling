@@ -20,15 +20,45 @@ const dexScreenerUrl = function (address) {
   return "https://dexscreener.com/solana/" + address;
 }
 
+let indexes = [];
 let indexAssets;
 let nomineeAssets;
+let feedback;
 
-export function getIndexAssets() {
-  return indexAssets;
+export function getIndexAssets(indexName) {
+  if(!indexName) {
+    return indexes[0].data;
+  }
+
+  for(const index of indexes) {
+    if(index.name == indexName) {
+      return index.data;
+    }
+  }
+}
+
+export function getIndex(indexName) {
+  if(!indexName) {
+    return indexes[0];
+  }
+
+  for(const index of indexes) {
+    if(index.name == indexName) {
+      return index;
+    }
+  }
+}
+
+export function getIndexes() {
+  return indexes;
 }
 
 export function getNomineeAssets() {
   return nomineeAssets;
+}
+
+export function getFeedback() {
+  return feedback;
 }
 
 export function connectWebSocket() {
@@ -49,8 +79,10 @@ export function connectWebSocket() {
             setTimeout(() => { forceCleanup(); }, emotionChangeTimeout)
           }
           setEmotion(msg.emotion);
-          indexAssets = msg.indexdata;
+          //indexAssets = msg.indexdata;
+          indexes = msg.indexdata;
           nomineeAssets = msg.nominees;
+          feedback = msg.feedback;
   
           if (msg.comment) {
             document.getElementById("voidlingcomment").innerHTML = msg.comment;           
@@ -64,14 +96,12 @@ export function connectWebSocket() {
           socket.send(JSON.stringify({ action: "pong" }));
         }
       } catch (err) {
-        console.log("wrong json data, could parse it");
         console.log(err)
       }
     };
 
     // Handle the close event
     socket.onclose = function (event) {
-      console.log('WebSocket connection closed:', event);
       // Clear the keepalive timer
       clearInterval(keepAliveTimer);
       // Attempt to reconnect

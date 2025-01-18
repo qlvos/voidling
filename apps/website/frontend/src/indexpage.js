@@ -69,6 +69,11 @@ function handleCanvasClick(event) {
     indexChart.showUnderlying = actions.activateTable
   }
 
+  if(indexChart.handleIndexSwitchClick(charX, charY)) {
+    drawChart();
+    return;
+  }
+
   if (indexChart.showUnderlying) {
     // Check for column header clicks first
     if (indexChart.handleColumnClick(charX, charY)) {
@@ -90,6 +95,10 @@ function handleCanvasClick(event) {
 
 export function toggleIndexHelp() {
   indexChart.toggleHelp();
+}
+
+export async function drawIndexPage() {
+  drawChart()
 }
 
 export async function initIndexPage() {
@@ -138,7 +147,7 @@ canvas.addEventListener('mousemove', (event) => {
 
   const charX = Math.floor(mouseX / dims.charWidth);
   const charY = Math.floor(mouseY / dims.charHeight);
-  let hover = indexChart.isHoveringColumn(charX, charY) || indexChart.isHoveringHelpLink(charX, charY);
+  let hover = indexChart.isHoveringColumn(charX, charY) || indexChart.isHoveringHelpLink(charX, charY) || indexChart.isHoveringIndexButton(charX, charY);
   canvas.style.cursor = hover ? 'pointer' : 'default';
 
 });

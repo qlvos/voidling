@@ -1,4 +1,4 @@
-import { initIndexPage, toggleIndexHelp, hideIndexHelp } from './indexpage.js';
+import { initIndexPage, toggleIndexHelp, hideIndexHelp, drawIndexPage } from './indexpage.js';
 import { initNomineesPage } from './nomineespage.js';
 import { initInfoPage } from './infopage.js';
 import { showTradingElements, hideTradingElements } from './main.js'
@@ -52,10 +52,10 @@ let showInfoPage = false;
 export let currentState = STATE_VOIDLING_PAGE; // the default choice
 
 export function borderClick(msg) {
+  msg.color = () => getStringColor(SELECTED_ELEMENT);
   if (msg.onclick == ABOUT_CLICK) {
     aboutClicked = !aboutClicked;
     !aboutClicked ? showTradingElements() : hideTradingElements();
-
   } else if (msg.onclick == INDEX_ABOUT_CLICK) {
     toggleIndexHelp();
   } else if (msg.onclick == VOIDLING_ONLY_CLICK) {
@@ -81,7 +81,7 @@ export function borderClick(msg) {
     
     // Force redraw based on current state
     if (currentState === STATE_INDEX_PAGE) {
-      initIndexPage();  // This will trigger redraw of index page
+      drawIndexPage();
     } else if (currentState === STATE_NOMINEES_PAGE) {
       initNomineesPage();  // This will trigger redraw of nominees page
     } else if (currentState === STATE_INFO_PAGE) {

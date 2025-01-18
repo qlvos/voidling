@@ -1,5 +1,5 @@
 import { calculateDimensions, getCharacterDimensions } from "./canvashelper.js";
-import { getIndexAssets } from "./chaindata.js";
+import { getIndexAssets, getIndexes, getIndex } from "./chaindata.js";
 
 const TIME_RANGE_HOURS = 168;
 const TIMESTAMP_INTERVAL_HOURS = 14;
@@ -36,12 +36,14 @@ class IndexChart {
     this.colorBuffer = new Array(width * height).fill(null);
     this.prices = new Map();
     this.marketCaps = new Map();
+    this.indexButtons = new Map();
     this.indexValues = [];
     this.minValue = 0;
     this.maxValue = 0;
     this.isLoading = false;
     this.lastUpdate = null;
     this.errorMessage = null;
+    this.selectedIndex = null;
 
     // Add these new properties for index summary
     this.latestTotalMarketCap = 0;
@@ -140,7 +142,7 @@ class IndexChart {
       y === this.downArrowPosition.y &&
       x >= this.downArrowPosition.x &&
       x < this.downArrowPosition.endX) {
-      const tokens = Object.values(getIndexAssets());
+      const tokens = Object.values(getIndexAssets(this.selectedIndex));
       if (this.topIndex + this.pageSize < tokens.length) {
         this.topIndex += this.pageSize;
         return true;
@@ -150,12 +152,28 @@ class IndexChart {
     return false;
   }
 
+  handleIndexSwitchClick(x, y) {
+    for(const [indexName, buttonValues] of this.indexButtons) {
+      if(buttonValues.startx <= x && buttonValues.endx >= x && y == buttonValues.y) {
+        this.selectedIndex = indexName;
+        this.updateAllPrices();
+        return true;
+      }
+    }
+  }
+
+  isHoveringIndexButton(x, y) {
+    for(const [indexName, buttonValues] of this.indexButtons) {
+      if(buttonValues.startx <= x && buttonValues.endx >= x && y == buttonValues.y) {
+        return true;
+      }
+    }
+  }
+
   handleColumnClick(x, y) {
-    console.log("column click! " + x + " " + y)
 
     if (!this.showUnderlying) return false;
 
-    // The headers are actually rendered at y=7, not TABLE_START_Y + 6
     const headerY = HEADER_Y;
 
     if (y !== headerY) return false;
@@ -163,9 +181,7 @@ class IndexChart {
     let currentX = 8;
 
     for (const column of this.columns) {
-      console.log(column)
       if (column.sortable && x >= currentX && x < currentX + column.width) {
-        console.log("yoo")
         if (this.currentSort === column.id) {
           this.sortAscending = !this.sortAscending;
         } else {
@@ -242,8 +258,8 @@ class IndexChart {
     }
   }
 
-  async updatePriceData(symbol) {
-    let indexAssets = getIndexAssets();
+  updatePriceData(symbol) {
+    let indexAssets = getIndexAssets(this.selectedIndex);
     const asset = Object.values(indexAssets).find(t => t.symbol === symbol);
     if (!asset) {
       throw new Error(`Asset ${symbol} not found in configuration`);
@@ -266,18 +282,15 @@ class IndexChart {
     return true;
   }
 
-  async updateAllPrices() {
-    if (this.isLoading) return;
-
-    this.isLoading = true;
+  updateAllPrices() {
+    this.prices.clear();
+    this.marketCaps.clear();
     this.errorMessage = null;
-
     try {
-      const tokens = Object.values(getIndexAssets()).map(t => t.symbol);
-      await Promise.all(tokens.map(sym => this.updatePriceData(sym)));
+      const tokens = Object.values(getIndexAssets(this.selectedIndex)).map(t => t.symbol);
+      tokens.map(sym => this.updatePriceData(sym));
       this.calculateIndex();
     } catch (error) {
-      console.log(error)
       this.errorMessage = `Failed to update prices: ${error.message}`;
     } finally {
       this.isLoading = false;
@@ -538,6 +551,12 @@ class IndexChart {
       }
     }
 
+    // draw index buttons
+    let headerY = plotStartY + HEADER_Y;
+    let indexButtonsY = this.getIndexButtonsY(headerY);
+    const headerX = this.getHeaderX(plotStartX);
+    this.drawIndexButtons(headerX, indexButtonsY);
+
     const timeLabelsY = dataStartY + dataHeight + this.timeLabelsConfig.bottomMargin + (window.isMobile ? 1 : 0);
     for (let hour = 0; hour <= timeIntervals; hour++) {
         // Skip first (0h) and last (168h) labels
@@ -698,7 +717,7 @@ class IndexChart {
       pct7d: !window.isMobile ? 9 : 8
     };
 
-    const headerX = plotStartX + (!window.isMobile ? 8 : 3);
+    const headerX = this.getHeaderX(plotStartX);
     let headerY = plotStartY + HEADER_Y;
 
     // Function to draw full-width horizontal grid line
@@ -723,8 +742,13 @@ class IndexChart {
     // Initial grid line above titles
     drawHorizontalGrid(headerY - 1);
 
+    // draw index buttons
+    let currentX = headerX;
+    let indexButtonsY = this.getIndexButtonsY(headerY);
+    this.drawIndexButtons(currentX, indexButtonsY);
+
     // Draw headers
-    let totalString = !window.isMobile ? `[TOTAL: ${Object.keys(getIndexAssets()).length}]` : '';
+    let totalString = !window.isMobile ? `[TOTAL: ${Object.keys(getIndexAssets(this.selectedIndex)).length}]` : '';
     const headers = [
       `${projectString} ${totalString}`.padEnd(colWidths.symbol),
       mcapString.padEnd(colWidths.marketCap),
@@ -737,7 +761,6 @@ class IndexChart {
     }
     headers.push("7D%".padEnd(colWidths.pct7d));
 
-    let currentX = headerX;
     headers.forEach(header => {
       this.drawText(header, currentX, headerY, this.getSchemeColor('table-title'));
       currentX += header.length + 1;
@@ -756,7 +779,7 @@ class IndexChart {
     currentX = headerX;
 
     // Symbol (orange)
-    this.drawText(indexString.padEnd(colWidths.symbol), currentX, headerY, this.colors.svtable);
+    this.drawText(getIndex(this.selectedIndex).name.padEnd(colWidths.symbol), currentX, headerY, this.colors.svtable);
     currentX += colWidths.symbol + 1;
 
     // Market Cap (darker orange)
@@ -869,8 +892,8 @@ class IndexChart {
     "$" + latestCap.toLocaleString('en-US', { maximumFractionDigits: 0 }) :
     (latestCap/1000000).toFixed(1) + "M"
 ) : "N/A";
-this.drawText(mcapString.padEnd(colWidths.marketCap),
-        currentX, headerY, this.getSchemeColor('darkOrange-title'));
+
+      this.drawText(mcapString.padEnd(colWidths.marketCap), currentX, headerY, this.getSchemeColor('darkOrange-title'));
       currentX += colWidths.marketCap + 1;
 
       // Price
@@ -926,7 +949,7 @@ this.drawText(mcapString.padEnd(colWidths.marketCap),
     }
 
     // Down arrow
-    if (this.topIndex + this.pageSize < Object.values(getIndexAssets()).length) {
+    if (this.topIndex + this.pageSize < Object.values(getIndexAssets(this.selectedIndex)).length) {
       const downArrowY = plotStartY + 8;
       const downText = !window.isMobile ? `▼ scroll down` : `▼ down`;
       this.drawText(downText, navigationX, downArrowY, this.colors.scroll);
@@ -937,6 +960,35 @@ this.drawText(mcapString.padEnd(colWidths.marketCap),
       };
     } else {
       this.downArrowPosition = null;
+    }
+  }
+
+  getIndexButtonsY(headerY) {
+    return headerY - 3;
+  }
+
+  getHeaderX(plotStartX) {
+    return plotStartX + (!window.isMobile ? 8 : 3);
+  }
+
+  drawIndexButtons(xPosition, indexButtonsY) {
+    let indexes = getIndexes();
+    let indexButtonString = '';
+    let selected = getIndex(this.selectedIndex);
+
+    for (let i = 0; i < indexes.length; i++) {
+      let index = indexes[i];
+      indexButtonString += index.name;
+
+      this.drawText(index.name, xPosition, indexButtonsY, this.getSchemeColor(index.name == selected.name ? 'darkOrange-title' : 'table-title'));
+      this.indexButtons.set(index.name, { startx: xPosition, endx: xPosition + index.name.length, y: indexButtonsY });
+      xPosition = xPosition + index.name.length;
+
+      if (i < indexes.length - 1) {
+        let separator = " | ";
+        this.drawText(separator, xPosition, indexButtonsY, this.getSchemeColor('table-title'));
+        xPosition += separator.length;
+      }
     }
   }
 
@@ -1081,9 +1133,9 @@ this.drawText(mcapString.padEnd(colWidths.marketCap),
   }
 
   sortTokens() {
-    if (!this.currentSort) return Object.values(getIndexAssets());
+    if (!this.currentSort) return Object.values(getIndexAssets(this.selectedIndex));
 
-    const tokens = Object.values(getIndexAssets());
+    const tokens = Object.values(getIndexAssets(this.selectedIndex));
     return tokens.filter(token => token.symbol !== indexString)
       .sort((a, b) => {
         let comparison = 0;

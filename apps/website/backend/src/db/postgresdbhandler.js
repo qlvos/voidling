@@ -1,6 +1,5 @@
 import { config } from './../config/config.js';
 import knex from 'knex'
-
 let connectionString = 'postgres://' + config.VLING_POSTGRES_CREDENTIALS + "@" + config.VLING_POSTGRES_URL + "/" + config.VLING_POSTGRES_DATABASE;
 
 const db = knex({
@@ -21,6 +20,16 @@ export async function addSell(buyid, profitloss, timestamp) {
 export async function getLastOpenTrade() {
   let res = await db.raw(`select b.* from "buys" b left join "sells" s on b.id = s.buyid where s.buyid is null order by s.timestamp desc limit 1`);
   return res && res.rows.length > 0 ? res.rows[0] : null;
+}
+
+export async function getFeedback() {
+  let res = await db.raw(`select f.* from "feedback" f order by f.timestamp desc`);
+  return res && res.rows.length > 0 ? res.rows : null;
+}
+
+export async function addFeedback(text) {
+  let timestamp = Date.now();
+  await db.raw(`INSERT INTO "feedback" ("timestamp", "content") VALUES (?, ?)`, [timestamp, text]);
 }
 
 export async function getWatchlist() {

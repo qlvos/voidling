@@ -11,8 +11,9 @@ const TOKEN_PRICE_URL = 'https://public-api.dextools.io/trial/v2/token/solana';
 const ALCHEMY_API_URL = `https://api.g.alchemy.com/prices/v1/${config.VLING_ALCHEMY_API_KEY}/tokens/historical`
 const HELIUS_API_URL = "https://mainnet.helius-rpc.com/?api-key=" + config.VLING_HELIUS_API_KEY;
 const API_CALL_WAIT = 3500;
-const ALCHEMY_API_CALL_WAIT = 300;
+const ALCHEMY_API_CALL_WAIT = 200;
 const MAIN_INDEX = "mainindex";
+const HOLO_INDEX = "holoworld";
 const NOMINEE_INDEX = "nominees";
 
 const walletAddress = '5KjM3kBNii6kuNaRWr8f74PguuQ44qpxS1RKw2YKERSM';
@@ -227,14 +228,31 @@ export async function getPortfolioStats() {
   let watchList = wList ? wList.map((asset) => { return { token: { name: asset.name, symbol: asset.symbol }, address: asset.address } }) : null;
 
 
-  let indexData = await getIndexStats(MAIN_INDEX, indexCache);
+  let indexes = [];
+  let mainIndexData = await getIndexStats(MAIN_INDEX, indexCache);
+  let holoIndexData = await getIndexStats(HOLO_INDEX, indexCache);
+
+  if(mainIndexData && mainIndexData.length > 0) {
+    indexes.push({
+      name: "S&V AI Index",
+      data: mainIndexData
+    })
+  }
+
+  if(holoIndexData && holoIndexData.length > 0) {
+    indexes.push({
+      name: "S&V Holoworld Index",
+      data: holoIndexData
+    })
+  }
+
   let nomineeData = await getIndexStats(NOMINEE_INDEX, nomineeCache);
 
   return {
     assets: assets,
     stats: normalized,
     watchlist: watchList,
-    indexdata: indexData,
+    indexdata: indexes,
     nominees: nomineeData,
     tradelog: tradeLog,
     ...emotion
