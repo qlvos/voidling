@@ -24,6 +24,7 @@ const maxPongWaitTime = 3000;
 const CACHE_UPDATE_FREQUENCY = 60000 * 10;
 const SLOW_CACHE_UPDATE_FREQUENCY = 60000 * 60 * 1; // 1 per hour
 const MAIL_CHECK_FREQUENCY = 60000 * 3;
+const checkMail = false;
 let cachedChainData = null;
 const VOIDLING_DATA = "vdata";
 
@@ -53,10 +54,13 @@ setInterval(async () => {
 
 setInterval(async () => { cachedChainData = await getPortfolioStats(); }, SLOW_CACHE_UPDATE_FREQUENCY);
 
-setInterval(async () => {
-  logger.info("Checking for new mails...")
-  checkAndTranscribeMails();
-}, MAIL_CHECK_FREQUENCY);
+if(checkMail) {
+  setInterval(async () => {
+    logger.info("Checking for new mails...")
+    checkAndTranscribeMails();
+  }, MAIL_CHECK_FREQUENCY);
+}
+
 
 
 app.listen(config.VLINGSITE_REST_PORT, () => {

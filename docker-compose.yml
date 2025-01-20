@@ -46,6 +46,7 @@ services:
       - postgres
     networks:
       - vling-network
+    restart: on-failure:5
 
   trader:
     build:
